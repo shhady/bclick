@@ -34,7 +34,7 @@ export default function AdminProfile() {
       
          <div className="text-center">
           <h2 className="text-3xl font-bold text-black">{totalUsers}</h2>
-          <p className="text-gray-600">סה"כ לקוחות</p>
+          <p className="text-gray-600">סה&quot;כ לקוחות</p>
         </div>
         
         <div className="w-12 h-12 bg-red-300 rounded-full"></div>
@@ -46,7 +46,7 @@ export default function AdminProfile() {
       <div className='flex justify-between items-center w-full'>
         <div className="text-center">
           <h2 className="text-3xl font-bold text-black">45</h2>
-          <p className="text-gray-600">סה"כ הזמנות</p>
+          <p className="text-gray-600">סה&quot;כ הזמנות</p>
         </div>
         <div className="w-12 h-12 bg-blue-300 rounded-full"></div>
       </div>
@@ -57,7 +57,7 @@ export default function AdminProfile() {
       <div className='flex justify-between items-center w-full'>
         <div className="text-center">
           <h2 className="text-3xl font-bold text-black">100</h2>
-          <p className="text-gray-600">מוצרים מוצרים</p>
+          <p className="text-gray-600"> מוצרים</p>
         </div>
         <div className="w-12 h-12 bg-green-300 rounded-full"></div>
       </div>

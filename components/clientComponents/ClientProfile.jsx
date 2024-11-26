@@ -84,7 +84,7 @@ export default function ClientProfile() {
                 <div>
                   <h2 className="text-lg font-bold text-black">{supplier.businessName}</h2>
                   <p className="text-gray-600">{supplier.name}</p>
-                  <p className="text-sm text-gray-500 mt-2">{supplier.ordersCount} ס"כ הזמנות</p>
+                  <p className="text-sm text-gray-500 mt-2">{supplier.ordersCount} ס&quot;כ הזמנות</p>
                 </div>
                 
               </Link>
