@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { useUserContext } from "@/app/context/UserContext";
 import { useToast } from "@/hooks/use-toast";
-import Header from "@/components/Catalog/Header";
-import FilterSection from "@/components/Catalog/FilterSection";
-import ProductList from "@/components/Catalog/ProductList";
-import EditProductPopup from "@/components/Catalog/EditProductPopup";
+import Header from "@/components/catalog/Header";
+import FilterSection from "@/components/catalog/FilterSection";
+import ProductList from "@/components/catalog/ProductList";
+import EditProductPopup from "@/components/catalog/EditProductPopup";
 
 export default function CatalogPage() {
   const { globalUser } = useUserContext();
