@@ -16,7 +16,7 @@ export default function UserDetailsPage() {
     const fetchUser = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/users/${userId}`);
+        const response = await fetch(`/api/related-users/users/${userId}`);
         if (response.ok) {
           const data = await response.json();
           setUserData(data);

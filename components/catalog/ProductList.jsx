@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 
 export default function ProductList({ products, onEdit }) {
+  console.log(products);
   return (
     <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-4 items-center pb-2 border-b-2 border-gray-500">

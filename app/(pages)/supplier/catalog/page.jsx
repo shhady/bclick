@@ -62,9 +62,9 @@ export default function CatalogPage() {
   };
 
   const handleUpdateProduct = async (updatedProduct) => {
-    if (updatedProduct.stock > 0) {
-      updatedProduct.status = "active";
-    }
+    if (updatedProduct.stock === 0) {
+      updatedProduct.status = "out_of_stock";
+    } 
 
     try {
       const response = await fetch("/api/products/edit-supplier-products", {

@@ -3,7 +3,6 @@ import User from '@/models/user';
 
 export async function GET() {
   await connectToDB();
-
   try {
     const totalUsers = await User.countDocuments(); // Count all users in the database
     return new Response(JSON.stringify({ totalUsers }), { status: 200 });

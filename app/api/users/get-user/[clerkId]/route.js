@@ -4,7 +4,7 @@ import User from '@/models/user';
 export async function GET(req, { params }) {
   try {
     // Log the params object for debugging
-    console.log("Params object:", params);
+    // console.log("Params object:", params);
 
     const { clerkId } = await params;
 
