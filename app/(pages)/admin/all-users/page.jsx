@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Loader from '@/components/Loader';
 import Link from 'next/link';
+
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -13,7 +14,7 @@ const AllUsers = () => {
   const [error, setError] = useState(null);
 
   // Fetch users with filtering and pagination
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null); // Reset error before fetching
 
@@ -33,11 +34,11 @@ const AllUsers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, filter]); // Include dependencies
 
   useEffect(() => {
     fetchUsers();
-  }, [page, filter]);
+  }, [fetchUsers]); // Call fetchUsers when dependencies change
 
   // Handle filter input
   const handleFilterChange = (e) => {
@@ -62,8 +63,8 @@ const AllUsers = () => {
 
       {/* Users Table or Error/Empty Message */}
       {loading ? (
-        <Loader/>
-) : error ? (
+        <Loader />
+      ) : error ? (
         <p className="text-center text-red-500">{error}</p>
       ) : users.length === 0 ? (
         <p className="text-center text-gray-500">No users found.</p>
@@ -85,9 +86,11 @@ const AllUsers = () => {
                   <td className="border px-4 py-2">{user.phone}</td>
                   <td className="border px-4 py-2">{user.role}</td>
                   <td className="border px-4 py-2">
-                 <Link href={`/admin/user-details/${user._id}`}>   <button className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600">
-                      הצג
-                    </button></Link>
+                    <Link href={`/admin/user-details/${user._id}`}>
+                      <button className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600">
+                        הצג
+                      </button>
+                    </Link>
                   </td>
                 </tr>
               ))}
