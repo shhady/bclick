@@ -7,13 +7,13 @@ function useFetchUsers(page, limit) {
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState(null);
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  // const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${baseUrl}/api/users/get-users?page=${page}&limit=${limit}`);
+        const response = await fetch(`/api/users/get-users?page=${page}&limit=${limit}`);
         if (response.ok) {
           const { users, totalPages } = await response.json();
           setData(users);
