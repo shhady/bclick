@@ -39,6 +39,9 @@ const userSchema = new Schema(
     profileImage:{
       type: String, required: false
     },
+    coverImage:{
+      type: String, required: false
+    },
     // Business details for suppliers and clients
   
       businessName: { type: String, required: false },
