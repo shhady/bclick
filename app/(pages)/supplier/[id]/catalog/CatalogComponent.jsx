@@ -19,6 +19,9 @@ export default function CatalogPage({sProducts, sCategories}) {
   const [editingProduct, setEditingProduct] = useState(null);
   const { toast } = useToast();
 
+  useEffect(()=>{
+    setLowStockNotification(products.some((product) => product.stock === 0));
+  },[products])
 //   useEffect(() => {
 //     if (!globalUser || !globalUser._id) return;
 
