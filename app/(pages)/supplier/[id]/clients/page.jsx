@@ -34,5 +34,5 @@ export default async function SupplierPage({ params }) {
     console.log(clients);
   return (
     <>
-    <Clients clients={clients}/></>
+    <Clients clients={clients} supplierId={id}/></>
   )}

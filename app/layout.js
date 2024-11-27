@@ -9,7 +9,13 @@ import {
 } from '@clerk/nextjs'
 import { UserProvider } from '@/app/context/UserContext';
 
-import Navbar from "@/components/navbar/Navbar";
+import { Rubik } from 'next/font/google';
+
+const rubik = Rubik({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'], // Specify the weights you intend to use
+  display: 'swap', // Optional: controls font-display behavior
+});
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -73,7 +79,7 @@ export default function RootLayout({ children }) {
     <ClerkProvider>
       <UserProvider>
     <html lang="en" dir="rtl">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      <body  className={rubik.className}
 > 
 {/* <Navbar/> */}
         {/* <SignedOut>
