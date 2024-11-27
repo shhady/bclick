@@ -11,6 +11,7 @@ export default function ClientDetailsPage() {
   const [status, setStatus] = useState('');
   const [message, setMessage] = useState('');
 
+  
   // Extract userId from the URL
   const userId = pathname.split('/').pop();
 

@@ -1,5 +1,5 @@
 // app/client/supplier/[id]/page.jsx
-import connectToDatabase from '@/lib/db';
+import { connectToDB } from '@/utils/database';
 import User from '@/models/user';
 import Product from '@/models/product';
 import Category from '@/models/category';

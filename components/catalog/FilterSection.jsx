@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 
 export default function FilterSection({
@@ -71,9 +72,10 @@ export default function FilterSection({
             </option>
           ))}
         </select>
-        <button className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 w-1/3 text-sm">
+        <Link href="/supplier/catalog/create-category" className="w-1/3"> 
+          <button className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-sm">
           צור קטגוריה
-        </button>
+        </button></Link>
       </div>
     </div>
   );

@@ -23,7 +23,7 @@ export default function ClientsPage() {
         if (response.ok) {
           const data = await response.json();
           setClients(data);
-          setFilteredClients(data.filter((client) => client.status === 'active')); // Set initial filtered clients
+          setFilteredClients(data.filter((client) => client.status === 'active')); // Apply filter
         } else {
           console.error("Failed to fetch clients");
         }
@@ -118,7 +118,7 @@ export default function ClientsPage() {
           <tbody>
             {filteredClients.map((client, i) => (
               <tr key={client.id} className="text-right">
-                <td className="p-3 border border-gray-300">{i+1}</td>
+                <td className="p-3 border border-gray-300">{client.clientNumber}</td>
                 <td className="p-3 border border-gray-300">{client.businessName}</td>
                 <td className="p-3 border border-gray-300">{client.ordersCount}</td>
                 {/* <td className="p-3 border border-gray-300">

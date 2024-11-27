@@ -19,7 +19,8 @@ export default function Page() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
-
+  const [clientNumber, setClientNumber] = useState('')
+  console.log(globalUser);
   // Fetch user data and set formData
   useEffect(() => {
     const fetchUserFromDB = async () => {
@@ -52,6 +53,7 @@ export default function Page() {
             role: user.publicMetadata.role || 'client',
             profileImage: user.imageUrl || '',
             phone: user.phoneNumbers[0]?.phoneNumber || '',
+            clientNumber:clientNumber,
             address: '',
             country: '',
             area: '',
@@ -68,7 +70,7 @@ export default function Page() {
     };
 
     fetchUserFromDB();
-  }, [isLoaded, user]);
+  }, [isLoaded, user, clientNumber]);
 
   const handleCreate = async () => {
     try {
@@ -80,9 +82,11 @@ export default function Page() {
 
       if (response.ok) {
         const result = await response.json();
+        console.log(result);
         setIsCreateModalOpen(false);
         setIsProfileComplete(true);
         setGlobalUser(result);
+        setClientNumber(result.clientNumber);
       }
     } catch (error) {
       console.error('Error saving data:', error);

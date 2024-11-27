@@ -14,11 +14,11 @@ const Navbar = () => {
       {/* Desktop Navigation */}
       <div className="hidden md:flex justify-between items-center px-8 py-4 bg-white shadow-lg">
         <div className="flex items-center space-x-4">
-          <Image src="/logo.png" alt="Logo" width={50} height={50} className="rounded-full" />
+          <Image src="/bclick-logo.jpg" alt="Logo" width={100} height={70} className="rounded-full" />
         </div>
         <div className="flex justify-center items-center gap-3">
         {(globalUser?.role === 'supplier') && (
-        <Link href="/supplier/catalog" className="text-gray-600 hover:text-blue-500">
+        <Link href={`/supplier/${globalUser._id}/catalog`} className="text-gray-600 hover:text-blue-500">
             קטלוג
           </Link>
           )}
@@ -33,7 +33,7 @@ const Navbar = () => {
   </Link>
 )}
         {(globalUser?.role === 'supplier') && (
-          <Link href="/supplier/all-clients" className="text-gray-600 hover:text-blue-500">
+          <Link href={`/supplier/${globalUser._id}/clients`} className="text-gray-600 hover:text-blue-500">
           לקוחות
         </Link>
             )}
@@ -55,7 +55,7 @@ const Navbar = () => {
       {/* Mobile Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 w-full bg-white shadow-lg flex justify-around items-center py-2 border-t border-gray-300">
       {(globalUser?.role === 'supplier') && (
-      <Link href="/supplier/catalog" className="flex flex-col items-center text-gray-600 hover:text-blue-500">
+      <Link href={`/supplier/${globalUser._id}/catalog`} className="flex flex-col items-center text-gray-600 hover:text-blue-500">
           <FaTags size={20} />
           <span className="text-xs mt-1">קטלוג</span>
         </Link>
@@ -71,7 +71,7 @@ const Navbar = () => {
           <span className="text-xs mt-1">עגלה</span>
           </Link>}
           {(globalUser?.role === 'supplier') && (
-  <Link href="/supplier/all-clients" className="flex flex-col items-center text-gray-600 hover:text-blue-500">
+  <Link href={`/supplier/${globalUser._id}/clients`} className="flex flex-col items-center text-gray-600 hover:text-blue-500">
     <FaList size={20} />
     <span className="text-xs mt-1">לקוחות</span>
   </Link>

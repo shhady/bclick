@@ -13,7 +13,7 @@ export default function CreateProduct() {
     name: '',
     description: '',
     categoryId: '',
-    stock: 0,
+    stock: "",
     price: '',
     imageUrl: {},
     status: 'active',

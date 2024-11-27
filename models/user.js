@@ -17,7 +17,11 @@ const userSchema = new Schema(
       enum: ['admin', 'supplier', 'client'],
       required: true,
     },
-
+    clientNumber: {
+      type: Number,
+      unique: true,
+      required: true,
+    },
     // Common fields
     name: {
       type: String,
