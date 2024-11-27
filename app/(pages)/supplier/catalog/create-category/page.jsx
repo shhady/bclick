@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUserContext } from '@/app/context/UserContext';
+import DeleteCategoryPopup from './DeleteCategoryPopup';
 
 export default function ManageCategories() {
   const { globalUser } = useUserContext();
@@ -10,7 +11,9 @@ export default function ManageCategories() {
   const [editCategory, setEditCategory] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState('');
   const [message, setMessage] = useState('');
-
+  const [openDeletePopup, setOpenDeletePopup] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectCatStatus, setSelectCatStatus] = useState('')
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
@@ -149,6 +152,7 @@ export default function ManageCategories() {
 
       if (response.ok) {
         setCategories((prev) => prev.filter((cat) => cat._id !== categoryId));
+        setOpenDeletePopup(false);
         setMessage('Category deleted successfully.');
       } else {
         setMessage('Failed to delete category.');
@@ -158,6 +162,11 @@ export default function ManageCategories() {
     }
   };
 
+  const setOpen = (cat)=>{
+    setOpenDeletePopup(true);
+    setSelectedCategory(cat._id);
+    setSelectCatStatus(cat.status)
+  }
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <h1 className="text-xl font-bold mb-4">צור קטגוריה חדשה</h1>
@@ -204,7 +213,7 @@ export default function ManageCategories() {
         ערוך שם
       </button>
       <button
-        onClick={() => handleDeleteCategory(category._id)}
+        onClick={() => setOpen(category)}
         className="px-4 py-2 w-1/3 border-2 border-gray-500 rounded text-sm"
       >
         מחק
@@ -240,7 +249,8 @@ export default function ManageCategories() {
           </div>
         </div>
       )}
-
+    {openDeletePopup &&
+       <DeleteCategoryPopup status={selectCatStatus} toggleCategoryStatus={toggleCategoryStatus} selectedCategory={selectedCategory} setOpenDeletePopup={setOpenDeletePopup} handleDeleteCategory={handleDeleteCategory}/>  }
       {/* Message Display */}
       {message && <p className="mt-4 text-red-500">{message}</p>}
     </div>
