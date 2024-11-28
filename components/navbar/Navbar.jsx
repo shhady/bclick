@@ -10,13 +10,11 @@ const Navbar = () => {
     const { globalUser, setGlobalUser, setError } = useUserContext();
     console.log(globalUser);
   return (
-    <div>
+    <div >
       {/* Desktop Navigation */}
-      <div className="hidden md:flex justify-between items-center px-8 py-4 bg-white shadow-lg">
-        <div className="flex items-center space-x-4">
-          <Image src="/bclick-logo.jpg" alt="Logo" width={100} height={70} className="rounded-full" />
-        </div>
-        <div className="flex justify-center items-center gap-3">
+      <div className="fixed top-0 w-full max-w-5xl hidden md:flex justify-between items-center px-8 py-4 bg-white shadow-lg">
+      <div></div>
+        <div className="flex justify-center items-center gap-5">
         {(globalUser?.role === 'supplier') && (
         <Link href={`/supplier/${globalUser._id}/catalog`} className="text-gray-600 hover:text-blue-500">
             קטלוג
@@ -49,6 +47,9 @@ const Navbar = () => {
           </Link>
           
          
+        </div>
+        <div className="flex items-center space-x-4">
+          <Image src="/bclick-logo.jpg" alt="Logo" width={100} height={70} className="rounded-full" />
         </div>
       </div>
 

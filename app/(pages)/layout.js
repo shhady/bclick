@@ -1,11 +1,15 @@
 import Navbar from "@/components/navbar/Navbar";
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
 
 export default function PagesLayout({ children }) {
   return (
-    <div className="mb-24">
-      <Navbar />
-      <main>{children}</main>
+    <div className="flex flex-col items-center">
+      <div className="w-full max-w-5xl">
+        <Navbar />
+      </div>
+      <main className="w-full max-w-5xl md:mt-20">
+        {children}
+      </main>
       <Toaster />
     </div>
   );

@@ -142,8 +142,12 @@ export default function CatalogPage({sProducts, sCategories}) {
   };
 
   return (
-    <div className="p-6">
-      <Header />
+    <div className="w-full">
+        <div className="w-full max-w-5xl mx-auto">
+
+        
+        <div className="sticky md:top-16 top-0 bg-white w-full px-6 pt-6 pb-1">
+        <Header />
       <FilterSection
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
@@ -152,10 +156,19 @@ export default function CatalogPage({sProducts, sCategories}) {
         lowStockNotification={lowStockNotification}
         categories={categories}
       />
+       <div className="grid grid-cols-4 gap-4 items-center pb-2 border-b-2 border-gray-500">
+                  <div className="text-center font-semibold"></div>
+                    <div className="text-center font-semibold">שם</div>
+                    <div className="text-center font-semibold">מלאי</div>
+                    <div className="text-center font-semibold">מחיר</div>
+                  </div>
+        </div>
+     
       <ProductList
         products={filteredProducts}
         onEdit={(product) => setEditingProduct(product)}
       />
+      </div>
       {editingProduct && (
         <EditProductPopup
           product={editingProduct}
