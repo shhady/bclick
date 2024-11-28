@@ -29,20 +29,18 @@ export default function CreateProduct() {
         console.log('globalUser is not ready:', globalUser);
         return;
       }
-
+  
       try {
         const response = await fetch(`/api/categories/get-categories?supplierId=${globalUser._id}`);
         if (response.ok) {
           const data = await response.json();
-          // Filter only shown categories
-          const shownCategories = data.filter((category) => category.status === 'shown');
-          setCategories(shownCategories);
+          setCategories(data); // No filtering here to include all categories
         }
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
     };
-
+  
     fetchCategories();
   }, [globalUser]);
 
@@ -122,7 +120,7 @@ export default function CreateProduct() {
     });
   }
   if (!globalUser || !globalUser._id) {
-    return <p><Loader/></p>; // Fallback while user is being loaded
+    return <div><Loader/></div>; // Fallback while user is being loaded
   }
 
   return (
@@ -136,18 +134,20 @@ export default function CreateProduct() {
           </Link>
       </div>
       <form>
-        <select
-          value={formData.categoryId}
-          onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-        >
-          <option value="">בחר קטגוריה (ברירת מחדל: כללי)</option>
-          {categories.map((category) => (
-            <option key={category._id} value={category._id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
+      <select
+  value={formData.categoryId}
+  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+  className="w-full p-2 border border-gray-300 rounded mb-4"
+>
+  {!formData.categoryId && <option value="">בחר קטגוריה (ברירת מחדל: כללי)</option>}
+  {categories
+    .filter((category) => category.name !== 'כללי') // Filter out "כללי" category
+    .map((category) => (
+      <option key={category._id} value={category._id}>
+        {category.name} {category.status === 'hidden' ? '(מוסתר)' : ''}
+      </option>
+    ))}
+</select>
         <input
           type="text"
           placeholder="שם מוצר"

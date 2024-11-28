@@ -60,18 +60,18 @@ export default function FilterSection({
 
       {/* Category Filter and Create Button */}
       <div className="flex items-center gap-2">
+        
         <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="border rounded-md px-4 py-2 w-2/3"
-        >
-          <option value="">קטגוריה</option>
-          {categories.map((category) => (
-            <option key={category._id} value={category._id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
+  value={selectedCategory}
+  onChange={(e) => setSelectedCategory(e.target.value)}
+  className="border rounded-md px-4 py-2 w-2/3"
+>          <option value="">כל המוצרים</option>
+  {categories.map((category) => (
+      <option key={category._id} value={category._id}>
+        {category.name} {category.status === 'hidden' ? '(מוסתר)' : ''}
+      </option>
+    ))}
+</select>
         <Link href="/supplier/catalog/create-category" className="w-1/3"> 
           <button className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-sm">
           צור קטגוריה

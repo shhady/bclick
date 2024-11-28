@@ -142,7 +142,7 @@ export default function CatalogPage({sProducts, sCategories}) {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full p-4 md:p-0">
         <div className="w-full max-w-5xl mx-auto">
 
         
