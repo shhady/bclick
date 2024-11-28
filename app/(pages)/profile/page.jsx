@@ -5,7 +5,7 @@ import { useUser } from '@clerk/nextjs';
 import CreateModal from '@/components/CreateModal';
 import UpdateModal from '@/components/UpdateModal';
 import Profile from '@/components/Profile';
-import Loader from '@/components/Loader';
+import Loader from '@/components/loader/Loader';
 import AdminProfile from '@/components/adminComponents/AdminProfile';
 import SupplierProfile from '@/components/supplierComponents/SupplierProfile';
 import ClientProfile from '@/components/clientComponents/ClientProfile';

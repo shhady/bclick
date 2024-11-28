@@ -5,6 +5,7 @@ import { useUserContext } from '@/app/context/UserContext';
 import Link from 'next/link';
 import PhotosUpload from '@/components/PhotosUpload';
 import { useToast } from '@/hooks/use-toast';
+import Loader from '@/components/loader/Loader';
 
 export default function CreateProduct() {
   const { globalUser } = useUserContext(); // Get the logged-in supplier
@@ -121,7 +122,7 @@ export default function CreateProduct() {
     });
   }
   if (!globalUser || !globalUser._id) {
-    return <p>Loading user information...</p>; // Fallback while user is being loaded
+    return <p><Loader/></p>; // Fallback while user is being loaded
   }
 
   return (

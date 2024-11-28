@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Loader from '@/components/Loader';
+import Loader from '@/components/loader/Loader';
 import Link from 'next/link';
 
 const AllUsers = () => {
