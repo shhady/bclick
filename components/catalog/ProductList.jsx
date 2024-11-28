@@ -6,7 +6,7 @@ export default function ProductList({ products, onEdit }) {
   return (
     <div className="space-y-4">
                   <div className="grid grid-cols-4 gap-4 items-center pb-2 border-b-2 border-gray-500">
-                  <div className="text-center font-semibold">תמונה</div>
+                  <div className="text-center font-semibold"></div>
                     <div className="text-center font-semibold">שם</div>
                     <div className="text-center font-semibold">מלאי</div>
                     <div className="text-center font-semibold">מחיר</div>
