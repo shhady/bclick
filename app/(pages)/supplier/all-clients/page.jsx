@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useUserContext } from "@/app/context/UserContext";
+import Loader from '@/components/loader/Loader';
 
 export default function ClientsPage() {
   const [clients, setClients] = useState([]);
@@ -60,7 +61,7 @@ export default function ClientsPage() {
     );
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div><Loader/></div>;
   if (error) return <div>Error: {error}</div>;
 
   return (

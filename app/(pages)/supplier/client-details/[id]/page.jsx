@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useUserContext } from '@/app/context/UserContext';
+import Loader from '@/components/loader/Loader';
 
 export default function ClientDetailsPage() {
   const pathname = usePathname();
@@ -11,7 +12,7 @@ export default function ClientDetailsPage() {
   const [status, setStatus] = useState('');
   const [message, setMessage] = useState('');
 
-  
+
   // Extract userId from the URL
   const userId = pathname.split('/').pop();
 
@@ -84,7 +85,7 @@ export default function ClientDetailsPage() {
   };
 
   if (!clientData) {
-    return <div>Loading...</div>;
+    return <div><Loader/></div>;
   }
 
   return (
