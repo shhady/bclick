@@ -22,7 +22,7 @@ export default function ProductList({ products, onEdit }) {
           height={1000}
           src={product.imageUrl?.secure_url || "/path/to/default-image.png"}
           alt={product.name}
-          className="w-full h-full max-h-60 max-w-60 object-cover"
+          className="w-full h-full max-h-[100px] max-w-[100px] md:max-h-48 md:max-w-48 object-contain"
         />
       </div>
 
