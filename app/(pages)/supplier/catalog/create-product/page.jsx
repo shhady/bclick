@@ -16,6 +16,8 @@ export default function CreateProduct() {
     categoryId: '',
     stock: "",
     price: '',
+    units:'',
+    weight:'',
     imageUrl: {},
     status: 'active',
   });
@@ -90,6 +92,8 @@ export default function CreateProduct() {
           categoryId: '',
           stock: 0,
           price: '',
+          units:'',
+          weight:'',
           imageUrl: '',
           status: 'active',
         });
@@ -115,6 +119,8 @@ export default function CreateProduct() {
       categoryId: '',
       stock: 0,
       price: '',
+      units:'',
+      weight:'',
       imageUrl: '',
       status: 'active',
     });
@@ -124,7 +130,7 @@ export default function CreateProduct() {
   }
 
   return (
-    <div className="p-6 max-w-md mx-auto">
+    <div className="p-6 mb-16 md:mb-0 max-w-md mx-auto">
       <div className='flex justify-between items-center mb-8'>
       <h1 className="text-xl font-bold">צור מוצר חדש</h1>
       <Link href={'/supplier/catalog/create-category'} className='w-1/3'>
@@ -156,11 +162,25 @@ export default function CreateProduct() {
           className="w-full p-2 border border-gray-300 rounded mb-4"
           required
         />
-        <input
+        <textarea
           type="text"
           placeholder="תיאור מוצר"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className="w-full p-2 border border-gray-300 rounded mb-4"
+        />
+         <input
+          type="text"
+          placeholder="יחידות במוצר"
+          value={formData.units}
+          onChange={(e) => setFormData({ ...formData, units: e.target.value })}
+          className="w-full p-2 border border-gray-300 rounded mb-4"
+        />
+         <input
+          type="text"
+          placeholder="משקל מוצר"
+          value={formData.weight}
+          onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
           className="w-full p-2 border border-gray-300 rounded mb-4"
         />
         <input
