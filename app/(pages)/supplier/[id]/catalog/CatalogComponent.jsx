@@ -147,7 +147,7 @@ export default function CatalogPage({sProducts, sCategories}) {
         <div className="w-full max-w-5xl mx-auto">
 
         
-        <div className="sticky md:top-16 top-0 bg-[#f8f8ff] w-full px-2 pt-6 pb-1">
+        <div className="sticky md:top-16 top-0 bg-[#f8f8ff] w-full px-1 pt-6 pb-1">
         <Header />
       <FilterSection
         selectedCategory={selectedCategory}
