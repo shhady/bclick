@@ -8,7 +8,12 @@ export default function AddClientPage() {
   const [client, setClient] = useState(null);
   const [message, setMessage] = useState('');
 
-  const { globalUser } = useUserContext(); // Get the globalUser from the context
+  const { globalUser, setGlobalUser } = useUserContext(); // Get the globalUser from the context
+
+  // Function to check if the client already exists in relatedUsers
+  const isClientExisting = (clientId) => {
+    return globalUser?.relatedUsers?.some((relatedUser) => relatedUser.user.toString() === clientId);
+  };
 
   const handleSearch = async () => {
     if (!searchInput.trim()) {
@@ -49,6 +54,13 @@ export default function AddClientPage() {
 
       if (response.ok) {
         const data = await response.json();
+        setGlobalUser((prev) => ({
+          ...prev,
+          relatedUsers: [
+            ...prev.relatedUsers,
+            { user: client._id, status: 'active' }, // Add the new client with active status
+          ],
+        }));
         setMessage('Client successfully added as active!');
         setClient(null);
         setSearchInput('');
@@ -64,13 +76,13 @@ export default function AddClientPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-semibold mb-4">Search and Add Client</h1>
+      <h1 className="text-xl font-semibold mb-4">תחפש לקוח</h1>
 
       {/* Search Input */}
       <div className="flex-col items-center space-x-4 mb-6">
         <input
           type="text"
-          placeholder="Search by name, business name, email, or phone"
+          placeholder="תחפש לפי שם, שם עסק, אימייל, מספר טלפון"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           className="border rounded-md px-4 py-2 w-full mb-4"
@@ -79,7 +91,7 @@ export default function AddClientPage() {
           onClick={handleSearch}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 w-full"
         >
-          Find Client
+          מצא לקוח
         </button>
       </div>
 
@@ -87,17 +99,21 @@ export default function AddClientPage() {
       {message && <p className="text-red-500 mb-4">{message}</p>}
       {client && (
         <div className="p-4 border rounded-lg shadow-lg bg-white mb-6">
-          <h2 className="text-lg font-semibold mb-2">Client Details</h2>
-          <p><strong>Name:</strong> {client.name}</p>
-          <p><strong>Business Name:</strong> {client.businessName}</p>
-          <p><strong>Email:</strong> {client.email}</p>
-          <p><strong>Phone:</strong> {client.phone}</p>
-          <button
-            onClick={handleAddClient}
-            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 mt-4"
-          >
-            Add Client
-          </button>
+          <h2 className="text-lg font-semibold mb-2">פרטי לקוח</h2>
+          <p><strong>שם:</strong> {client.name}</p>
+          <p><strong>שם עסק:</strong> {client.businessName}</p>
+          <p><strong>אימייל:</strong> {client.email}</p>
+          <p><strong>טלפון:</strong> {client.phone}</p>
+          {isClientExisting(client._id) ? (
+            <p className="text-green-600 font-semibold mt-4">לקוח קיים</p>
+          ) : (
+            <button
+              onClick={handleAddClient}
+              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 mt-4"
+            >
+              הוסף לקוח
+            </button>
+          )}
         </div>
       )}
     </div>

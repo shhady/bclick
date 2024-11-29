@@ -3,11 +3,16 @@
 import React, { useState } from 'react';
 import { Trash2 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { useUserContext } from '@/app/context/UserContext';
 
 export default function ClientCard({ client, supplierId }) {
   const [status, setStatus] = useState(client.status);
   const [message, setMessage] = useState('');
   const { toast } = useToast();
+  const router = useRouter()
+    const [openDeletePopup, setOpenDeletePopup] = useState(false);
+    const { globalUser, setGlobalUser } = useUserContext(); // Get the globalUser from the context
 
   const toggleStatus = async () => {
     try {
@@ -27,7 +32,7 @@ export default function ClientCard({ client, supplierId }) {
         setStatus(newStatus);
         toast({
             title: "לקוח סטטוס עודכן",
-            description: (`${newStatus === "active" ? "  לקוח סטטוס פעיל":"  לקוח סטטוס לא לפעיל" }`),
+            description: (`${newStatus === "active" ? "  לקוח סטטוס פעיל":"  לקוח סטטוס ללא פעיל" }`),
             variant: 'default',
           });
         // setMessage(`Status updated to ${newStatus}.`);
@@ -40,6 +45,7 @@ export default function ClientCard({ client, supplierId }) {
       setMessage('An error occurred while updating status.');
     }
   };
+  
   const handleRemove = async () => {
     try {
       const response = await fetch('/api/suppliers/remove-related-user', {
@@ -50,10 +56,23 @@ export default function ClientCard({ client, supplierId }) {
           clientId: client.id,
         }),
       });
-  
+
       if (response.ok) {
         setMessage('Client removed successfully.');
-        // onRemove(client.id); // Notify parent to update UI
+        setOpenDeletePopup(false);
+        setGlobalUser((prev) => {
+            if (!prev) return prev; // Ensure globalUser exists
+            const updatedRelatedUsers = prev.relatedUsers.filter(
+              (relatedUser) => relatedUser.user !== client.id
+            );
+            return { ...prev, relatedUsers: updatedRelatedUsers };
+          });
+        toast({
+            title: (`עדכון רשימת לקוחות`),
+            description: 'הלקוח נמחק מהרשימה שלך',
+            variant: 'default',
+          });
+        router.push(`/supplier/${supplierId}/clients`); // Use router.push for navigation
       } else {
         const error = await response.json();
         setMessage(error.error || 'Failed to remove client.');
@@ -81,7 +100,8 @@ export default function ClientCard({ client, supplierId }) {
         {status === 'active' ? 'תהפוך ללא פעיל' : 'תהפוך לפעיל'}
       </button>
       <button
-          onClick={handleRemove}
+      
+          onClick={()=>setOpenDeletePopup(true)}
           className="px-4 py-2  hover:bg-gray-600 text-black rounded-lg"
         >
           <Trash2 />
@@ -113,6 +133,16 @@ export default function ClientCard({ client, supplierId }) {
         סטטוס: {status === "active" ? "פעיל" : "לא פעיל"}
       </p>
       </div>
+      {openDeletePopup && <div className="z-50 fixed w-full min-h-screen flex justify-center items-center  inset-0 bg-black bg-opacity-50 ">
+      <div className="bg-white p-8 rounded-xl">
+        <div>{client.name}</div>
+              <div>בטוח רוצה למחוק ? </div>
+               <div className="w-full flex justify-between items-center mt-8 gap-8">
+                <button className="bg-red-500 px-4 py-2 rounded-lg text-white" onClick={handleRemove}>מחק</button>
+                <button className="bg-gray-500 px-4 py-2 rounded-lg text-white" onClick={()=>setOpenDeletePopup(false)}>ביטול</button>
+                </div>
+                </div> 
+       </div>}
       {/* {message && <p className="text-red-500 mt-4">{message}</p>} */}
     </div>
   );

@@ -103,11 +103,11 @@ export default function Clients({ clients,supplierId }) {
         </div>
       </div>
       {/* Clients Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto mb-16 md:mb-0">
        
         {filteredClients.map((client,i) => (
 
-             <div className='grid grid-cols-4 border-b-2 border-[#D9D9D9] items-center p-2 mb-16 md:mb-0' key={i}>
+             <div className='grid grid-cols-4 border-b-2 border-[#D9D9D9] items-center p-2 ' key={i}>
             <div className="text-start">{client.clientNumber}</div>
             <div className="text-center">{client.businessName}</div>
             <div className="text-center">{client.ordersCount}</div>
