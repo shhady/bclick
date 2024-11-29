@@ -34,8 +34,8 @@ export default function Clients({ clients,supplierId }) {
     });
 
   return (
-    <div className="p-4 md:p-0">
-        <div className="sticky md:top-16 top-0 bg-[#f8f8ff] w-full md:px-3 pt-6 pb-1">
+    <div className="px-4 md:p-0">
+        <div className="sticky md:top-20 top-0 bg-[#f8f8ff] w-full md:px-3 pt-6 pb-1">
           <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">לקוחות</h2>
        <Link href='/supplier/add-client'> <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
@@ -103,7 +103,7 @@ export default function Clients({ clients,supplierId }) {
         </div>
       </div>
       {/* Clients Table */}
-      <div className="overflow-x-auto mb-16 md:mb-0">
+      <div className="overflow-x-auto mb-16 md:mb-4">
        
         {filteredClients.map((client,i) => (
 

@@ -4,7 +4,7 @@ import Image from "next/image";
 export default function ProductList({ products, onEdit }) {
   console.log(products);
   return (
-    <div className="space-y-4 px-1 mb-16 md:mb-0">
+    <div className="space-y-4 px-1 mb-16 md:mb-4">
                   {/* <div className=" grid-cols-4 gap-4 items-center pb-2 border-b-2 border-gray-500 hidden md:grid"> */}
                   {/* <div className="text-center font-semibold"></div>
                     <div className="text-center font-semibold">שם</div>
@@ -22,7 +22,7 @@ export default function ProductList({ products, onEdit }) {
           height={1000}
           src={product.imageUrl?.secure_url || "/path/to/default-image.png"}
           alt={product.name}
-          className="w-full h-full max-h-[100px] max-w-[100px] md:max-h-48 md:max-w-48 object-contain"
+          className="w-full h-full max-h-[100px] max-w-[100px] min-h-[100px] min-w-[100px] md:max-h-48 md:max-w-48 md:min-h-48 md:min-w-48 object-contain"
         />
       </div>
 
@@ -38,7 +38,7 @@ export default function ProductList({ products, onEdit }) {
       {/* Button (2 Columns, Below Stock and Price) */}
       <button
         onClick={() => onEdit(product)}
-        className="col-span-2 col-start-5 mt-2 bg-gray-300 text-gray-500 px-4 py-2 rounded-md hover:bg-blue-600"
+        className="col-span-2 col-start-5 mt-2 bg-gray-300 text-gray-500 text-sm  self-end px-4 py-2 rounded-md hover:bg-blue-600"
       >
         עריכה
       </button>
