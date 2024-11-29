@@ -35,7 +35,7 @@ export default function Clients({ clients,supplierId }) {
 
   return (
     <div className="p-4 md:p-0">
-        <div className="sticky md:top-16 top-0 bg-[#f8f8ff] w-full px-4 pt-6 pb-1">
+        <div className="sticky md:top-16 top-0 bg-[#f8f8ff] w-full md:px-3 pt-6 pb-1">
           <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">לקוחות</h2>
        <Link href='/supplier/add-client'> <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
@@ -95,7 +95,7 @@ export default function Clients({ clients,supplierId }) {
         </button> */}
        
       </div>
-      <div className='grid grid-cols-4 pt-4 pb-2 border-b-2 border-gray-700 px-2 '>
+      <div className='grid grid-cols-4 pt-4 pb-2 border-b-2 border-gray-700  '>
         <div className="text-start">מספר לקוח</div>
         <div className="text-center">עסק</div>
         <div className="text-center">מספר הזמנות</div>
@@ -107,7 +107,7 @@ export default function Clients({ clients,supplierId }) {
        
         {filteredClients.map((client,i) => (
 
-             <div className='grid grid-cols-4 border-b-2 border-[#D9D9D9] items-center p-2 ' key={i}>
+             <div className='grid grid-cols-4 border-b-2 border-[#D9D9D9] items-center p-2 px-2 md:px-3' key={i}>
             <div className="text-start">{client.clientNumber}</div>
             <div className="text-center">{client.businessName}</div>
             <div className="text-center">{client.ordersCount}</div>
