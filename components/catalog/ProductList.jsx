@@ -38,7 +38,7 @@ export default function ProductList({ products, onEdit }) {
       {/* Button (2 Columns, Below Stock and Price) */}
       <button
         onClick={() => onEdit(product)}
-        className="col-span-2 col-start-4 mt-2 bg-gray-300 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+        className="col-span-2 col-start-4 mt-2 bg-gray-300 text-gray-500 px-4 py-2 rounded-md hover:bg-blue-600"
       >
         עריכה
       </button>
