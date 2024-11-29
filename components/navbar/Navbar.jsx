@@ -12,7 +12,7 @@ const Navbar = () => {
   return (
     <div >
       {/* Desktop Navigation */}
-      <div className="fixed top-0 w-full max-w-5xl hidden md:flex justify-between items-center px-8 py-4 bg-white shadow-lg">
+      <div className="fixed top-0 w-full hidden md:flex justify-between items-center px-8 py-4 bg-white shadow-lg">
       <div></div>
         <div className="flex justify-center items-center gap-5">
         {(globalUser?.role === 'supplier') && (

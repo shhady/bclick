@@ -78,8 +78,8 @@ export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
       <UserProvider>
-    <html lang="en" dir="rtl">
-      <body  className={rubik.className}
+    <html lang="en" dir="rtl" className="bg-[#f8f8ff]">
+      <body  className={`${rubik.className} bg-[#f8f8ff]`}
 > 
 {/* <Navbar/> */}
         {/* <SignedOut>

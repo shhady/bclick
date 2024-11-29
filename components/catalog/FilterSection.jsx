@@ -64,7 +64,7 @@ export default function FilterSection({
         <select
   value={selectedCategory}
   onChange={(e) => setSelectedCategory(e.target.value)}
-  className="border rounded-md px-4 py-2 w-2/3"
+  className="border rounded-md px-4 py-2 w-2/3 "
 >          <option value="">כל המוצרים</option>
   {categories.map((category) => (
       <option key={category._id} value={category._id}>
