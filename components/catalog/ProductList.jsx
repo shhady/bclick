@@ -4,7 +4,7 @@ import Image from "next/image";
 export default function ProductList({ products, onEdit }) {
   console.log(products);
   return (
-    <div className="space-y-4 px-4 mb-16 md:mb-0">
+    <div className="space-y-4 px-2 mb-16 md:mb-0">
                   {/* <div className=" grid-cols-4 gap-4 items-center pb-2 border-b-2 border-gray-500 hidden md:grid"> */}
                   {/* <div className="text-center font-semibold"></div>
                     <div className="text-center font-semibold">שם</div>
