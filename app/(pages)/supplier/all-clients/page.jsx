@@ -69,7 +69,7 @@ export default function ClientsPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">לקוחות</h2>
-       <Link href='/supplier/add-client'> <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+       <Link href='/supplier/add-client'> <button className="bg-customBlue text-white px-4 py-2 rounded-lg hover:bg-blue-600">
           הוסף לקוח +
         </button>
         </Link>
@@ -87,7 +87,7 @@ export default function ClientsPage() {
         <div className="flex gap-4">
           <button
             className={`flex-1 px-4 py-2 rounded-md ${
-              statusFilter === 'active' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+              statusFilter === 'active' ? 'bg-customBlue text-white' : 'bg-gray-200 text-gray-700'
             }`}
             onClick={() => handleStatusChange('active')}
           >
@@ -95,7 +95,7 @@ export default function ClientsPage() {
           </button>
           <button
             className={`flex-1 px-4 py-2 rounded-md ${
-              statusFilter === 'inactive' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+              statusFilter === 'inactive' ? 'bg-customBlue text-white' : 'bg-gray-200 text-gray-700'
             }`}
             onClick={() => handleStatusChange('inactive')}
           >
@@ -128,7 +128,7 @@ export default function ClientsPage() {
                 <td className="p-3 border border-gray-300">
                   <Link
                     href={`/supplier/client-details/${client.id}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-customBlue hover:underline"
                   >
                     הצג
                   </Link>

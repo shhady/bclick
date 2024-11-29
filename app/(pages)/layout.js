@@ -7,7 +7,7 @@ export default function PagesLayout({ children }) {
       <div className="w-full">
         <Navbar />
       </div>
-      <main className="w-full max-w-5xl md:mt-20 bg-[#f8f8ff] min-h-screen">
+      <main className="w-full max-w-5xl md:pt-20 bg-[#f8f8ff] min-h-screen">
         {children}
       </main>
       <Toaster />

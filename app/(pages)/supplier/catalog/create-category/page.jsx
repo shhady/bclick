@@ -182,7 +182,7 @@ export default function ManageCategories() {
         />
         <button
           onClick={handleCreateCategory}
-          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded w-full"
+          className="mt-2 px-4 py-2 bg-customBlue text-white rounded w-full"
         >
           צור קטגוריה
         </button>
@@ -235,7 +235,7 @@ export default function ManageCategories() {
             <div className="flex justify-between">
               <button
                 onClick={handleEditCategory}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
+                className="px-4 py-2 bg-customBlue text-white rounded"
               >
                 Submit
               </button>

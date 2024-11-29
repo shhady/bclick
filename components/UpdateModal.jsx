@@ -55,7 +55,7 @@ export default function UpdateModal({ formData, setFormData, onSubmit, isOpen, s
                 onChange={handleChange}
                 className={`border ${
                   errors[field.name] ? 'border-red-500' : 'border-gray-300'
-                } rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                } rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-customBlue`}
                 placeholder={field.placeholder || ''}
               />
               {errors[field.name] && (
@@ -73,7 +73,7 @@ export default function UpdateModal({ formData, setFormData, onSubmit, isOpen, s
             </button>
             <button
               type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              className="bg-customBlue text-white px-4 py-2 rounded-md hover:bg-blue-600"
             >
               עדכן
             </button>

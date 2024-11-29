@@ -131,7 +131,7 @@ export default function CreateProduct() {
 
   return (
     <div className="p-6 mb-16 md:mb-0 max-w-md mx-auto">
-      <div className='flex justify-between items-center mb-8'>
+      <div className='flex justify-between items-center mb-8 md:mb-4'>
       <h1 className="text-xl font-bold">צור מוצר חדש</h1>
       <Link href={'/supplier/catalog/create-category'} className='w-1/3'>
           <button className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 w-full text-sm">
@@ -212,7 +212,7 @@ export default function CreateProduct() {
         <button
           type="submit"
           onClick={(e) => handleSubmit(e)} // Save as active product
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+          className="w-full bg-customBlue text-white p-2 rounded hover:bg-blue-600"
         >
           צור מוצר
         </button>

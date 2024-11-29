@@ -162,9 +162,9 @@ export default function AllUsers() {
           </table>
         </div>
         <div className="flex justify-between mt-4">
-          <button onClick={handlePreviousPage} disabled={page === 1} className="bg-blue-500 text-white py-2 px-4 rounded disabled:opacity-50">السابق</button>
+          <button onClick={handlePreviousPage} disabled={page === 1} className="bg-customBlue text-white py-2 px-4 rounded disabled:opacity-50">السابق</button>
           <span>صفحه {page} من {totalPages}</span>
-          <button onClick={handleNextPage} disabled={page === totalPages} className="bg-blue-500 text-white py-2 px-4 rounded disabled:opacity-50">التالي</button>
+          <button onClick={handleNextPage} disabled={page === totalPages} className="bg-customBlue text-white py-2 px-4 rounded disabled:opacity-50">التالي</button>
         </div>
       </div>
     </div>

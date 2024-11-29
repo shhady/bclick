@@ -17,7 +17,7 @@ export default function FilterSection({
           onClick={() => handleStatusChange("active")}
           className={`px-2 py-2 rounded-md text-sm ${
             selectedStatus === "active"
-              ? "bg-blue-500 text-white"
+              ? "bg-customBlue text-white"
               : "bg-gray-300 text-gray-700 hover:bg-gray-400"
           }`}
         >
@@ -27,7 +27,7 @@ export default function FilterSection({
           onClick={() => handleStatusChange("draft")}
           className={`px-2 py-2 rounded-md text-sm ${
             selectedStatus === "draft"
-              ? "bg-blue-500 text-white"
+              ? "bg-customBlue text-white"
               : "bg-gray-300 text-gray-700 hover:bg-gray-400"
           }`}
         >
@@ -37,7 +37,7 @@ export default function FilterSection({
           onClick={() => handleStatusChange("low_stock")}
           className={`relative px-2 py-2 rounded-md text-sm ${
             selectedStatus === "low_stock"
-              ? "bg-blue-500 text-white"
+              ? "bg-customBlue text-white"
               : "bg-gray-300 text-gray-700 hover:bg-gray-400"
           }`}
         >
@@ -50,7 +50,7 @@ export default function FilterSection({
           onClick={() => handleStatusChange("hidden")}
           className={`px-2 py-2 rounded-md text-sm ${
             selectedStatus === "hidden"
-              ? "bg-blue-500 text-white"
+              ? "bg-customBlue text-white"
               : "bg-gray-300 text-gray-700 hover:bg-gray-400"
           }`}
         >

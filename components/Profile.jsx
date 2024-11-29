@@ -15,7 +15,7 @@ export default function Profile({ formData, onEdit }) {
           height={80}
         />
         <div>
-          <h1 className="text-2xl font-semibold">{formData.name || 'משתמש'}</h1>
+          <h1 className="text-2xl font-semibold">{formData.businessName || 'משתמש'}</h1>
           <p>{formData.email}</p>
           <p>{formData.phone || 'טלפון לא הוזן'}</p>
         </div>
@@ -23,7 +23,7 @@ export default function Profile({ formData, onEdit }) {
       <div className="flex items-center justify-between">
       <button
         onClick={onEdit}
-        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+        className="mt-4 bg-customBlue text-white px-4 py-2 rounded-md hover:bg-blue-600"
       >
         עדכן פרטים
       </button>

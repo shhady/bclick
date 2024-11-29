@@ -10,6 +10,8 @@ export const theme = {
       border: "#e5e7eb", // Light gray for borders
       background: "#ffffff", // Ensure background is white
       foreground: "#000000", // Ensure text is black
+      customBlue: '#3997D3',
+
     },
   },
 };

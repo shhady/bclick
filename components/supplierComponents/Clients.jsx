@@ -38,7 +38,7 @@ export default function Clients({ clients,supplierId }) {
         <div className="sticky md:top-20 top-0 bg-[#f8f8ff] w-full md:px-3 pt-6 pb-1">
           <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">לקוחות</h2>
-       <Link href='/supplier/add-client'> <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+       <Link href='/supplier/add-client'> <button className="bg-customBlue text-white px-4 py-2 rounded-lg hover:bg-blue-600">
           הוסף לקוח +
         </button>
         </Link>
@@ -62,7 +62,7 @@ export default function Clients({ clients,supplierId }) {
             onClick={() => setStatusFilter('active')}
             className={`px-4 py-2 rounded-md w-full ${
               statusFilter === 'active'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-customBlue text-white'
                 : 'bg-gray-200 text-gray-700'
             }`}
           >
@@ -72,7 +72,7 @@ export default function Clients({ clients,supplierId }) {
             onClick={() => setStatusFilter('inactive')}
             className={`px-4 py-2 rounded-md w-full ${
               statusFilter === 'inactive'
-                ? 'bg-blue-500 text-white'
+                ? 'bg-customBlue text-white'
                 : 'bg-gray-200 text-gray-700'
             }`}
           >
@@ -141,7 +141,7 @@ export default function Clients({ clients,supplierId }) {
                 <td className="p-3 border border-gray-300">{client.ordersCount}</td>
                 <Link
                     href={`/supplier/client-details/${client.id}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-customBlue hover:underline"
                   >  <td className="p-3 border border-gray-300">
                 
                     הצג

@@ -1,16 +1,11 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function ProductList({ products, onEdit }) {
   console.log(products);
   return (
-    <div className="space-y-4 px-1 mb-16 md:mb-4">
-                  {/* <div className=" grid-cols-4 gap-4 items-center pb-2 border-b-2 border-gray-500 hidden md:grid"> */}
-                  {/* <div className="text-center font-semibold"></div>
-                    <div className="text-center font-semibold">שם</div>
-                    <div className="text-center font-semibold">מלאי</div>
-                    <div className="text-center font-semibold">מחיר</div> */}
-                  {/* </div> */}
+    <div className="space-y-6 px-1 mb-16 md:mb-4">
                   {products.map((product) => (
   <div key={product._id} className="bg-white shadow-md rounded-lg p-2">
     {/* Grid Container */}
@@ -36,12 +31,13 @@ export default function ProductList({ products, onEdit }) {
       <div className="text-center">₪{product.price.toLocaleString()}</div>
 
       {/* Button (2 Columns, Below Stock and Price) */}
+      <Link href={`/supplier/update-product/${product._id}`} className="col-span-2 col-start-5  self-end">
       <button
-        onClick={() => onEdit(product)}
-        className="col-span-2 col-start-5 mt-2 bg-gray-300 text-gray-500 text-sm  self-end px-4 py-2 rounded-md hover:bg-blue-600"
+        // onClick={() => onEdit(product)}
+        className=" mt-2 bg-gray-300 text-gray-500 text-sm w-full px-4 py-2 rounded-md hover:bg-customBlue hover:text-white"
       >
         עריכה
-      </button>
+      </button></Link>
     </div>
   </div>
 ))}

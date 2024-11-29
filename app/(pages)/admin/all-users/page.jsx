@@ -87,7 +87,7 @@ const AllUsers = () => {
                   <td className="border px-4 py-2">{user.role}</td>
                   <td className="border px-4 py-2">
                     <Link href={`/admin/user-details/${user._id}`}>
-                      <button className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600">
+                      <button className="bg-customBlue text-white px-4 py-1 rounded hover:bg-blue-600">
                         הצג
                       </button>
                     </Link>
@@ -106,7 +106,7 @@ const AllUsers = () => {
             onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
             disabled={page === 1}
             className={`px-4 py-2 rounded ${
-              page === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'
+              page === 1 ? 'bg-gray-300' : 'bg-customBlue text-white hover:bg-blue-600'
             }`}
           >
             קודם
@@ -118,7 +118,7 @@ const AllUsers = () => {
             onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={page === totalPages}
             className={`px-4 py-2 rounded ${
-              page === totalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'
+              page === totalPages ? 'bg-gray-300' : 'bg-customBlue text-white hover:bg-blue-600'
             }`}
           >
             הבא

@@ -100,7 +100,7 @@ export default function UserDetailsPage() {
           className={`px-4 py-2 rounded ${
             userData.role === 'client'
               ? 'bg-green-500 text-white hover:bg-green-600'
-              : 'bg-blue-500 text-white hover:bg-blue-600'
+              : 'bg-customBlue text-white hover:bg-blue-600'
           }`}
         >
           {userData.role === 'client' ? 'Convert to Supplier' : 'Convert to Client'}

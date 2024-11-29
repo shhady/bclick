@@ -170,7 +170,7 @@ export default function CatalogPage({sProducts, sCategories}) {
         onEdit={(product) => setEditingProduct(product)}
       />
       </div>
-      {editingProduct && (
+      {/* {editingProduct && (
         <EditProductPopup
           product={editingProduct}
           categories={categories}
@@ -178,7 +178,7 @@ export default function CatalogPage({sProducts, sCategories}) {
           onDelete={handleDeleteProduct}
           onClose={() => setEditingProduct(null)}
         />
-      )}
+      )} */}
     </div>
   );
 }
