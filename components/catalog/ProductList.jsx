@@ -12,17 +12,17 @@ export default function ProductList({ products, onEdit }) {
                     <div className="text-center font-semibold">מחיר</div> */}
                   {/* </div> */}
                   {products.map((product) => (
-  <div key={product._id} className="bg-white shadow-md rounded-lg p-6">
+  <div key={product._id} className="bg-white shadow-md rounded-lg p-2">
     {/* Grid Container */}
-    <div className="grid grid-cols-5 gap-4 items-center">
+    <div className="grid grid-cols-5 gap-4 items-start">
       {/* Image (1 Column) */}
-      <div className="flex items-center gap-4 text-right">
+      <div className="flex items-center gap-4 text-right  row-span-2">
         <Image
           width={1000}
           height={1000}
           src={product.imageUrl?.secure_url || "/path/to/default-image.png"}
           alt={product.name}
-          className="w-20 h-20 object-cover"
+          className="w-full h-full object-cover"
         />
       </div>
 
