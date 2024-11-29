@@ -14,9 +14,9 @@ export default function ProductList({ products, onEdit }) {
                   {products.map((product) => (
   <div key={product._id} className="bg-white shadow-md rounded-lg p-2">
     {/* Grid Container */}
-    <div className="grid grid-cols-5 gap-4 items-start">
+    <div className="grid grid-cols-6 gap-4 items-start">
       {/* Image (1 Column) */}
-      <div className="flex items-center gap-4 text-right  row-span-2">
+      <div className="flex items-center gap-4 text-right col-span-2 row-span-2">
         <Image
           width={1000}
           height={1000}
@@ -38,7 +38,7 @@ export default function ProductList({ products, onEdit }) {
       {/* Button (2 Columns, Below Stock and Price) */}
       <button
         onClick={() => onEdit(product)}
-        className="col-span-2 col-start-4 mt-2 bg-gray-300 text-gray-500 px-4 py-2 rounded-md hover:bg-blue-600"
+        className="col-span-2 col-start-5 mt-2 bg-gray-300 text-gray-500 px-4 py-2 rounded-md hover:bg-blue-600"
       >
         עריכה
       </button>
