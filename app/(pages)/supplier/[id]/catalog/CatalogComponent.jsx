@@ -62,6 +62,7 @@ export default function CatalogPage({sProducts, sCategories}) {
   const handleStatusChange = (status) => {
     if (status === "low_stock") setLowStockNotification(false);
     setSelectedStatus(status);
+    setSelectedCategory('')
   };
 
   const handleUpdateProduct = async (updatedProduct) => {

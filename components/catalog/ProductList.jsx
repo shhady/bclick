@@ -23,7 +23,7 @@ export default function ProductList({ products, onEdit }) {
                 className="w-16 h-16 object-contain rounded-md border"
               />
             </div>
-            <h2 className="font-bold text-center">{product.name}</h2>
+            <h2 className="text-center">{product.name}</h2>
 
             <div className="text-center">{product.stock}</div>
             <div className="text-center">₪{product.price.toLocaleString()}</div>
