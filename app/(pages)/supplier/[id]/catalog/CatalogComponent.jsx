@@ -157,9 +157,9 @@ export default function CatalogPage({sProducts, sCategories}) {
         lowStockNotification={lowStockNotification}
         categories={categories}
       />
-       <div className="grid grid-cols-4 gap-4 items-center pb-2 border-b-2 border-gray-500">
+       <div className="grid grid-cols-5 gap-4 items-center pb-2 border-b-2 border-gray-500">
                   <div className="text-center font-semibold"></div>
-                    <div className="text-start font-semibold">שם</div>
+                    <div className="text-start font-semibold col-span-2">שם</div>
                     <div className="text-center font-semibold">מלאי</div>
                     <div className="text-center font-semibold">מחיר</div>
                   </div>
