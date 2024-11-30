@@ -12,11 +12,14 @@ const ToastViewport = React.forwardRef(({ className, ...props }, ref) => (
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed bottom-12 z-[100]  flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
+      "fixed z-[100] flex max-h-screen w-3/4 flex-col p-4 bottom-4 right-4 sm:right-4 md:max-w-[420px]",
+      "sm:w-auto sm:translate-x-0 sm:left-auto", // Reset left positioning for small screens
+      "data-[state=open]:translate-x-0", // Prevent swiping issues
       className
     )}
-    {...props} />
-))
+    {...props}
+  />
+));
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
@@ -35,10 +38,12 @@ const toastVariants = cva(
   }
 )
 
-const Toast = React.forwardRef(({ className, variant, ...props }, ref) => {
+const Toast = React.forwardRef(({ className, variant,duration = 5000, ...props }, ref) => {
   return (
     <ToastPrimitives.Root
       ref={ref}
+      duration={duration} // Automatically remove after 5 seconds
+
       className={cn(
         toastVariants({ variant }),
         "data-[state=open]:bg-green-100 data-[state=open]:text-black",

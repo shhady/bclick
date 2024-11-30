@@ -156,6 +156,7 @@ export default function CatalogPage({sProducts, sCategories}) {
         handleStatusChange={handleStatusChange}
         lowStockNotification={lowStockNotification}
         categories={categories}
+        supplierId={globalUser?._id}
       />
        <div className="grid grid-cols-6 gap-4 items-center pb-2 border-b-2 border-gray-500">
                   <div className="text-center font-semibold col-span-2"></div>

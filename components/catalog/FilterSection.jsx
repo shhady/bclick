@@ -8,6 +8,7 @@ export default function FilterSection({
   handleStatusChange,
   lowStockNotification,
   categories,
+  supplierId
 }) {
   return (
     <div className="flex-col w-full items-center gap-4 mb-6">
@@ -72,7 +73,7 @@ export default function FilterSection({
       </option>
     ))}
 </select>
-        <Link href="/supplier/catalog/create-category" className="w-1/3"> 
+        <Link href={`/supplier/catalog/create-category/${supplierId}`} className="w-1/3"> 
           <button className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-sm">
           צור קטגוריה
         </button></Link>
