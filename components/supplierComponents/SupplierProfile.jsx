@@ -7,7 +7,7 @@ import { useUserContext } from '@/app/context/UserContext';
 export default function SupplierProfile() {
   const { globalUser } = useUserContext(); // Access globalUser from the context
   const totalClients = globalUser?.relatedUsers?.length || 0; // Safely get the length of relatedUsers
-
+  const totalProducts = globalUser?.products?.length || 0;
   return (
     <div className="flex flex-col items-center space-y-6 p-6">
         {/* Clients */}
@@ -34,10 +34,10 @@ export default function SupplierProfile() {
 
       
       {/* Products */}
-      <Link href="/supplier/catalog" className="flex items-center justify-between w-full max-w-md p-6 bg-white rounded-lg shadow-md">
+      <Link href={`/supplier/${globalUser._id}/catalog`} className="flex items-center justify-between w-full max-w-md p-6 bg-white rounded-lg shadow-md">
         <div className="flex justify-between items-center w-full">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-black">100</h2>
+            <h2 className="text-3xl font-bold text-black">{totalProducts}</h2>
             <p className="text-gray-600">מוצרים </p>
           </div>
           <div className="w-12 h-12 bg-green-300 rounded-full"></div>
