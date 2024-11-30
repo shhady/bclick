@@ -149,6 +149,13 @@ export default function EditProductClient({ product, categories }) {
               className="w-full p-2 border rounded"
               placeholder="משקל"
             />
+            <label className="block text-sm font-medium text-gray-700">ברקוד</label>
+            <input
+              value={updatedProduct.barCode || ''}
+              onChange={(e) => handleChange("barCode", e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder="ברקוד"
+            />
              <label className="block text-sm font-medium text-gray-700">מלאי</label>
             <input
               type="text"
@@ -165,6 +172,17 @@ export default function EditProductClient({ product, categories }) {
               className="w-full p-2 border rounded"
               placeholder="מחיר"
             />
+                        <label className="block text-sm font-medium text-gray-700">סטטוס</label>
+
+            <select
+          value={updatedProduct.status}
+          onChange={(e) => handleChange("status", e.target.value )}
+          className="w-full p-2 border border-gray-300 rounded mb-4"
+        >
+          {updatedProduct.status === 'draft' && <option value="draft">טיוטה</option>}
+          <option value="active">פרסם</option>
+          <option value="hidden">מוסתר</option>
+        </select>
             <label className="block text-sm font-medium text-gray-700">קטגוריה</label>
             <select
               value={updatedProduct.categoryId}

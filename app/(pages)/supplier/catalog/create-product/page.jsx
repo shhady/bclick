@@ -17,6 +17,7 @@ export default function CreateProduct() {
     stock: "",
     price: '',
     units:'',
+    barCode:'',
     weight:'',
     imageUrl: {},
     status: 'active',
@@ -94,6 +95,7 @@ export default function CreateProduct() {
           price: '',
           units:'',
           weight:'',
+          barCode:'',
           imageUrl: '',
           status: 'active',
         });
@@ -120,6 +122,7 @@ export default function CreateProduct() {
       stock: 0,
       price: '',
       units:'',
+      barCode:'',
       weight:'',
       imageUrl: '',
       status: 'active',
@@ -181,6 +184,13 @@ export default function CreateProduct() {
           placeholder="משקל מוצר"
           value={formData.weight}
           onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+          className="w-full p-2 border border-gray-300 rounded mb-4"
+        />
+           <input
+          type="text"
+          placeholder="(אופציונלי) ברקוד"
+          value={formData.barCode}
+          onChange={(e) => setFormData({ ...formData, barCode: e.target.value })}
           className="w-full p-2 border border-gray-300 rounded mb-4"
         />
         <input

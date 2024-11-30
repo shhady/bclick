@@ -8,7 +8,7 @@ export async function POST(req) {
   await connectToDB();
 
   try {
-    const { name, description, categoryId, stock, price, imageUrl, status, supplierId, weight, units } = await req.json();
+    const { name, description, categoryId, stock, price, imageUrl, status, supplierId, weight, units, barCode } = await req.json();
 
     let finalCategoryId = categoryId;
 
@@ -33,6 +33,7 @@ export async function POST(req) {
       status,
       weight,
       units,
+      barCode,
       supplierId,
     });
 
