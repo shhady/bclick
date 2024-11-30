@@ -158,9 +158,11 @@ export default function CatalogPage({sProducts, sCategories}) {
         categories={categories}
         supplierId={globalUser?._id}
       />
-       <div className="grid grid-cols-6 gap-4 items-center pb-2 border-b-2 border-gray-500">
-                  <div className="text-center font-semibold col-span-2"></div>
-                    <div className="text-start font-semibold col-span-2">שם</div>
+       <div className="grid grid-cols-6 gap-4 items-center pb-2 border-b-2 border-gray-500 md:p-2">
+                  <div className="text-center font-semibold col-span-2 md:col-span-1"></div>
+                    <div className="text-start font-semibold col-span-2 md:col-span-1 md:flex md:justify-center">שם</div>
+                    <div className="text-center font-semibold hidden md:flex md:justify-center ">יחידות</div>
+                    <div className="text-center font-semibold hidden md:flex md:justify-center">משקל יחידה</div>
                     <div className="text-center font-semibold">מלאי</div>
                     <div className="text-center font-semibold">מחיר</div>
                   </div>

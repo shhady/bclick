@@ -11,21 +11,25 @@ export default function ProductList({ products, onEdit }) {
     {/* Grid Container */}
     <div className="grid grid-cols-6 gap-4 items-start">
       {/* Image (1 Column) */}
-      <div className="flex items-center gap-4 text-right col-span-2 row-span-2">
+      <div className="flex items-center gap-4 text-right col-span-2 row-span-2 md:col-span-1">
         <Image
           width={1000}
           height={1000}
           src={product.imageUrl?.secure_url || "/path/to/default-image.png"}
           alt={product.name}
-          className="w-full h-full max-h-[100px] max-w-[100px] min-h-[100px] min-w-[100px] md:max-h-48 md:max-w-48 md:min-h-48 md:min-w-48 object-contain"
+          className="w-full h-full max-h-[100px] max-w-[100px] min-h-[100px] min-w-[100px] md:max-h-48 md:max-w-full md:min-h-48 md:min-w-fll object-contain"
         />
       </div>
 
       {/* Name (2 Columns) */}
-      <h2 className="col-span-2 text-start">{product.name}</h2>
+      <h2 className="col-span-2 md:col-span-1 md:text-center">{product.name}</h2>
 
       {/* Stock (1 Column) */}
       <div className="text-center">{product.stock}</div>
+{/* Stock (1 Column) */}
+<div className="text-center hidden md:flex md:justify-center">{product.units || 0}</div>
+{/* Stock (1 Column) */}
+<div className="text-center hidden md:flex md:justify-center">{product.weight || 0}</div>
 
       {/* Price (1 Column) */}
       <div className="text-center">₪{product.price.toLocaleString()}</div>
