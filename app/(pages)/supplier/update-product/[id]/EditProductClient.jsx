@@ -31,8 +31,8 @@ export default function EditProductClient({ product, categories }) {
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "Product updated successfully.",
+          title: "עדכון",
+          description: "פרטי המוצר עודכנו בהצלחה",
         });
         router.push(`/supplier/${product.supplierId}/catalog`);
       } else {
@@ -57,8 +57,8 @@ export default function EditProductClient({ product, categories }) {
 
       if (response.ok) {
         toast({
-          title: "Deleted",
-          description: "Product deleted successfully.",
+          title: "המוצר נמחק",
+          description: "",
           variant: "destructive",
         });
         router.push(`/supplier/${product.supplierId}/catalog`);
@@ -67,8 +67,8 @@ export default function EditProductClient({ product, categories }) {
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "An error occurred while deleting the product.",
+        title: "שגיאה",
+        description: "שגיאה קרתה במהלך המחיקה, תנסה שוב",
         variant: "destructive",
       });
     }
@@ -86,8 +86,8 @@ export default function EditProductClient({ product, categories }) {
     }));
 
     toast({
-      title: 'Success',
-      description: 'Image uploaded successfully.',
+      title: 'העלאת תמונה',
+      description: 'התמונה הועלתה בהצלחה',
       variant: 'default',
     });
   };
@@ -99,8 +99,8 @@ export default function EditProductClient({ product, categories }) {
     }));
 
     toast({
-      title: 'Deleted',
-      description: 'Image removed successfully.',
+      title: 'מחיקה',
+      description: 'התמונה נמחקה בהצלחה',
       variant: 'destructive',
     });
   };
