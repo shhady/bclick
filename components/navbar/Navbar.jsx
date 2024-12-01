@@ -54,7 +54,7 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white shadow-lg flex justify-around items-center py-2 border-t border-gray-300">
+      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white shadow-lg flex justify-around items-center pt-2 pb-5 border-t border-gray-300">
       {(globalUser?.role === 'supplier') && (
       <Link href={`/supplier/${globalUser._id}/catalog`} className="flex flex-col items-center text-gray-600 hover:text-customBlue">
           <FaTags size={20} />
