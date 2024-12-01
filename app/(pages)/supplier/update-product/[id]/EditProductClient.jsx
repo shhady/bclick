@@ -105,10 +105,13 @@ export default function EditProductClient({ product, categories }) {
     });
   };
 
+  const handleCancel = (product)=>{
+    router.push(`/supplier/${product.supplierId}/catalog`);
+  }
   return (
     <>
       <div className="flex items-center justify-center mb-16">
-        <div className="p-6 max-w-md w-full">
+        <div className="p-6 max-w-xl w-full">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">ערוך מוצר</h2>
             <Trash2
@@ -117,7 +120,8 @@ export default function EditProductClient({ product, categories }) {
               title="Delete Product"
             />
           </div>
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid lg:grid-cols-2 justify-center items-start gap-3">
+            <div>
             <label className="block text-sm font-medium text-gray-700">שם מוצר</label>
             <input
               type="text"
@@ -126,6 +130,9 @@ export default function EditProductClient({ product, categories }) {
               className="w-full p-2 border rounded"
               placeholder="שם מוצר"
             />
+            </div>
+            <div>
+
             <label className="block text-sm font-medium text-gray-700">תיאור</label>
             <textarea
               value={updatedProduct.description}
@@ -133,7 +140,10 @@ export default function EditProductClient({ product, categories }) {
               className="w-full p-2 border rounded"
               placeholder="תיאור"
             />
+            </div>
             {/* Units */}
+            <div>
+
             <label className="block text-sm font-medium text-gray-700">יחידות במוצר</label>
             <input
               value={updatedProduct.units || ''}
@@ -141,14 +151,35 @@ export default function EditProductClient({ product, categories }) {
               className="w-full p-2 border rounded"
               placeholder="יחידות במוצר"
             />
+            </div>
             {/* Weight */}
+            <div>
+
             <label className="block text-sm font-medium text-gray-700">משקל יחידה</label>
-            <input
+          
+             <div className="flex items-center lg:mb-4">
+             <input
               value={updatedProduct.weight || ''}
               onChange={(e) => handleChange("weight", e.target.value)}
               className="w-full p-2 border rounded"
               placeholder="משקל"
             />
+            
+          <select
+            value={updatedProduct.weightUnit || 'בחר'}
+            onChange={(e) => handleChange("weightUnit", e.target.value)}
+            className="w-1/3 p-2 border border-gray-300 rounded ml-2"
+          >
+            {updatedProduct.weightUnit ? <option value={updatedProduct.weightUnit}>{updatedProduct.weightUnit}</option> : <option>בחר</option>}
+            {updatedProduct.weightUnit === 'גרם' ? "" : <option value="גרם">גרם</option>}
+            {updatedProduct.weightUnit === 'קילוגרם' ? "" : <option value="קילוגרם">קילוגרם</option>}
+            {updatedProduct.weightUnit === 'ליטר' ? "" : <option value="ליטר">ליטר</option>}
+            {updatedProduct.weightUnit === 'מ"ל' ? "" :  <option value='מ&quot;ל'>מ&quot;ל</option>}
+          </select>
+        </div>
+        </div>
+        <div className='lg:mb-4'>
+
             <label className="block text-sm font-medium text-gray-700">ברקוד</label>
             <input
               value={updatedProduct.barCode || ''}
@@ -156,6 +187,9 @@ export default function EditProductClient({ product, categories }) {
               className="w-full p-2 border rounded"
               placeholder="ברקוד"
             />
+        </div>
+        <div>
+
              <label className="block text-sm font-medium text-gray-700">מלאי</label>
             <input
               type="text"
@@ -164,6 +198,9 @@ export default function EditProductClient({ product, categories }) {
               className="w-full p-2 border rounded"
               placeholder="מלאי"
             />
+        </div>
+        <div>
+
             <label className="block text-sm font-medium text-gray-700">מחיר</label>
             <input
               type="text"
@@ -172,6 +209,9 @@ export default function EditProductClient({ product, categories }) {
               className="w-full p-2 border rounded"
               placeholder="מחיר"
             />
+        </div>
+        <div>
+
                         <label className="block text-sm font-medium text-gray-700">סטטוס</label>
 
             <select
@@ -183,6 +223,9 @@ export default function EditProductClient({ product, categories }) {
           <option value="active">פרסם</option>
           <option value="hidden">מוסתר</option>
         </select>
+        </div>
+        <div>
+
             <label className="block text-sm font-medium text-gray-700">קטגוריה</label>
             <select
               value={updatedProduct.categoryId}
@@ -195,9 +238,10 @@ export default function EditProductClient({ product, categories }) {
                 </option>
               ))}
             </select>
+        </div>
           </div>
            {/* Image Section */}
-           <div className="flex gap-4 items-center my-4">
+           <div className="flex gap-4 justify-center items-center my-4">
            <div>
             <div>
                 <CldUploadButton
@@ -236,7 +280,7 @@ export default function EditProductClient({ product, categories }) {
               שמור
             </button>
             <button
-              onClick={() => setUpdatedProduct(product)}
+              onClick={() => handleCancel(product)}
               className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
             >
               ביטול

@@ -10,6 +10,7 @@ const ProductSchema = new mongoose.Schema({
   imageUrl: { type: Object },
   units : { type: String },
   weight: { type: String },
+  weightUnit:{ type: String},
   barCode : { type: String },
   status: { type: String, enum: ['active', 'draft', 'out_of_stock', 'hidden'], default: 'active' },
   createdAt: { type: Date, default: Date.now },

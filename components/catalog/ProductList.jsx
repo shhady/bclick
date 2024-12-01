@@ -24,13 +24,13 @@ export default function ProductList({ products, onEdit }) {
       {/* Name (2 Columns) */}
       <h2 className="col-span-2 md:col-span-1 md:text-center">{product.name}</h2>
 
-      {/* Stock (1 Column) */}
-      <div className="text-center">{product.stock}</div>
 {/* Stock (1 Column) */}
 <div className="text-center hidden md:flex md:justify-center">{product.units || 0}</div>
 {/* Stock (1 Column) */}
-<div className="text-center hidden md:flex md:justify-center">{product.weight || 0}</div>
+<div className="text-center hidden md:flex md:justify-center">{product.weight || 0} / {product?.weightUnit}</div>
 
+      {/* Stock (1 Column) */}
+      <div className="text-center">{product.stock}</div>
       {/* Price (1 Column) */}
       <div className="text-center">₪{product.price.toLocaleString()}</div>
 

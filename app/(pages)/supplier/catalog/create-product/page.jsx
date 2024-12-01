@@ -19,11 +19,23 @@ export default function CreateProduct() {
     units:'',
     barCode:'',
     weight:'',
+    weightUnit:'גרם',
     imageUrl: {},
     status: 'active',
   });
   const [message, setMessage] = useState('');
   const { toast } = useToast();
+  const [errors, setErrors] = useState({});
+
+  const validateFields = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = 'שם המוצר נדרש.';
+    if (!formData.stock) newErrors.stock = 'כמות במלאי נדרשת.';
+    if (!formData.price) newErrors.price = 'מחיר נדרש.';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
 
   console.log(formData);
   useEffect(() => {
@@ -49,11 +61,11 @@ export default function CreateProduct() {
 
   const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault();
+    if (!validateFields()) return setMessage('חלק מהפרטים חסרים');
 
     try {
       let categoryId = formData.categoryId;
 
-      // Handle General category creation or retrieval
       if (!categoryId) {
         const generalCategoryResponse = await fetch('/api/categories/create', {
           method: 'POST',
@@ -70,15 +82,12 @@ export default function CreateProduct() {
           }
         } else {
           const errorResponse = await generalCategoryResponse.json();
-          console.error('Error response from General category API:', errorResponse);
           throw new Error(errorResponse.error || 'Error creating General category.');
         }
       }
 
-      // Set the status to 'draft' if saving as draft
       const finalStatus = isDraft ? 'draft' : formData.status;
 
-      // Submit the product creation
       const response = await fetch('/api/products/create-product', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -86,48 +95,52 @@ export default function CreateProduct() {
       });
 
       if (response.ok) {
-        // setMessage(`Product ${isDraft ? 'saved as draft' : 'created successfully'}!`);
         setFormData({
           name: '',
           description: '',
           categoryId: '',
-          stock: 0,
+          stock: '',
           price: '',
-          units:'',
-          weight:'',
-          barCode:'',
+          units: '',
+          weight: '',
+          weightUnit: 'גרם',
+          barCode: '',
           imageUrl: '',
           status: 'active',
         });
+        setErrors({});
+        setMessage('')
         toast({
-          title: (`${isDraft ? 'הטיוטה נשמרה בהצלחה':'המוצר נוצר בהצלחה'}`),
+          title: `${isDraft ? 'הטיוטה נשמרה בהצלחה' : 'המוצר נוצר בהצלחה'}`,
           description: 'תוכל להוסיף עוד מוצרים',
           variant: 'default',
         });
       } else {
         const error = await response.json();
-        setMessage(error.error || 'Failed to create product.');
+        console.error('Error:', error.error || 'Failed to create product.');
       }
     } catch (error) {
       console.error('Error in handleSubmit:', error);
-      setMessage('An error occurred. Please try again.');
     }
   };
- 
-  const handleCancel = ()=>{
+
+  const handleCancel = () => {
     setFormData({
       name: '',
       description: '',
       categoryId: '',
-      stock: 0,
+      stock: '',
       price: '',
-      units:'',
-      barCode:'',
-      weight:'',
+      units: '',
+      barCode: '',
+      weight: '',
+      weightUnit: 'גרם',
       imageUrl: '',
       status: 'active',
     });
-  }
+    setErrors({});
+  };
+  
   if (!globalUser || !globalUser._id) {
     return <div><Loader/></div>; // Fallback while user is being loaded
   }
@@ -157,13 +170,14 @@ export default function CreateProduct() {
       </option>
     ))}
 </select>
-        <input
+{errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+
+<input
           type="text"
           placeholder="שם מוצר"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-          required
+          className={`w-full p-2 border rounded mb-2 ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
         />
         <textarea
           type="text"
@@ -179,13 +193,26 @@ export default function CreateProduct() {
           onChange={(e) => setFormData({ ...formData, units: e.target.value })}
           className="w-full p-2 border border-gray-300 rounded mb-4"
         />
-         <input
-          type="text"
-          placeholder="משקל מוצר"
-          value={formData.weight}
-          onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-        />
+         <div className="flex items-center mb-4">
+          <input
+            type="number"
+            placeholder="משקל מוצר"
+            value={formData.weight}
+            onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+            className={`w-2/3 p-2 border rounded ${errors.weight ? 'border-red-500' : 'border-gray-300'}`}
+          />
+          <select
+            value={formData.weightUnit}
+            onChange={(e) => setFormData({ ...formData, weightUnit: e.target.value })}
+            className="w-1/3 p-2 border border-gray-300 rounded ml-2"
+          >
+            <option value="גרם">גרם</option>
+            <option value="קילוגרם">קילוגרם</option>
+            <option value="ליטר">ליטר</option>
+            <option value='מ&quot;ל'>מ&quot;ל</option>
+          </select>
+        </div>
+       
            <input
           type="text"
           placeholder="(אופציונלי) ברקוד"
@@ -193,21 +220,23 @@ export default function CreateProduct() {
           onChange={(e) => setFormData({ ...formData, barCode: e.target.value })}
           className="w-full p-2 border border-gray-300 rounded mb-4"
         />
+                {errors.stock && <p className="text-red-500 text-sm">{errors.stock}</p>}
+
         <input
           type="number"
           placeholder="כמות במלאי"
           value={formData.stock}
           onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-          required
+          className={`w-full p-2 border rounded mb-2 ${errors.stock ? 'border-red-500' : 'border-gray-300'}`}
         />
+        {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+
         <input
           type="number"
           placeholder="מחיר"
           value={formData.price}
           onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-          required
+          className={`w-full p-2 border rounded mb-2 ${errors.price ? 'border-red-500' : 'border-gray-300'}`}
         />
         
         <select
@@ -226,6 +255,8 @@ export default function CreateProduct() {
         >
           צור מוצר
         </button>
+        {message && <p className="text-center mt-4 text-red-500">{message}</p>}
+
         <button
           type="button"
           onClick={(e) => handleSubmit(e, true)} // Save as draft
@@ -242,7 +273,6 @@ export default function CreateProduct() {
         >
           ביטול 
         </button>
-      {message && <p className="text-center mt-4 text-green-600">{message}</p>}
     </div>
   );
 }
