@@ -30,6 +30,8 @@ const geistMono = localFont({
 export const metadata = {
   title: "BClick - Manage Your Suppliers and Clients",
   description: "BClick is the ultimate platform for suppliers to manage products, categories, clients, and orders efficiently. Built for scalability and ease of use.",
+  manifest: '/manifest.json',
+
   keywords: [
     "BClick",
     "Supplier Management",
