@@ -157,18 +157,18 @@ export default function EditProductClient({ product, categories }) {
 
             <label className="block text-sm font-medium text-gray-700">משקל יחידה</label>
           
-             <div className="flex items-center lg:mb-4">
+             <div className="flex items-center gap-1 lg:mb-4">
              <input
               value={updatedProduct.weight || ''}
               onChange={(e) => handleChange("weight", e.target.value)}
-              className="w-full p-2 border rounded"
+              className=" p-2 border rounded w-2/3"
               placeholder="משקל"
             />
             
           <select
             value={updatedProduct.weightUnit || 'בחר'}
             onChange={(e) => handleChange("weightUnit", e.target.value)}
-            className="w-1/3 p-2 border border-gray-300 rounded ml-2"
+            className="w-1/2 p-2 border border-gray-300 rounded ml-2"
           >
             {updatedProduct.weightUnit ? <option value={updatedProduct.weightUnit}>{updatedProduct.weightUnit}</option> : <option>בחר</option>}
             {updatedProduct.weightUnit === 'גרם' ? "" : <option value="גרם">גרם</option>}
