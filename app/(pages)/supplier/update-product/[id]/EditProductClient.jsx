@@ -241,13 +241,13 @@ export default function EditProductClient({ product, categories }) {
         </div>
           </div>
            {/* Image Section */}
-           <div className="flex gap-4 justify-center items-center my-4">
-           <div>
+           <div className="grid grid-cols-2 gap-4 justify-center items-center my-4">
+           <div className='grid grid-cols-1 gap-4 justify-center items-center'>
             <div>
                 <CldUploadButton
                   uploadPreset="shhady"
                   onSuccess={handleUploadSuccess}
-                  className="bg-customBlue text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                  className="bg-customBlue text-white px-4 py-2 rounded-md hover:bg-blue-600 w-3/4"
                 >
                 {updatedProduct?.imageUrl ?  'עדכן תמונה':'העלה תמונה'} 
                 </CldUploadButton>
@@ -255,12 +255,13 @@ export default function EditProductClient({ product, categories }) {
                 {updatedProduct?.imageUrl && (
                   <button
                     onClick={handleDeleteImage}
-                    className="mt-2 bg-red-400 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                    className="mt-2 bg-red-400 text-white px-4 py-2 rounded-md hover:bg-red-600 w-3/4"
                   >
                      מחק תמונה
                   </button>
                 )}
               </div>
+              <div className='flex justify-center items-center'>
               {updatedProduct?.imageUrl?.secure_url && (
                 <Image
                   src={updatedProduct.imageUrl.secure_url}
@@ -270,6 +271,8 @@ export default function EditProductClient({ product, categories }) {
                   className="rounded-md w-48 h-48 object-contain"
                 />
               )}
+              </div>
+             
               
             </div>
           <div className="flex justify-between mt-4">
