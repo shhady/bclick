@@ -25,6 +25,7 @@ export default function AddClientPage() {
       const response = await fetch(`/api/users/find-client?query=${searchInput}`);
       if (response.ok) {
         const data = await response.json();
+        console.log(data);
         setClient(data);
         setMessage('');
       } else {
@@ -104,7 +105,10 @@ export default function AddClientPage() {
           <p><strong>שם עסק:</strong> {client.businessName}</p>
           <p><strong>אימייל:</strong> {client.email}</p>
           <p><strong>טלפון:</strong> {client.phone}</p>
-          {isClientExisting(client._id) ? (
+          {/* Check for self, existing client, or new client */}
+          {client._id === globalUser._id ? (
+            <p className="text-blue-600 font-semibold mt-4">הכרטיס שלך</p>
+          ) : isClientExisting(client._id) ? (
             <p className="text-green-600 font-semibold mt-4">לקוח קיים</p>
           ) : (
             <button

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import PhotosUpload from '@/components/PhotosUpload';
 import { useToast } from '@/hooks/use-toast';
 import Loader from '@/components/loader/Loader';
-
+import { useRouter } from 'next/navigation';
 export default function CreateProduct() {
   const { globalUser } = useUserContext(); // Get the logged-in supplier
   const [categories, setCategories] = useState([]);
@@ -26,7 +26,7 @@ export default function CreateProduct() {
   const [message, setMessage] = useState('');
   const { toast } = useToast();
   const [errors, setErrors] = useState({});
-
+  const router = useRouter();
   const validateFields = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'שם המוצר נדרש.';
@@ -139,6 +139,7 @@ export default function CreateProduct() {
       status: 'active',
     });
     setErrors({});
+    // router.back(); // Navigates to the previous page
   };
   
   if (!globalUser || !globalUser._id) {
@@ -266,6 +267,7 @@ export default function CreateProduct() {
         </button>
         
       </form>
+      <Link href={`/supplier/${globalUser._id}/catalog`} >
       <button
           type="button"
           onClick={() => handleCancel()} // Save as draft
@@ -273,6 +275,7 @@ export default function CreateProduct() {
         >
           ביטול 
         </button>
+        </Link>
     </div>
   );
 }
