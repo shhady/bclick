@@ -160,7 +160,7 @@ export default function CreateProduct() {
       <select
   value={formData.categoryId}
   onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-  className="w-full p-2 border border-gray-300 rounded mb-4"
+  className="w-full p-2 border border-gray-300 rounded mb-4 h-[42px]"
 >
   {!formData.categoryId && <option value="">בחר קטגוריה (ברירת מחדל: כללי)</option>}
   {categories
@@ -194,7 +194,7 @@ export default function CreateProduct() {
           onChange={(e) => setFormData({ ...formData, units: e.target.value })}
           className="w-full p-2 border border-gray-300 rounded mb-4"
         />
-         <div className="flex items-center mb-4">
+         <div className="flex items-center gap-1 mb-4">
           <input
             type="number"
             placeholder="משקל מוצר"
@@ -205,7 +205,7 @@ export default function CreateProduct() {
           <select
             value={formData.weightUnit}
             onChange={(e) => setFormData({ ...formData, weightUnit: e.target.value })}
-            className="w-1/3 p-2 border border-gray-300 rounded ml-2"
+            className="w-1/3 p-2 border border-gray-300 rounded  h-[42px]"
           >
             <option value="גרם">גרם</option>
             <option value="קילוגרם">קילוגרם</option>
@@ -243,7 +243,7 @@ export default function CreateProduct() {
         <select
           value={formData.status}
           onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-          className="w-full p-2 border border-gray-300 rounded mb-4"
+          className="w-full p-2 border border-gray-300 rounded mb-4 h-[42px]"
         >
           <option value="active">פרסם</option>
           <option value="hidden">מוסתר</option>

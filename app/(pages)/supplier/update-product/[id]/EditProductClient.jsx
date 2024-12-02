@@ -186,7 +186,7 @@ export default function EditProductClient({ product, categories }) {
           <select
             value={updatedProduct.weightUnit || 'בחר'}
             onChange={(e) => handleChange("weightUnit", e.target.value)}
-            className="w-1/2 p-2 border border-gray-300 rounded ml-2"
+            className="w-1/2 p-2 border border-gray-300 rounded h-[42px]"
           >
             {updatedProduct.weightUnit ? <option value={updatedProduct.weightUnit}>{updatedProduct.weightUnit}</option> : <option>בחר</option>}
             {updatedProduct.weightUnit === 'גרם' ? "" : <option value="גרם">גרם</option>}
@@ -235,7 +235,7 @@ export default function EditProductClient({ product, categories }) {
             <select
           value={updatedProduct.status}
           onChange={(e) => handleChange("status", e.target.value )}
-          className="w-full p-2 border border-gray-300 rounded mb-4"
+          className="w-full p-2 border border-gray-300 rounded mb-4 h-[42px]"
         >
           {updatedProduct.status === 'draft' && <option value="draft">טיוטה</option>}
           <option value="active">פרסם</option>
@@ -248,7 +248,7 @@ export default function EditProductClient({ product, categories }) {
             <select
               value={updatedProduct.categoryId}
               onChange={(e) => handleChange("categoryId", e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded h-[42px]"
             >
               {categories.map((category) => (
                 <option key={category._id} value={category._id}>
