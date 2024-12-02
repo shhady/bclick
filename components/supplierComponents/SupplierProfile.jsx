@@ -9,7 +9,7 @@ export default function SupplierProfile() {
   const totalClients = globalUser?.relatedUsers?.length || 0; // Safely get the length of relatedUsers
   const totalProducts = globalUser?.products?.length || 0;
   return (
-    <div className="flex flex-col items-center space-y-2 p-6 mb-12 md:mb-0">
+    <div className="flex flex-col items-center space-y-2 p-6  md:mb-0">
         {/* Clients */}
       <Link href={`/supplier/${globalUser._id}/clients`} className="flex items-center justify-between w-full max-w-md p-4 bg-white rounded-lg shadow-md">
         <div className="flex justify-between items-center w-full">

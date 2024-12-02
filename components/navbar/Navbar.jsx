@@ -32,13 +32,39 @@ const Navbar = () => {
     לקוחות
   </Link>
 )}
-        {(globalUser?.role === 'supplier') ? (
+        {/* {(globalUser?.role === 'supplier') ? (
           <Link href={`/supplier/${globalUser._id}/clients`} className="text-gray-600 hover:text-customBlue">
           לקוחות
         </Link>
             ):(<Link href="/clients" className="text-gray-600 hover:text-customBlue">
               עגלה
-            </Link>)}
+            </Link>)} */}
+            {globalUser ? (
+  globalUser.role === 'supplier' ? (
+    <Link
+      href={`/supplier/${globalUser._id}/clients`}
+      className="text-gray-600 hover:text-customBlue"
+    >
+      <span >לקוחות</span>
+    </Link>
+  ) : (
+    <Link
+      href="/clients"
+      className="text-gray-600 hover:text-customBlue"    >
+      <span>עגלה</span>
+    </Link>
+  )
+) : (
+  <div className="flex flex-col items-center text-gray-400">
+  
+  <div className="relative">
+  {/* Blur effect */}
+  <span className=" text-gray-600 opacity-20">לקוחות</span>
+
+  {/* Glass-like overlay */}
+  {/* <div className="absolute inset-0 backdrop-blur-md bg-white/10 pointer-events-none"></div> */}
+</div>  </div>
+)}
           {/* {globalUser?.role === 'client' ? (<Link href="/clients" className="text-gray-600 hover:text-customBlue">
             עגלה
           </Link>):(<div className="text-gray-600 hover:text-customBlue">עגלה</div>)} */}
@@ -78,15 +104,31 @@ const Navbar = () => {
           <SlHandbag size={20} />
           <span className="text-xs mt-1">עגלה</span>
           </Link>} */}
-          {(globalUser?.role === 'supplier') ? (
-  <Link href={`/supplier/${globalUser._id}/clients`} className="flex flex-col items-center text-gray-600 hover:text-customBlue">
-    <FaList size={20} />
-    <span className="text-xs mt-1">לקוחות</span>
-  </Link>
-):(<Link href="/clients" className="text-gray-600 hover:text-customBlue">
-  <SlHandbag size={20} />
-  <span className="text-xs mt-1">עגלה</span>
-  </Link>)} 
+          {globalUser ? (
+  globalUser.role === 'supplier' ? (
+    <Link
+      href={`/supplier/${globalUser._id}/clients`}
+      className="flex flex-col items-center text-gray-600 hover:text-customBlue"
+    >
+      <FaList size={20} />
+      <span className="text-xs mt-1">לקוחות</span>
+    </Link>
+  ) : (
+    <Link
+      href="/clients"
+      className="flex flex-col items-center text-gray-600 hover:text-customBlue"
+    >
+      <SlHandbag size={20} />
+      <span className="text-xs mt-1">עגלה</span>
+    </Link>
+  )
+) : (
+  <div className="flex flex-col items-center text-gray-400">
+    <FaList className=" text-gray-600 opacity-20" size={20} />
+    {/* <span className=" text-gray-600 opacity-20">לקוחות</span> */}
+    </div>
+)}
+
 {(globalUser?.role === 'admin') && (
     <Link href="/admin/all-users" className="flex flex-col items-center text-gray-600 hover:text-customBlue">
       <FaList size={20} />
