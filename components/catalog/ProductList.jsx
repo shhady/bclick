@@ -32,7 +32,7 @@ export default function ProductList({ products, onEdit }) {
       {/* Stock (1 Column) */}
       <div className="text-center">{product.stock}</div>
       {/* Price (1 Column) */}
-      <div className="text-center">₪{product.price.toLocaleString()}</div>
+      <div className="text-center tabular-nums">₪{product.price.toLocaleString()}</div>
 
       {/* Button (2 Columns, Below Stock and Price) */}
       <Link href={`/supplier/update-product/${product._id}`} className="col-span-2 col-start-5  self-end">

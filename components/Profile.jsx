@@ -4,7 +4,8 @@ import { CldUploadButton } from 'next-cloudinary';
 import Image from 'next/image';
 import { useUserContext } from "@/app/context/UserContext";
 import { toast } from '@/hooks/use-toast';
-import { Camera, SwitchCamera } from 'lucide-react';
+import { Camera, SwitchCamera, Pencil,LogOut  } from 'lucide-react';
+
 export default function Profile({ formData, onEdit }) {
   const { globalUser, setGlobalUser, setError } = useUserContext();
 
@@ -48,7 +49,7 @@ export default function Profile({ formData, onEdit }) {
 console.log(globalUser);
   return (
     <div >
-      <div className='h-36 bg-customBlue rounded-b-lg relative'>
+      <div className='h-42 md:h-52 bg-customBlue rounded-b-lg relative'>
       {globalUser?.coverImage && <Image src={globalUser.coverImage.secure_url} width={1000} height={1000} alt='cover' className='w-full h-full object-cover'/>}
       <CldUploadButton
                   uploadPreset="shhady"
@@ -74,12 +75,19 @@ console.log(globalUser);
         <div className="flex flex-col items-center justify-end gap-2">
       <button
         onClick={onEdit}
-        className=" bg-customBlue text-white px-4 py-2 rounded-md hover:bg-blue-600 w-full"
+        className=" bg-gray-300 text-gray-700 text-sm  px-4 py-1 rounded-md w-full flex justify-center items-center gap-1"
       >
-        עדכן פרטים
+        <div> ערוך פרופיל</div>
+      <Pencil size='14'/> 
+      
       </button>
       
-      <SignOutButton className=" bg-red-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-full">יציאה</SignOutButton>
+      <SignOutButton className=" bg-gray-300 text-gray-700 text-sm px-4 py-1 rounded-md  w-full flex justify-end items-center gap-1">
+       <div>
+       <div>התנתק</div>
+       <LogOut size='14'/>
+        </div>
+      </SignOutButton>
       </div>
       </div>
      
