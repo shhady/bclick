@@ -49,7 +49,7 @@ export default function Profile({ formData, onEdit }) {
 console.log(globalUser);
   return (
     <div >
-      <div className='h-42 md:h-52 bg-customBlue rounded-b-lg relative'>
+      <div className='h-40 lg:h-48 bg-customBlue rounded-b-lg relative'>
       {globalUser?.coverImage && <Image src={globalUser.coverImage.secure_url} width={1000} height={1000} alt='cover' className='w-full h-full object-cover'/>}
       <CldUploadButton
                   uploadPreset="shhady"
