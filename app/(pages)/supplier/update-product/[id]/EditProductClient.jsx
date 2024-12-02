@@ -12,12 +12,14 @@ export default function EditProductClient({ product, categories }) {
   const [openDeletePopup, setOpenDeletePopup] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-
+  const [updating, setUpdating] = useState(false);
   const handleChange = (field, value) => {
     setUpdatedProduct((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleUpdateProduct = async () => {
+
+    setUpdating(true)
     // Determine the status based on stock and user input
     if (updatedProduct.status === "hidden") {
       // Respect the user's explicit choice for "hidden" status
@@ -46,8 +48,10 @@ export default function EditProductClient({ product, categories }) {
           title: "עדכון",
           description: "פרטי המוצר עודכנו בהצלחה",
         });
+        setUpdating(false)
         router.push(`/supplier/${product.supplierId}/catalog`);
       } else {
+        setUpdating(false)
         throw new Error("Failed to update product.");
       }
     } catch (error) {
@@ -56,6 +60,7 @@ export default function EditProductClient({ product, categories }) {
         description: "An error occurred while updating the product.",
         variant: "destructive",
       });
+      setUpdating(false)
     }
   };
 
@@ -122,6 +127,7 @@ export default function EditProductClient({ product, categories }) {
   }
   return (
     <>
+    
       <div className="flex items-center justify-center mb-16">
         <div className="p-6 max-w-xl w-full">
           <div className="flex justify-between items-center mb-4">
@@ -288,12 +294,23 @@ export default function EditProductClient({ product, categories }) {
               
             </div>
           <div className="flex justify-between mt-4">
-            <button
+           {updating ? (<div
+              onClick={handleUpdateProduct}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex justify-center items-center gap-1"
+            >
+              <div className=''>מעדכן</div>
+
+              
+              <div className='h-1 w-1 bg-white rounded-full animate-bounce [animation-delay:-0.3s]'></div>
+              <div className='h-1 w-1 bg-white rounded-full animate-bounce [animation-delay:-0.15s]'></div>
+              <div className='h-1 w-1 bg-white rounded-full animate-bounce'></div>
+
+            </div>):(<button
               onClick={handleUpdateProduct}
               className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
             >
               שמור
-            </button>
+            </button>)} 
             <button
               onClick={() => handleCancel(product)}
               className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"

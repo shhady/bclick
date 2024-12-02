@@ -27,7 +27,7 @@ export default function ProductList({ products, onEdit }) {
 {/* Stock (1 Column) */}
 <div className="text-center hidden md:flex md:justify-center">{product.units || 0}</div>
 {/* Stock (1 Column) */}
-<div className="text-center hidden md:flex md:justify-center">{product.weight || 0} / {product?.weightUnit}</div>
+<div className="text-center hidden md:flex md:justify-center">{product.weight || 0} {" "} {product?.weightUnit}</div>
 
       {/* Stock (1 Column) */}
       <div className="text-center">{product.stock}</div>
