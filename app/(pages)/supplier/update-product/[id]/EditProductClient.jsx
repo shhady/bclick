@@ -18,6 +18,18 @@ export default function EditProductClient({ product, categories }) {
   };
 
   const handleUpdateProduct = async () => {
+    // Determine the status based on stock and user input
+    if (updatedProduct.status === "hidden") {
+      // Respect the user's explicit choice for "hidden" status
+      updatedProduct.status = "hidden";
+    } else if (updatedProduct.stock === 0) {
+      // If stock is 0, override and set status to "out_of_stock"
+      updatedProduct.status = "out_of_stock";
+    } else if (updatedProduct.status === "out_of_stock" && updatedProduct.stock > 0) {
+      // If stock becomes positive and status was "out_of_stock", set it to "active"
+      updatedProduct.status = "active";
+    }
+  
     try {
       const response = await fetch("/api/products/edit-supplier-products", {
         method: "PUT",
