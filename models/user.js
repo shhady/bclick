@@ -44,7 +44,7 @@ const userSchema = new Schema(
       type: String, required: false
     },
     coverImage:{
-      type: String, required: false
+      type: Object, required: false
     },
     // Business details for suppliers and clients
   

@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function ProductList({ products, onEdit }) {
   console.log(products);
   return (
-    <div className="space-y-6 px-1 mb-16 md:mb-4">
+    <div className="space-y-6 px-1 mb-24 md:mb-4">
                   {products.map((product) => (
   <div key={product._id} className="bg-white shadow-md rounded-lg p-2">
     {/* Grid Container */}

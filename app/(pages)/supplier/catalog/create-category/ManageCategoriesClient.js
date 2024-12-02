@@ -117,7 +117,7 @@ export default function ManageCategoriesClient({ categoriesWithProductStatus }) 
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto mb-12">
+    <div className="p-6 max-w-2xl mx-auto mb-16">
       <h1 className="text-xl font-bold mb-4">ניהול קטגוריות</h1>
 
       <div className="mb-6">

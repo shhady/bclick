@@ -103,7 +103,7 @@ export default function Clients({ clients,supplierId }) {
         </div>
       </div>
       {/* Clients Table */}
-      <div className="overflow-x-auto mb-16 md:mb-4">
+      <div className="overflow-x-auto mb-24 md:mb-4">
        
         {filteredClients.map((client,i) => (
 

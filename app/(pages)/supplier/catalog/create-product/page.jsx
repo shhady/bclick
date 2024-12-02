@@ -147,7 +147,7 @@ export default function CreateProduct() {
   }
 
   return (
-    <div className="p-6 mb-16 md:mb-0 max-w-md mx-auto">
+    <div className="p-6 mb-24 md:mb-0 max-w-md mx-auto">
       <div className='flex justify-between items-center mb-8 md:mb-4'>
       <h1 className="text-xl font-bold">צור מוצר חדש</h1>
       <Link href={`/supplier/catalog/create-category/${globalUser._id}`} className='w-1/3'>

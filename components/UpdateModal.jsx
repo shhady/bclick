@@ -63,7 +63,13 @@ export default function UpdateModal({ formData, setFormData, onSubmit, isOpen, s
               )}
             </div>
           ))}
-          <div className="flex justify-end space-x-4">
+          <div className="flex justify-between space-x-4">
+          <button
+              type="submit"
+              className="bg-customBlue text-white px-4 py-2 rounded-md hover:bg-blue-600"
+            >
+              עדכן
+            </button>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
@@ -71,12 +77,7 @@ export default function UpdateModal({ formData, setFormData, onSubmit, isOpen, s
             >
               ביטול
             </button>
-            <button
-              type="submit"
-              className="bg-customBlue text-white px-4 py-2 rounded-md hover:bg-blue-600"
-            >
-              עדכן
-            </button>
+            
           </div>
         </form>
       </div>
