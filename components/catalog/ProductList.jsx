@@ -35,7 +35,7 @@ export default function ProductList({ products, onEdit }) {
       <div className="text-center tabular-nums">₪{product.price.toLocaleString()}</div>
 
       {/* Button (2 Columns, Below Stock and Price) */}
-      <Link href={`/supplier/update-product/${product._id}`} className="col-span-2 col-start-5  self-end">
+      <Link href={`/supplier/catalog/update-product/${product._id}`} className="col-span-2 col-start-5  self-end">
       <button
         // onClick={() => onEdit(product)}
         className=" mt-2 bg-gray-300 text-gray-500 text-sm w-full px-4 py-2 rounded-md hover:bg-customBlue hover:text-white"

@@ -38,7 +38,7 @@ export default function Clients({ clients,supplierId }) {
         <div className="sticky md:top-20 top-0 bg-[#f8f8ff] w-full md:px-3 pt-6 pb-1">
           <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">לקוחות</h2>
-       <Link href='/supplier/add-client'> <button className="bg-customBlue text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+       <Link href={`/supplier/${supplierId}/add-client`}> <button className="bg-customBlue text-white px-4 py-2 rounded-lg hover:bg-blue-600">
           הוסף לקוח +
         </button>
         </Link>
