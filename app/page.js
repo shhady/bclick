@@ -9,31 +9,46 @@ import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect,useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true); // State to handle loading
-
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth(); // Clerk authentication
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isSignedIn) {
-      router.push('/profile');
-    } else {
-      setLoading(false); // Stop loading if not signed in
+    if (isLoaded) {
+      if (isSignedIn) {
+        router.push('/profile'); // Redirect to profile if signed in
+      } else {
+        setLoading(false); // Stop showing the logo if no user is signed in
+      }
     }
-  }, [isSignedIn, router]); // Dependencies: Run this only when isSignedIn or router changes
+  }, [isSignedIn, isLoaded, router]);
 
   const userButtonAppearance = {
     elements: {
       avatarImage: 'w-100 h-100',
     },
   };
+
   if (loading) {
-    // Show a blank page or a loader while redirecting
-    return <div className="h-screen bg-white"></div>;
+    // Display the logo while determining the user's authentication status
+    return (
+      <div className="h-screen flex justify-center items-center bg-white">
+      <div className="w-[200px] h-[200px] flex justify-center items-center animate-pulse">
+        <Image
+          src="/bclick-logo.jpg"
+          alt="logo"
+          width={200}
+          height={200}
+          className="object-contain"
+        />
+      </div>
+    </div>
+    );
   }
+
   return (
     <>
       <div className="pb-48 bg-gradient-to-b from-[#D732A8] to-[#034167] text-white">
@@ -103,7 +118,7 @@ export default function Home() {
               href={'/sign-up'}
               className="bg-blue-500 text-white px-6 py-3 rounded-lg w-full font-medium hover:bg-blue-600"
             >
-              <button className=' w-full'>התחל</button>
+              <button className="w-full">התחל</button>
             </Link>
             <div
               className="bg-gray-200 text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-gray-300"
