@@ -16,13 +16,14 @@ export default function VideoInsideComputer() {
         {/* Video */}
         <div className="absolute top-[2%] left-[10%] md:top-[2%] md:left-[10%] xl:top-[2%] xl:left-[10%] w-[80%] h-[88%] overflow-hidden rounded-lg">
           <video
-            src="/test-video.mp4" // Add your video in the public folder
+            src="https://youtu.be/reUZRyXxUs4" // Add your video in the public folder
             autoPlay
             loop
             muted
             controls
             className="w-full h-full object-cover"
           ></video>
+          
         </div>
       </div>
 
