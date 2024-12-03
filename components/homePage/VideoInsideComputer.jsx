@@ -15,14 +15,7 @@ export default function VideoInsideComputer() {
         />
         {/* Video */}
         <div className="absolute top-[2%] left-[10%] md:top-[2%] md:left-[10%] xl:top-[2%] xl:left-[10%] w-[80%] h-[88%] overflow-hidden rounded-lg">
-          <video
-            src="https://youtu.be/reUZRyXxUs4" // Add your video in the public folder
-            autoPlay
-            loop
-            muted
-            controls
-            className="w-full h-full object-cover"
-          ></video>
+        <iframe width="949" height="534" src="https://www.youtube.com/embed/reUZRyXxUs4" title="How AI Could Empower Any Business | Andrew Ng | TED" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowFullscreen></iframe>
           
         </div>
       </div>
