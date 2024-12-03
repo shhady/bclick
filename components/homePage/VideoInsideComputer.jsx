@@ -21,7 +21,7 @@ export default function VideoInsideComputer() {
         title="How AI Could Empower Any Business | Andrew Ng | TED" 
         frameBorder="0" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-         referrerpolicy="strict-origin-when-cross-origin" 
+         referrerPolicy="strict-origin-when-cross-origin" 
          allowFullScreen={true}
 >
 
