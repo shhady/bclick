@@ -23,6 +23,7 @@ export default function VideoInsideComputer() {
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
          referrerPolicy="strict-origin-when-cross-origin" 
          allowFullScreen={true}
+         className='w-full h-full'
 >
 
          </iframe>

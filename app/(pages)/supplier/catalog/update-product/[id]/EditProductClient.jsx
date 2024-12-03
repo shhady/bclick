@@ -56,8 +56,8 @@ export default function EditProductClient({ product, categories }) {
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "An error occurred while updating the product.",
+        title: "שגיאה",
+        description: "שגיאה בעדכון מוצר, תנסה מחדש",
         variant: "destructive",
       });
       setUpdating(false)
