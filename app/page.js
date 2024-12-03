@@ -83,10 +83,8 @@ export default function Home() {
           הדרך החכמה, הנוחה והפשוטה לנהל קטלוג מוצרים ולהזמין בקליק.
         </p>
         <div className="flex flex-col items-center justify-center gap-4">
-         <Link href={'/sign-up'}><button
-            className="bg-blue-500 text-white px-6 py-3 rounded-lg w-full font-medium hover:bg-blue-600"
-            onClick={() => console.log('Starting')}
-          >
+         <Link href={'/sign-up'} className="bg-blue-500 text-white px-6 py-3 rounded-lg w-full font-medium hover:bg-blue-600">
+         <button>
             התחל
           </button></Link> 
           <button
