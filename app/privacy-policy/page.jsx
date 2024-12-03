@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-2">מידע שאנו אוספים</h2>
           <p className="text-lg leading-relaxed">
-            אנו עשויים לאסוף מידע אישי כגון שם, מספר טלפון, כתובת דוא"ל, כתובת פיזית, פרטי עסק, ונתונים טכניים כמו כתובת IP ודפדפן. המידע נועד לשיפור השירות ולשימושים חוקיים בלבד.
+            אנו עשויים לאסוף מידע אישי כגון שם, מספר טלפון, כתובת דוא&quot;ל, כתובת פיזית, פרטי עסק, ונתונים טכניים כמו כתובת IP ודפדפן. המידע נועד לשיפור השירות ולשימושים חוקיים בלבד.
           </p>
         </section>
 
@@ -74,7 +74,7 @@ export default function PrivacyPolicy() {
         <section>
           <h2 className="text-2xl font-semibold mb-2">צור קשר</h2>
           <p className="text-lg leading-relaxed">
-            לכל שאלה או בקשה בנוגע למדיניות הפרטיות, ניתן לפנות אלינו בדוא"ל:
+            לכל שאלה או בקשה בנוגע למדיניות הפרטיות, ניתן לפנות אלינו בדוא&quot;ל:
             <a href="mailto:support@bclick.com" className="text-customBlue underline">
               support@bclick.com
             </a>
