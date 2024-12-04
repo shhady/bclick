@@ -50,8 +50,10 @@ export default async function Page({ params }) {
 
   return (
     <div className='mb-24'>
-      <div className='fixed w-full md:top-20 top-0 left-0 bg-black opacity-80 h-24 flex justify-center items-center'>
-        <div><span className='text-white'>התוכן בקטלוג שלך כפי שיופיע לאחרים </span><Link href={'/profile'}><button className='bg-gray-600 text-white py-1 px-3 rounded-md mx-4'>צא מתצוגה</button></Link></div>
+      <div className='fixed w-full md:top-20 top-0 left-0 bg-black opacity-80 h-28 flex justify-center items-center'>
+        <div className='flex md:flex-row flex-col justify-center items-center gap-3'>
+          <span className='text-white'>התוכן בקטלוג שלך כפי שיופיע לאחרים </span>
+          <Link href={'/profile'}><button className='bg-gray-600 text-white py-1 px-3 rounded-md mx-4'>צא מתצוגה</button></Link></div>
         
       </div>
       <SupplierDetails supplier={serializedSupplier(supplier)} />
