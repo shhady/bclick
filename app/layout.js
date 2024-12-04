@@ -49,12 +49,12 @@ export const metadata = {
   creator: "Shhady Serhan",
   openGraph: {
     title: "BClick - Efficient Supplier and Client Management",
-    description: "Empower your business with BClick. Seamlessly manage your products, categories, orders, and client relationships.",
-    url: "https://BClick.example.com", // Update with your domain
+    description: "חזק את העסק שלך עם BClick. נהל בקלות את המוצרים, הקטגוריות, ההזמנות ומערכות היחסים עם הלקוחות שלך.",
+    url: "https://bclick-umber.vercel.app/profile", // Update with your domain
     siteName: "BClick",
     images: [
       {
-        url: "https://sapakim.example.com/og-image.png", // Add a relevant OG image
+        url: "https://res.cloudinary.com/shhady/image/upload/v1733322054/Untitled_design_10_sotum4.png", // Add a relevant OG image
         width: 1200,
         height: 630,
         alt: "Sapakim Platform Screenshot",
