@@ -14,7 +14,7 @@ const Navbar = () => {
       {/* Desktop Navigation */}
       <div className="fixed top-0 w-full hidden md:flex justify-between items-center px-8 py-4 bg-white shadow-lg z-50 h-20" dir='ltr'>
         <div className='w-[100px] min-w-[100px]'>
-        <Link href={'/'}><Image src="/bclick-logo.jpg" alt="Logo" width={100} height={100} className="rounded-full" /></Link>
+        <Link href={'/'}><Image src="/bclick-logo.jpg" alt="Logo" width={100} height={100} className="rounded-full" priority/></Link>
         </div>
         {globalUser ? (
           <div className="flex justify-center items-center gap-5">
@@ -94,7 +94,7 @@ const Navbar = () => {
             </Link>
           </>
         ) : (
-          <Image src="/bclick-logo.jpg" alt="Logo" width={50} height={50} className="rounded-full" />
+          <Image src="/bclick-logo.jpg" alt="Logo" width={50} height={50} className="rounded-full" priority/>
         )}
       </div>
     </div>

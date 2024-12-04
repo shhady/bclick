@@ -58,6 +58,7 @@ export default function Profile({ formData, onEdit }) {
             height={1000}
             alt='cover'
             className='w-full h-full object-cover'
+            priority
           />
         )}
         <CldUploadButton

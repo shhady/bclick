@@ -14,6 +14,7 @@ export default function VideoInsideComputer() {
           height={1000}
           width={1000}
           className="w-full h-full"
+          priority
         />
         {/* Video */}
         <div className="absolute top-[2%] left-[10%] md:top-[2%] md:left-[10%] xl:top-[2%] xl:left-[10%] w-[80%] h-[88%] overflow-hidden rounded-lg">

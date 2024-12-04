@@ -1,6 +1,7 @@
 import Navbar from "@/components/navbar/Navbar";
 import { Toaster } from "@/components/ui/toaster";
 
+
 export default function PagesLayout({ children }) {
   return (
     <div className="flex flex-col items-center">

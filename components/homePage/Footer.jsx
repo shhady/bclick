@@ -10,7 +10,16 @@ export default function Footer() {
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Logo and Description */}
         <div className="flex flex-col items-start">
-          <Image src="/home-logo.png" alt="BClick Logo" width={80} height={80} />
+        <div className="relative w-[80px] h-[80px]">
+    <Image
+      src="/home-logo.png"
+      alt="logo"
+      fill
+      className="object-contain"
+      priority
+       sizes="80px"
+    />
+  </div>
           <h3 className="text-2xl font-bold mt-4">BClick</h3>
           <p className="mt-2 text-sm">
             המערכת המתקדמת לניהול הזמנות לעסקים B2B. כל מה שצריך לניהול ספקים ולקוחות במקום אחד.

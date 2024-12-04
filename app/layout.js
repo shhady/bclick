@@ -10,6 +10,7 @@ import {
 import { UserProvider } from '@/app/context/UserContext';
 
 import { Rubik } from 'next/font/google';
+import Head from "next/head";
 
 const rubik = Rubik({
   subsets: ['latin'],
@@ -29,7 +30,8 @@ const geistMono = localFont({
 
 export const metadata = {
   title: "BClick - Manage Your Suppliers and Clients",
-  description: "BClick is the ultimate platform for suppliers to manage products, categories, clients, and orders efficiently. Built for scalability and ease of use.",
+  description: "BClick היא הפלטפורמה המתקדמת לניהול ספקים, קטלוגים, לקוחות והזמנות בצורה יעילה ופשוטה. המערכת תוכננה לספק פתרון מקיף לעסקים בתחום ה-B2B, עם דגש על קלות שימוש והרחבה בהתאם לצרכים."
+,
   manifest: '/manifest.json',
 
   keywords: [
@@ -81,15 +83,16 @@ export default function RootLayout({ children }) {
     <ClerkProvider>
       <UserProvider>
     <html lang="en" dir="rtl" className="bg-[#f8f8ff]">
+      <Head>
+      <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+      </Head>
       <body  className={`${rubik.className} bg-[#f8f8ff]`}
 > 
-{/* <Navbar/> */}
-        {/* <SignedOut>
-          <SignInButton />
-        </SignedOut>
-        <SignedIn>
-          <UserButton />
-        </SignedIn> */}
+
         {children}
       </body>
     </html>

@@ -12,7 +12,7 @@ export default function ProductList({ products, onEdit }) {
     <div className="grid grid-cols-6 gap-4 items-start">
       {/* Image (1 Column) */}
       <div className="flex items-center gap-4 text-right col-span-2 row-span-2 md:col-span-1">
-        <Image
+        <Image loading="lazy"  blurDataURL="/blogo.png" placeholder="blur"
           width={1000}
           height={1000}
           src={product.imageUrl?.secure_url || "/path/to/default-image.png"}
