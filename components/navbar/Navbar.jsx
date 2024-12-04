@@ -11,7 +11,6 @@ const Navbar = () => {
   const { globalUser } = useUserContext();
   const pathName = usePathname();
   
-  console.log(pathName);
   const getIconColor = (path) => {
     return pathName?.includes(path) ? 'text-customBlue' : 'text-gray-600';
   };
@@ -30,9 +29,12 @@ const Navbar = () => {
             <Link href={globalUser.role === 'supplier' ? `/supplier/${globalUser._id}/catalog` : '/catalog'} className={`${getIconColor('catalog')}`}>
               קטלוג
             </Link>
-            <Link href={globalUser.role === 'supplier' ? `/supplier/${globalUser._id}/clients` : '/clients'} className={`${getIconColor('client')}`}>
-              {globalUser.role === 'supplier' ? 'לקוחות' : 'עגלה'}
-            </Link>
+            {globalUser.role === 'supplier' &&   <Link href={globalUser.role === 'supplier' ? `/supplier/${globalUser._id}/clients` : '/clients'} className={`${getIconColor('client')}`}>
+              לקוחות
+            </Link>}
+            {globalUser.role === 'client'&&  <Link href={'/cart'} className={`${getIconColor('cart')}`}>
+               עגלה
+            </Link>}
             {globalUser.role === 'admin' && (
               <Link href="/admin/all-users" className={`${getIconColor('admin/all-users')}`}>
                 לקוחות
@@ -57,10 +59,15 @@ const Navbar = () => {
               <FaTags size={20} />
               <span className="text-xs mt-1">קטלוג</span>
             </Link>
-            <Link href={globalUser.role === 'supplier' ? `/supplier/${globalUser._id}/clients` : '/clients'} className={`flex flex-col items-center ${getIconColor('client')}`}>
-              {globalUser.role === 'supplier' ? <FaList size={20} /> : <SlHandbag size={20} />}
-              <span className="text-xs mt-1">{globalUser.role === 'supplier' ? 'לקוחות' : 'עגלה'}</span>
-            </Link>
+           {globalUser.role === 'supplier' && <Link href={globalUser.role === 'supplier' ? `/supplier/${globalUser._id}/clients` : '/clients'} className={`flex flex-col items-center ${getIconColor('client')}`}>
+               <FaList size={20} />
+              <span className="text-xs mt-1">לקוחות</span>
+            </Link>}
+            {globalUser.role === 'client'&& 
+            <Link href={globalUser.role === 'supplier' ? `/supplier/${globalUser._id}/clients` : '/clients'} className={`flex flex-col items-center ${getIconColor('cart')}`}>
+              {globalUser.role === 'client' ? <FaList size={20} /> : <SlHandbag size={20} />}
+              <span className="text-xs mt-1">עגלה</span>
+            </Link>}
             {globalUser.role === 'admin' && (
               <Link href="/admin/all-users" className={`flex flex-col items-center ${getIconColor('admin/all-users')}`}>
                 <FaList size={20} />

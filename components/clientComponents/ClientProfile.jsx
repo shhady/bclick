@@ -69,7 +69,7 @@ export default function ClientProfile() {
           {suppliers.map((supplier) => (
               <Link
                 key={supplier._id}
-                href={`/client/${globalUser._id}/supplier/${supplier._id}`}
+                href={`/client/${globalUser._id}/supplier-catalog/${supplier._id}`}
                 className="flex items-center justify-start w-full gap-4 max-w-md p-4 bg-white shadow-lg rounded-lg border border-gray-200"
               >
                 <div className="flex-shrink-0">
