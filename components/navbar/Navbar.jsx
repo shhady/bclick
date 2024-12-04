@@ -94,7 +94,13 @@ const Navbar = () => {
             </Link>
           </>
         ) : (
-          <Image src="/bclick-logo.jpg" alt="Logo" width={50} height={50} className="rounded-full" priority/>
+          <div className="relative w-[80px] h-[80px]">
+          <Image src="/bclick-logo.jpg" alt="logo"
+      fill
+      className="object-contain"
+      priority
+       sizes="80px"/>
+          </div>
         )}
       </div>
     </div>
