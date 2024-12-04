@@ -1,9 +1,14 @@
 import React from 'react';
 
-export default function SupplierCategories({ serializedCategories, onCategoryClick }) {
-    
-const sortedCategories = [...serializedCategories].sort((a, b) => {
-    if (a.name === 'כללי') return -1; // Move 'כללי' to the beginning
+export default function SupplierCategories({ serializedCategories, onCategoryClick, products }) {
+  // Filter categories to only include those with products
+  const filteredCategories = serializedCategories.filter((category) =>
+    products.some((product) => product.categoryId === category._id)
+  );
+
+  // Sort categories and move 'כללי' to the beginning
+  const sortedCategories = filteredCategories.sort((a, b) => {
+    if (a.name === 'כללי') return -1;
     if (b.name === 'כללי') return 1;
     return 0;
   });
@@ -11,7 +16,7 @@ const sortedCategories = [...serializedCategories].sort((a, b) => {
   return (
     <div className="bg-gray-400 h-[35px] lg:h-[50px] flex items-center overflow-x-auto whitespace-nowrap">
       <div className="flex items-center gap-4 px-4">
-        {sortedCategories?.map((category) => (
+        {sortedCategories.map((category) => (
           <button
             key={category._id}
             onClick={() => onCategoryClick(category._id)}
@@ -20,7 +25,6 @@ const sortedCategories = [...serializedCategories].sort((a, b) => {
             {category.name}
           </button>
         ))}
-        
       </div>
     </div>
   );

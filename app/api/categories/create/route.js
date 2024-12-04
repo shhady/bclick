@@ -9,7 +9,7 @@ export async function POST(req) {
 
     if (!name || !supplierId) {
       return new Response(
-        JSON.stringify({ error: 'Name and supplierId are required.' }),
+        JSON.stringify({ error: "Name and supplierId are required." }),
         { status: 400 }
       );
     }
@@ -17,13 +17,15 @@ export async function POST(req) {
     // Check if the General category already exists
     let category = await Category.findOne({ name, supplierId });
     if (!category) {
-      category = new Category({ name, supplierId, status: 'shown' });
+      category = new Category({ name, supplierId, status: "shown" });
       await category.save();
+      return new Response(JSON.stringify({ category, created: true }), { status: 201 });
     }
 
-    return new Response(JSON.stringify({ category }), { status: 201 });
+    return new Response(JSON.stringify({ category, created: false }), { status: 200 });
   } catch (error) {
-    console.error('Error in POST /api/categories/create:', error);
+    console.error("Error in POST /api/categories/create:", error);
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 }
+

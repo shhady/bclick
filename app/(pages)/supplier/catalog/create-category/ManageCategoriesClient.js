@@ -3,7 +3,7 @@
 import { useState } from "react";
 import DeleteCategoryPopup from "./DeleteCategoryPopup";
 
-export default function ManageCategoriesClient({ categoriesWithProductStatus }) {
+export default function ManageCategoriesClient({ categoriesWithProductStatus ,supplierId}) {
   const [categoryList, setCategoryList] = useState(categoriesWithProductStatus);
   const [newCategory, setNewCategory] = useState("");
   const [editCategory, setEditCategory] = useState(null);
@@ -86,7 +86,7 @@ export default function ManageCategoriesClient({ categoriesWithProductStatus }) 
       const response = await fetch("/api/categories/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newCategory.trim() }),
+        body: JSON.stringify({ name: newCategory.trim(), supplierId }),
       });
 
       if (response.ok) {

@@ -34,6 +34,7 @@ export default async function ManageCategories({ params }) {
     <ManageCategoriesClient
       categoriesWithProductStatus={categoriesWithProductStatus}
       categories={serializedCategories}
+      supplierId={supplierId}
     />
   );
 }

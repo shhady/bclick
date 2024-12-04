@@ -50,7 +50,7 @@ export default async function Page({ params }) {
   return (
     <div className='mb-24'>
       <SupplierDetails supplier={serializedSupplier(supplier)} />
-      <ClientComponent categories={serializedCategories} products={serializedProducts} />
+      <ClientComponent categories={serializedCategories} products={serializedProducts} supplierId={supplier._id.toString()} />
     </div>
   );
 }

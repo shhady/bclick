@@ -1,9 +1,14 @@
 import React from 'react';
 
-export default function SupplierCategories({ serializedCategories, onCategoryClick }) {
-  // Sort categories so "כללי" appears first
-  const sortedCategories = [...serializedCategories].sort((a, b) => {
-    if (a.name === 'כללי') return -1; // Move 'כללי' to the beginning
+export default function SupplierCategories({ serializedCategories, onCategoryClick, products }) {
+  // Filter categories to only include those with products
+  const filteredCategories = serializedCategories.filter((category) =>
+    products.some((product) => product.categoryId === category._id)
+  );
+
+  // Sort categories and move 'כללי' to the beginning
+  const sortedCategories = filteredCategories.sort((a, b) => {
+    if (a.name === 'כללי') return -1;
     if (b.name === 'כללי') return 1;
     return 0;
   });

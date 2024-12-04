@@ -9,28 +9,48 @@ export async function GET(req) {
   try {
     const url = new URL(req.url);
     const supplierId = url.searchParams.get('supplierId');
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '20');
 
     if (!supplierId) {
-      return new Response(JSON.stringify({ error: 'Supplier ID is required.' }), { status: 400 });
+      return new Response(
+        JSON.stringify({ error: 'Supplier ID is required.' }),
+        { status: 400 }
+      );
     }
 
-    // Fetch products of the supplier
-    const products = await Product.find({ supplierId }).lean();
+    // Update out-of-stock product statuses in bulk
+    await Product.updateMany(
+      { supplierId, stock: 0, status: { $ne: 'out_of_stock' } },
+      { status: 'out_of_stock' }
+    );
 
-    // Automatically update status to 'missing' for products with zero stock
-    const updates = products
-      .filter(product => product.stock === 0 && product.status !== 'out_of_stock')
-      .map(product =>
-        Product.findByIdAndUpdate(product._id, { status: 'out_of_stock' }, { new: true }).exec()
-      );
+    // Fetch paginated products
+    const products = await Product.find({ supplierId })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
 
-    await Promise.all(updates); // Perform the updates
+    // Get total count for pagination metadata
+    const totalProducts = await Product.countDocuments({ supplierId });
 
-    // Fetch updated products
-    const updatedProducts = await Product.find({ supplierId }).lean();
-
-    return new Response(JSON.stringify(updatedProducts), { status: 200 });
+    return new Response(
+      JSON.stringify({
+        products: products.map((product) => ({
+          ...product,
+          _id: product._id.toString(),
+          supplierId: product.supplierId.toString(),
+        })),
+        total: totalProducts,
+        page,
+        pages: Math.ceil(totalProducts / limit),
+      }),
+      { status: 200 }
+    );
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500 }
+    );
   }
 }
