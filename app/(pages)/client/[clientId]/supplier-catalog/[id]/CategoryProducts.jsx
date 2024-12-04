@@ -8,14 +8,20 @@ export default function CategoryProducts({ category, products }) {
 
   const closePopup = () => setSelectedProduct(null);
 
+ // Filter products by status (active or out_of_stock)
+ const filteredProducts = products.filter(
+  (product) => product.status === 'active' || product.status === 'out_of_stock'
+);
 
-  if (products.length === 0) return null;
+// If no products after filtering, don't render the category
+if (filteredProducts.length === 0) return null;
+
 
   return (
     <div>
       <div className="text-2xl pt-8 font-semibold px-4">{category.name}</div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <div
             key={product._id}
             onClick={() => setSelectedProduct(product)}

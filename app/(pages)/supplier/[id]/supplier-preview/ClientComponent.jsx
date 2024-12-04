@@ -91,10 +91,10 @@ export default function ClientComponent({ categories, supplierId }) {
       <div className="categories">
         {sortedCategories.map((category) => (
           <div ref={(el) => (categoryRefs.current[category._id] = el)} key={category._id}>
-            <CategoryProducts
-              category={category}
-              products={products.filter((product) => product.categoryId === category._id)}
-            />
+           <CategoryProducts
+  category={category}
+  products={products.filter((product) => product.categoryId === category._id)}
+/>
           </div>
         ))}
       </div>

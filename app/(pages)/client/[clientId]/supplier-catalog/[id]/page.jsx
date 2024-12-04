@@ -17,8 +17,10 @@ export default async function Page({ params }) {
   }
 
   const categories = await Category.find({ supplierId: id, status: 'shown' }).lean();
-  const products = await Product.find({ supplierId: id }).lean();
-
+  const products = await Product.find({
+    supplierId: id,
+    status: { $in: ['active', 'out_of_stock'] }, // Only include active or out_of_stock
+  }).lean();
   const serializedSupplier = (supplier) => ({
     ...supplier,
     _id: supplier._id.toString(),
