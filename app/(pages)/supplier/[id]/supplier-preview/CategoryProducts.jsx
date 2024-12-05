@@ -29,7 +29,7 @@ export default function CategoryProducts({ category, products }) {
           >
             <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded">
               <Image
-                src={product.imageUrl.secure_url}
+                src={product?.imageUrl?.secure_url}
                 alt={product.name}
                 fill
                 className="object-contain max-h-full"
@@ -37,9 +37,9 @@ export default function CategoryProducts({ category, products }) {
                 blurDataURL='/blogo192.png'
               />
             </div>
-            <h2 className="text-sm font-bold mt-2">{product.name}</h2>
-            <p className="text-gray-600 mt-1">משקל: {product.weight}</p>
-            <p className="text-gray-600 mt-1">מחיר: ₪{product.price}</p>
+            <h2 className="text-sm font-bold mt-2">{product?.name}</h2>
+            <p className="text-gray-600 mt-1">משקל: {product?.weight}</p>
+            <p className="text-gray-600 mt-1">מחיר: ₪{product?.price}</p>
           </div>
         ))}
       </div>

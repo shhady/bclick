@@ -30,7 +30,7 @@ if (filteredProducts.length === 0) return null;
           >
             <div className="w-full h-40 flex items-center justify-center overflow-hidden rounded">
               <Image
-                src={product.imageUrl.secure_url}
+                src={product?.imageUrl?.secure_url}
                 alt={product.name}
                 width={160}
                 height={160}
@@ -38,8 +38,8 @@ if (filteredProducts.length === 0) return null;
               />
             </div>
             <h2 className="text-sm font-bold mt-2">{product.name}</h2>
-            <p className="text-gray-600 mt-1">משקל: {product.weight}</p>
-            <p className="text-gray-600 mt-1">מחיר: ₪{product.price}</p>
+            <p className="text-gray-600 mt-1">משקל: {product?.weight}</p>
+            <p className="text-gray-600 mt-1">מחיר: ₪{product?.price}</p>
           </div>
         ))}
       </div>
@@ -60,15 +60,15 @@ if (filteredProducts.length === 0) return null;
             </div>
             <div className="p-4 flex flex-col justify-center items-center">
               <Image
-                src={selectedProduct.imageUrl.secure_url}
+                src={selectedProduct?.imageUrl?.secure_url}
                 alt={selectedProduct.name}
                 width={400}
                 height={400}
                 className="w-full max-h-56 object-contain rounded"
               />
               <h2 className="text-lg font-bold mt-4">{selectedProduct.name}</h2>
-              <p className="text-gray-600">Weight: {selectedProduct.weight}</p>
-              <p className="text-gray-600">Price: ₪{selectedProduct.price}</p>
+              <p className="text-gray-600">Weight: {selectedProduct?.weight}</p>
+              <p className="text-gray-600">Price: ₪{selectedProduct?.price}</p>
               <p className="text-gray-600">Units: {selectedProduct.units}</p>
               <div className="flex items-center gap-4 mt-4">
                 <button className="bg-gray-300 px-3 py-1 rounded">-</button>
