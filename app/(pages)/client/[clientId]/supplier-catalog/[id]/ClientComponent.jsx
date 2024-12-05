@@ -4,14 +4,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import CategoryProducts from './CategoryProducts';
 import SupplierCategories from './SupplierCategories';
 import Loader from '@/components/loader/Loader';
+import FavouritesClient from './FavouritesClient';
+import SupplierDetails from './SupplierDetails';
 
-export default function ClientComponent({ categories, supplierId,clientId }) {
+export default function ClientComponent({
+  categories,
+  supplierId,
+  clientId,
+  serializedFavorites,
+  supplier,
+}) {
   const [products, setProducts] = useState([]);
+  const [favorites, setFavorites] = useState(serializedFavorites || []);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const PRODUCTS_PER_PAGE = 20;
   const categoryRefs = useRef({});
+  const [showAll, setShowAll] = useState(true);
 
   const sortedCategories = [...categories].sort((a, b) => {
     if (a.name === 'כללי') return -1;
@@ -29,7 +39,6 @@ export default function ClientComponent({ categories, supplierId,clientId }) {
     if (loading || !hasMore) return;
 
     setLoading(true);
-
     try {
       const response = await fetch(
         `/api/products/get-supplier-products?supplierId=${supplierId}&page=${page}&limit=${PRODUCTS_PER_PAGE}`
@@ -41,7 +50,6 @@ export default function ClientComponent({ categories, supplierId,clientId }) {
 
       const data = await response.json();
 
-      // Avoid adding duplicate products
       setProducts((prev) => {
         const newProducts = data.products.filter(
           (newProduct) => !prev.some((existing) => existing._id === newProduct._id)
@@ -49,8 +57,8 @@ export default function ClientComponent({ categories, supplierId,clientId }) {
         return [...prev, ...newProducts];
       });
 
-      setHasMore(data.products.length === PRODUCTS_PER_PAGE); // Check if more products exist
-      setPage((prev) => prev + 1); // Increment page after successful fetch
+      setHasMore(data.products.length === PRODUCTS_PER_PAGE);
+      setPage((prev) => prev + 1);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -58,47 +66,72 @@ export default function ClientComponent({ categories, supplierId,clientId }) {
     }
   };
 
-  // Initial fetch when supplierId changes
-  useEffect(() => {
-    setProducts([]); // Clear existing products
-    setPage(1); // Reset to the first page
-    setHasMore(true); // Reset hasMore to true
-    fetchProducts(); // Fetch the first batch
-  }, [supplierId]);
-
-  const handleScroll = () => {
-    if (
-      window.innerHeight + document.documentElement.scrollTop >=
-      document.documentElement.offsetHeight - 200
-    ) {
-      fetchProducts();
+  const fetchFavorites = async () => {
+    try {
+      const response = await fetch(`/api/favourites/${clientId}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch favorites: ${response.status}`);
+      }
+      const data = await response.json();
+      setFavorites(data.products || []);
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+      setFavorites([]);
     }
   };
 
-  // Attach scroll event listener
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMore, loading]);
+    if (showAll) {
+      // Reset state for "All Products" and fetch products
+    //   setProducts([]);
+      setPage(1);
+      setHasMore(true);
+      fetchProducts();
+    } else {
+      // Fetch favorites when switching to "Favorites"
+      fetchFavorites();
+    }
+  }, [showAll]);
+
+  const handleFavoriteChange = (productId, isFavorite) => {
+    if (isFavorite) {
+      const product = products.find((p) => p._id === productId);
+      if (product) setFavorites((prev) => [...prev, product]);
+    } else {
+      setFavorites((prev) => prev.filter((p) => p._id !== productId));
+    }
+  };
 
   return (
     <div>
-      <SupplierCategories
-        serializedCategories={categories}
-        products={products} // Pass products to filter categories
-        onCategoryClick={scrollToCategory}
-      />
-      <div className="categories">
-        {sortedCategories.map((category) => (
-          <div ref={(el) => (categoryRefs.current[category._id] = el)} key={category._id}>
-            <CategoryProducts
-              category={category}
-              products={products.filter((product) => product.categoryId === category._id)}
-              clientId={clientId}
-            />
+      <SupplierDetails supplier={supplier} setShowAll={setShowAll} showAll={showAll} />
+      {showAll ? (
+        <>
+          <SupplierCategories
+            serializedCategories={categories}
+            products={products}
+            onCategoryClick={scrollToCategory}
+          />
+          <div className="categories">
+            {sortedCategories.map((category) => (
+              <div ref={(el) => (categoryRefs.current[category._id] = el)} key={category._id}>
+                <CategoryProducts
+                  category={category}
+                  products={products.filter((product) => product.categoryId === category._id)}
+                  clientId={clientId}
+                  onFavoriteChange={handleFavoriteChange}
+                />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      ) : (
+        <FavouritesClient
+          products={favorites}
+          clientId={clientId}
+          onFavoriteChange={handleFavoriteChange}
+        />
+      )}
       {loading && (
         <div className="text-center">
           <Loader />

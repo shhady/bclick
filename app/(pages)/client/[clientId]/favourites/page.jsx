@@ -1,7 +1,7 @@
 import { connectToDB } from '@/utils/database';
 import Favourite from '@/models/favourite';
 import User from '@/models/user';
-import FavouritesClient from './FavouritesClient';
+import FavouritesClient from '../supplier-catalog/[id]/FavouritesClient';
 
 export default async function Page({ params }) {
   const { clientId } = await params;

@@ -5,11 +5,41 @@ import Category from '@/models/category';
 import SupplierDetails from './SupplierDetails';
 import SupplierCategories from './SupplierCategories';
 import ClientComponent from './ClientComponent';
+import Favourite from '@/models/favourite';
 
 export default async function Page({ params }) {
   const { id , clientId} = await params;
 
   await connectToDB();
+
+  // Fetch the favourite document
+  const favourite = await Favourite.findOne({ clientId })
+    .populate({
+      path: 'productIds',
+      populate: {
+        path: 'supplierId',
+        select: 'businessName',
+      },
+    })
+    .lean();
+
+  // if (!favourite || !favourite.productIds.length) {
+  //   return <h1>No Favourites Found</h1>;
+  // }
+
+  // Serialize products and supplier details
+  const serializedFavorites = favourite.productIds.map((product) => ({
+    ...product,
+    _id: product._id.toString(),
+    categoryId: product.categoryId.toString(),
+    supplierId: {
+      _id: product.supplierId._id.toString(),
+      businessName: product.supplierId.businessName,
+    },
+    createdAt: product.createdAt.toISOString(),
+  }));
+
+  console.log(serializedFavorites);
 
   const supplier = await User.findById(id).lean();
   if (!supplier) {
@@ -48,11 +78,11 @@ export default async function Page({ params }) {
     categoryId: product.categoryId.toString(),
     supplierId: product.supplierId.toString(),
   }));
-
+  console.log(serializedProducts);
   return (
     <div className='mb-24'>
-      <SupplierDetails supplier={serializedSupplier(supplier)} />
-      <ClientComponent clientId={clientId} categories={serializedCategories} products={serializedProducts} supplierId={supplier._id.toString()} />
+      {/* <SupplierDetails supplier={serializedSupplier(supplier)} /> */}
+      <ClientComponent  supplier={serializedSupplier(supplier)} clientId={clientId} categories={serializedCategories} products={serializedProducts} supplierId={supplier._id.toString()} serializedFavorites={serializedFavorites}/>
     </div>
   );
 }

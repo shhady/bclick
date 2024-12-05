@@ -2,7 +2,7 @@ import { connectToDB } from '@/utils/database';
 import Favourite from '@/models/favourite';
 
 export async function GET(req, { params }) {
-  const { clientId } = params;
+  const { clientId } = await params;
 
   await connectToDB();
 
