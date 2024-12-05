@@ -5,7 +5,7 @@ import CategoryProducts from './CategoryProducts';
 import SupplierCategories from './SupplierCategories';
 import Loader from '@/components/loader/Loader';
 
-export default function ClientComponent({ categories, supplierId }) {
+export default function ClientComponent({ categories, supplierId,clientId }) {
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -94,6 +94,7 @@ export default function ClientComponent({ categories, supplierId }) {
             <CategoryProducts
               category={category}
               products={products.filter((product) => product.categoryId === category._id)}
+              clientId={clientId}
             />
           </div>
         ))}

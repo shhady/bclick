@@ -52,7 +52,7 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white shadow-lg flex justify-around items-center pt-3 pb-6 border-t border-gray-300 h-[70px]">
+      <div className="md:hidden fixed z-50 bottom-0 left-0 w-full bg-white shadow-lg flex justify-around items-center pt-3 pb-6 border-t border-gray-300 h-[70px]">
         {globalUser ? (
           <>
             <Link href={globalUser.role === 'supplier' ? `/supplier/${globalUser._id}/catalog` : '/catalog'} className={`flex flex-col items-center ${getIconColor('catalog')}`}>

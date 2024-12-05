@@ -7,7 +7,7 @@ import SupplierCategories from './SupplierCategories';
 import ClientComponent from './ClientComponent';
 
 export default async function Page({ params }) {
-  const { id } = await params;
+  const { id , clientId} = await params;
 
   await connectToDB();
 
@@ -52,7 +52,7 @@ export default async function Page({ params }) {
   return (
     <div className='mb-24'>
       <SupplierDetails supplier={serializedSupplier(supplier)} />
-      <ClientComponent categories={serializedCategories} products={serializedProducts} supplierId={supplier._id.toString()} />
+      <ClientComponent clientId={clientId} categories={serializedCategories} products={serializedProducts} supplierId={supplier._id.toString()} />
     </div>
   );
 }
