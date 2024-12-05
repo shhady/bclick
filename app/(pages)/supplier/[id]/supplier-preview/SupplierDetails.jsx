@@ -23,9 +23,9 @@ export default function SupplierDetails({ supplier }) {
       
       <div className="flex items-start justify-between gap-4 p-4 shadow-md">
         <div>
-          <h1 className="text-1xl font-semibold">{supplier.businessName || 'משתמש'}</h1>
-          <p>{supplier.city}</p>
-          <p>{supplier.phone || 'טלפון לא הוזן'}</p>
+          <h1 className="text-1xl font-semibold">{supplier?.businessName || 'משתמש'}</h1>
+          <p>{supplier?.city}</p>
+          <p>{supplier?.phone || 'טלפון לא הוזן'}</p>
         </div>
         <div className="flex flex-col items-center justify-end gap-2">
           {/* <ProfileMenu onEdit={onEdit}/> */}
