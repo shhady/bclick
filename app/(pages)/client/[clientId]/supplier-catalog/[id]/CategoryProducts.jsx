@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import StarToggle from './StarToggle';
 
-export default function CategoryProducts({ category, products,clientId }) {
+export default function CategoryProducts({ category, products,clientId,onFavoriteChange  }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
 
@@ -66,7 +66,7 @@ export default function CategoryProducts({ category, products,clientId }) {
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the popup
           >
             <div className="flex justify-between items-center p-4">
-            <StarToggle productId={selectedProduct._id} clientId={clientId} />
+            <StarToggle productId={selectedProduct._id} clientId={clientId} onFavoriteChange={onFavoriteChange}/>
                           <button onClick={closePopup} className="text-red-500 font-bold text-xl">
                 X
               </button>

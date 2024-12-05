@@ -6,7 +6,7 @@ import StarToggle from './StarToggle';
 import Loader from '@/components/loader/Loader';
 
 export default function FavouritesClient({ products, clientId, onFavoriteChange }) {
-  const [favoriteProducts, setFavoriteProducts] = useState();
+  const [favoriteProducts, setFavoriteProducts] = useState(products);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
 
@@ -25,15 +25,15 @@ export default function FavouritesClient({ products, clientId, onFavoriteChange 
     onFavoriteChange(productId, false);
   };
 
-  useEffect(()=>{
-    const fetchFavorites = async()=>{
-      const response = await fetch(`/api/favourites/${clientId}`);
-      const data = await response.json();  
-          setFavoriteProducts(data.products)
-    }
-    fetchFavorites(favoriteProducts)
-  },[])
-  console.log(favoriteProducts);
+  // useEffect(()=>{
+  //   const fetchFavorites = async()=>{
+  //     const response = await fetch(`/api/favourites/${clientId}`);
+  //     const data = await response.json();  
+  //         setFavoriteProducts(data.products)
+  //   }
+  //   fetchFavorites(favoriteProducts)
+  // },[])
+  // console.log(favoriteProducts);
 
   if(!favoriteProducts){
     return <div><Loader /></div>

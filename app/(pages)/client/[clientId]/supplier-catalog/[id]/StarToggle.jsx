@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AiFillStar } from 'react-icons/ai';
 
-export default function StarToggle({ productId, clientId, onRemove, confirmRemoval = false }) {
+export default function StarToggle({ productId, clientId, onRemove,onFavoriteChange, confirmRemoval = false }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
@@ -41,6 +41,7 @@ export default function StarToggle({ productId, clientId, onRemove, confirmRemov
       });
 
       if (response.ok) {
+        onFavoriteChange(productId, !isFavorite)
         setIsFavorite(!isFavorite);
         if (isFavorite && onRemove) onRemove(productId); // Trigger removal callback
       } else {
