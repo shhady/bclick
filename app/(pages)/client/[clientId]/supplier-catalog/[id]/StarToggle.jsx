@@ -1,35 +1,32 @@
-'use client';
-
-import Loader from '@/components/loader/Loader';
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AiFillStar } from 'react-icons/ai';
 
-export default function StarToggle({ 
-  productId, 
-  clientId, 
-  onFavoriteToggle 
-}) {
+export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
   const [isFavorite, setIsFavorite] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [loading, setLoading] = useState(false);
 
   const toggleFavorite = async () => {
-    startTransition(async () => {
-      try {
-        const action = isFavorite ? 'remove' : 'add';
-        const response = await fetch(`/api/favourites/${action}`, {
-          method: 'POST',
-          body: JSON.stringify({ clientId, productId }),
-          headers: { 'Content-Type': 'application/json' }
-        });
+    setLoading(true);
+    try {
+      const action = isFavorite ? 'remove' : 'add';
+      const response = await fetch(`/api/favourites/${action}`, {
+        method: 'POST',
+        body: JSON.stringify({ clientId, productId }),
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-        if (response.ok) {
-          setIsFavorite(!isFavorite);
-          onFavoriteToggle(productId, !isFavorite);
-        }
-      } catch (error) {
-        console.error('Toggle failed', error);
+      if (response.ok) {
+        const updatedStatus = !isFavorite;
+        setIsFavorite(updatedStatus);
+        onFavoriteToggle(productId, updatedStatus);
+      } else {
+        throw new Error('Failed to update favorite status');
       }
-    });
+    } catch (error) {
+      console.error('Toggle failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -50,16 +47,17 @@ export default function StarToggle({
 
     checkFavoriteStatus();
   }, [clientId, productId]);
+
   return (
-    <button 
-      onClick={toggleFavorite} 
-      disabled={isPending}
+    <button
+      onClick={toggleFavorite}
+      disabled={loading}
       className={`transition-colors ${
         isFavorite ? 'text-yellow-500' : 'text-gray-300'
       }`}
     >
       <AiFillStar size={28} />
-      {isPending && <Loader />}
+      {loading && <span className="loader"></span>}
     </button>
   );
 }
