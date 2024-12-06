@@ -55,7 +55,7 @@ export default async function Page({ params }) {
     console.error('Supplier not found for ID:', id);
     return <h1>Supplier Not Found</h1>;
   }
-  return <ClientComponent {...serializedData} />;
+  return <ClientComponent {...serializedData} clientId={clientId} />;
 }
 
 // Extracted serialization functions for reusability

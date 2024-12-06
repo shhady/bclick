@@ -135,7 +135,7 @@ export default function ClientComponent({
   const [favorites, setFavorites] = useState(initialFavorites);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const categoryRefs = useRef({}); // To store references for categories
-
+    console.log(clientId);
   const filteredProducts = useMemo(() => {
     return showAll ? products : favorites;
   }, [showAll, products, favorites]);

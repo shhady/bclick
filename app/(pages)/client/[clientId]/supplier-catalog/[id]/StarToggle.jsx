@@ -5,8 +5,10 @@ export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  console.log(clientId);
   const toggleFavorite = async () => {
     setLoading(true);
+    
     try {
       const action = isFavorite ? 'remove' : 'add';
       const response = await fetch(`/api/favourites/${action}`, {
