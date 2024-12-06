@@ -1,5 +1,6 @@
 'use client';
 
+import Loader from '@/components/loader/Loader';
 import React, { useState, useTransition, useEffect } from 'react';
 import { AiFillStar } from 'react-icons/ai';
 
@@ -58,7 +59,7 @@ export default function StarToggle({
       }`}
     >
       <AiFillStar size={28} />
-      {isPending && <Spinner />}
+      {isPending && <Loader />}
     </button>
   );
 }

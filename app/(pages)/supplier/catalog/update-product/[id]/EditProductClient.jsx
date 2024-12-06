@@ -368,7 +368,7 @@ export default function EditProductClient({ product, categories }) {
     if (updatedProduct.stock === 0 && updatedProduct.status !== 'hidden') {
       setUpdatedProduct((prev) => ({ ...prev, status: 'out_of_stock' }));
     }
-  }, [updatedProduct.stock]);
+  }, [updatedProduct.stock,updatedProduct.status]);
 
   const handleChange = (field, value) => {
     setUpdatedProduct((prev) => ({ ...prev, [field]: value }));
