@@ -15,6 +15,7 @@ export const dynamic = 'force-dynamic'; // Ensure fresh data for critical sectio
 export default async function Page({ params }) {
   const { id, clientId } = await params;
 
+  await connectToDB()
   // Parallel data fetching
   const [supplier, categories, favourites, products] = await Promise.all([
     User.findById(id).lean(),
