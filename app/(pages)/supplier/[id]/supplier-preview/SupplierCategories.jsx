@@ -1,8 +1,8 @@
 import React from 'react';
 
-export default function SupplierCategories({ serializedCategories, onCategoryClick, products }) {
+export default function SupplierCategories({ categories, onCategoryClick, products }) {
   // Filter categories to only include those with products
-  const filteredCategories = serializedCategories.filter((category) =>
+  const filteredCategories = categories.filter((category) =>
     products.some((product) => product.categoryId === category._id)
   );
 
@@ -14,8 +14,9 @@ export default function SupplierCategories({ serializedCategories, onCategoryCli
   });
 
   return (
-    <div className="bg-gray-400 h-[35px] lg:h-[50px] flex items-center overflow-x-auto whitespace-nowrap">
+    <div className="bg-gray-400 h-[35px] lg:h-[50px] flex items-center overflow-x-auto whitespace-nowrap sticky top-[104px] md:top-[184px] z-50 shadow-xl">
       <div className="flex items-center gap-4 px-4">
+        קטגוריות: 
         {sortedCategories.map((category) => (
           <button
             key={category._id}

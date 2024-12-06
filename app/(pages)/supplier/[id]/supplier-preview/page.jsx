@@ -6,21 +6,40 @@ import SupplierDetails from './SupplierDetails';
 import SupplierCategories from './SupplierCategories';
 import ClientComponent from './ClientComponent';
 import Link from 'next/link';
+import Favourite from '@/models/favourite';
+
+// Enhanced Server-Side Rendering Strategy
+export const revalidate = 60; // Cache for 60 seconds
+export const dynamic = 'force-dynamic'; // Ensure fresh data for critical sections
 
 export default async function Page({ params }) {
-  const { id } = await params;
+  const { id, clientId } = await params;
 
-  await connectToDB();
+  // Parallel data fetching
+  const [supplier, categories, favourites, products] = await Promise.all([
+    User.findById(id).lean(),
+    Category.find({ supplierId: id, status: 'shown' }).lean(),
+    Favourite.findOne({ clientId }).populate('productIds').lean(),
+    Product.find({
+      supplierId: id,
+      status: { $in: ['active', 'out_of_stock'] }
+    }).lean()
+  ]);
+  console.log(products);
+  // More robust serialization with error handling
+  const serializedData = {
+    supplier: supplier ? serializeSupplier(supplier) : null,
+    categories: categories.map(serializeCategory),
+    products: products.map(serializeProduct),
+    favorites: favourites?.productIds?.map(serializeProduct) || []
+  };
 
-  const supplier = await User.findById(id).lean();
-  if (!supplier) {
-    return <h1>User Not Found</h1>;
-  }
+  return <ClientComponent {...serializedData} />;
+}
 
-  const categories = await Category.find({ supplierId: id, status: 'shown' }).lean();
-  const products = await Product.find({ supplierId: id }).lean();
-
-  const serializedSupplier = (supplier) => ({
+// Extracted serialization functions for reusability
+function serializeSupplier(supplier) {
+  return {
     ...supplier,
     _id: supplier._id.toString(),
     relatedUsers: supplier.relatedUsers?.map((relUser) => ({
@@ -32,32 +51,22 @@ export default async function Page({ params }) {
     products: supplier.products?.map((productId) => productId.toString()) || [],
     createdAt: supplier.createdAt ? supplier.createdAt.toISOString() : null,
     updatedAt: supplier.updatedAt ? supplier.updatedAt.toISOString() : null,
-  });
+  };
+}
 
-
-  const serializedCategories = categories.map((category) => ({
+function serializeCategory(category) {
+  return {
     ...category,
     _id: category._id.toString(),
     supplierId: category.supplierId.toString(),
-  }));
+  };
+}
 
-  const serializedProducts = products.map((product) => ({
+function serializeProduct(product) {
+  return {
     ...product,
     _id: product._id.toString(),
     categoryId: product.categoryId.toString(),
     supplierId: product.supplierId.toString(),
-  }));
-
-  return (
-    <div className='mb-24'>
-      <div className='fixed w-full md:top-20 top-0 left-0 bg-black opacity-80 h-28 flex justify-center items-center z-50'>
-        <div className='flex md:flex-row flex-col justify-center items-center gap-3'>
-          <span className='text-white'>התוכן בקטלוג שלך כפי שיופיע לאחרים </span>
-          <Link href={'/profile'}><button className='bg-gray-600 text-white py-1 px-3 rounded-md mx-4'>צא מתצוגה</button></Link></div>
-        
-      </div>
-      <SupplierDetails supplier={serializedSupplier(supplier)} />
-      <ClientComponent categories={serializedCategories} products={serializedProducts} supplierId={supplier._id.toString()} />
-    </div>
-  );
+  };
 }

@@ -5,53 +5,41 @@ import Category from '@/models/category';
 import SupplierDetails from './SupplierDetails';
 import SupplierCategories from './SupplierCategories';
 import ClientComponent from './ClientComponent';
+import Link from 'next/link';
 import Favourite from '@/models/favourite';
 
+// Enhanced Server-Side Rendering Strategy
+export const revalidate = 60; // Cache for 60 seconds
+export const dynamic = 'force-dynamic'; // Ensure fresh data for critical sections
+
 export default async function Page({ params }) {
-  const { id , clientId} = await params;
+  const { id, clientId } = await params;
 
-  await connectToDB();
+  // Parallel data fetching
+  const [supplier, categories, favourites, products] = await Promise.all([
+    User.findById(id).lean(),
+    Category.find({ supplierId: id, status: 'shown' }).lean(),
+    Favourite.findOne({ clientId }).populate('productIds').lean(),
+    Product.find({
+      supplierId: id,
+      status: { $in: ['active', 'out_of_stock'] }
+    }).lean()
+  ]);
+  console.log(products);
+  // More robust serialization with error handling
+  const serializedData = {
+    supplier: supplier ? serializeSupplier(supplier) : null,
+    categories: categories.map(serializeCategory),
+    products: products.map(serializeProduct),
+    favorites: favourites?.productIds?.map(serializeProduct) || []
+  };
 
-  // Fetch the favourite document
-  const favourite = await Favourite.findOne({ clientId })
-    .populate({
-      path: 'productIds',
-      populate: {
-        path: 'supplierId',
-        select: 'businessName',
-      },
-    })
-    .lean();
+  return <ClientComponent {...serializedData} />;
+}
 
-  // if (!favourite || !favourite.productIds.length) {
-  //   return <h1>No Favourites Found</h1>;
-  // }
-
-  // Serialize products and supplier details
-  const serializedFavorites = favourite.productIds.map((product) => ({
-    ...product,
-    _id: product._id.toString(),
-    categoryId: product.categoryId.toString(),
-    supplierId: {
-      _id: product.supplierId._id.toString(),
-      businessName: product.supplierId.businessName,
-    },
-    createdAt: product.createdAt.toISOString(),
-  }));
-
-  console.log(serializedFavorites);
-
-  const supplier = await User.findById(id).lean();
-  if (!supplier) {
-    return <h1>User Not Found</h1>;
-  }
-
-  const categories = await Category.find({ supplierId: id, status: 'shown' }).lean();
-  const products = await Product.find({
-    supplierId: id,
-    status: { $in: ['active', 'out_of_stock'] }, // Only include active or out_of_stock
-  }).lean();
-  const serializedSupplier = (supplier) => ({
+// Extracted serialization functions for reusability
+function serializeSupplier(supplier) {
+  return {
     ...supplier,
     _id: supplier._id.toString(),
     relatedUsers: supplier.relatedUsers?.map((relUser) => ({
@@ -63,26 +51,22 @@ export default async function Page({ params }) {
     products: supplier.products?.map((productId) => productId.toString()) || [],
     createdAt: supplier.createdAt ? supplier.createdAt.toISOString() : null,
     updatedAt: supplier.updatedAt ? supplier.updatedAt.toISOString() : null,
-  });
+  };
+}
 
-
-  const serializedCategories = categories.map((category) => ({
+function serializeCategory(category) {
+  return {
     ...category,
     _id: category._id.toString(),
     supplierId: category.supplierId.toString(),
-  }));
+  };
+}
 
-  const serializedProducts = products.map((product) => ({
+function serializeProduct(product) {
+  return {
     ...product,
     _id: product._id.toString(),
     categoryId: product.categoryId.toString(),
     supplierId: product.supplierId.toString(),
-  }));
-  console.log(serializedProducts);
-  return (
-    <div className='mb-24'>
-      {/* <SupplierDetails supplier={serializedSupplier(supplier)} /> */}
-      <ClientComponent  supplier={serializedSupplier(supplier)} clientId={clientId} categories={serializedCategories} products={serializedProducts} supplierId={supplier._id.toString()} serializedFavorites={serializedFavorites}/>
-    </div>
-  );
+  };
 }
