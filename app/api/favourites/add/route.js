@@ -1,29 +1,15 @@
-import mongoose from 'mongoose';
+import { connectToDB } from '@/utils/database';
+import Favourite from '@/models/favourite';
 
-export default async function handler(req, res) {
-  try {
-    await connectToDB(); // Ensure the database connection is active
+export async function POST(req) {
+  const { clientId, productId } = await req.json();
+  await connectToDB();
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
+  const favorite = await Favourite.findOneAndUpdate(
+    { clientId },
+    { $addToSet: { productIds: productId } },
+    { upsert: true, new: true }
+  );
 
-    try {
-      await Favourite.findOneAndUpdate(
-        { clientId: req.body.clientId },
-        { $addToSet: { productIds: req.body.productId } },
-        { upsert: true, new: true, session }
-      );
-      await session.commitTransaction();
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      session.endSession();
-    }
-
-    res.status(200).json({ success: true });
-  } catch (error) {
-    console.error('Error in handler:', error);
-    res.status(500).json({ error: error.message });
-  }
+  return new Response(JSON.stringify(favorite), { status: 200 });
 }
