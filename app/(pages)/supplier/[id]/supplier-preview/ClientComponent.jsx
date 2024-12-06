@@ -204,7 +204,7 @@ export default function ClientComponent({
 
             return (
               <div key={category._id} ref={(el) => (categoryRefs.current[category._id] = el)}>
-                <h2 className="text-2xl font-bold mt-4">{category.name}</h2>
+                <h2 className="text-2xl font-bold mt-4 px-4 py-2">{category.name}</h2>
                 <ProductGrid
                   products={categoryProducts}
                   clientId={clientId}
@@ -230,7 +230,7 @@ export default function ClientComponent({
 
                 return (
                   <div key={category._id}>
-                    <h2 className="text-2xl font-bold mt-4">{category.name}</h2>
+                    <h2 className="text-2xl font-bold mt-4 px-4 py-2">{category.name}</h2>
                     <ProductGrid
                       products={categoryFavorites}
                       clientId={clientId}
