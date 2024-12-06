@@ -18,7 +18,7 @@ function ProductGrid({
   showProductDetail 
 }) {
 
-  console.log(products);
+  
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
      
@@ -163,7 +163,7 @@ export default function ClientComponent({
       console.error('Favorite toggle failed:', error);
     }
   }, [clientId, products]);
-
+  console.log(products);
   const showProductDetail = (product) => {
     setSelectedProduct(product);
   };
@@ -176,7 +176,7 @@ export default function ClientComponent({
       categoryRefs.current[categoryId].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
-
+ 
   return (
     <div className='mb-20'>
       <div className='fixed top-0 md:top-20 w-full left-0 bg-black  text-center text-white p-6 z-50'>
@@ -193,27 +193,57 @@ export default function ClientComponent({
         
       />
        <SupplierCategories categories={categories} products={products} onCategoryClick={scrollToCategory}/>
-       <div className="categories">
-        {categories.map((category) => {
-          const categoryProducts = filteredProducts.filter(
-            (product) => product.categoryId === category._id
-          );
+       {showAll ? (
+        <div className="categories">
+          {categories.map((category) => {
+            const categoryProducts = filteredProducts.filter(
+              (product) => product.categoryId === category._id
+            );
 
-          if (categoryProducts.length === 0) return null;
+            if (categoryProducts.length === 0) return null;
 
-          return (
-            <div key={category._id} ref={(el) => (categoryRefs.current[category._id] = el)}>
-              <h2 className="text-2xl font-bold mt-4">{category.name}</h2>
-              <ProductGrid
-                products={categoryProducts}
-                clientId={clientId}
-                onFavoriteToggle={handleFavoriteToggle}
-                showProductDetail={(product) => setSelectedProduct(product)}
-              />
+            return (
+              <div key={category._id} ref={(el) => (categoryRefs.current[category._id] = el)}>
+                <h2 className="text-2xl font-bold mt-4">{category.name}</h2>
+                <ProductGrid
+                  products={categoryProducts}
+                  clientId={clientId}
+                  onFavoriteToggle={handleFavoriteToggle}
+                  showProductDetail={(product) => setSelectedProduct(product)}
+                />
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div>
+          {favorites.length === 0 ? (
+            <p className="text-center text-gray-500 mt-4 text-xl">אין מוצרים במועדפים</p>
+          ) : (
+            <div className="categories">
+              {categories.map((category) => {
+                const categoryFavorites = favorites.filter(
+                  (product) => product.categoryId === category._id
+                );
+
+                if (categoryFavorites.length === 0) return null;
+
+                return (
+                  <div key={category._id}>
+                    <h2 className="text-2xl font-bold mt-4">{category.name}</h2>
+                    <ProductGrid
+                      products={categoryFavorites}
+                      clientId={clientId}
+                      onFavoriteToggle={handleFavoriteToggle}
+                      showProductDetail={(product) => setSelectedProduct(product)}
+                    />
+                  </div>
+                );
+              })}
             </div>
-          );
-        })}
-      </div>
+          )}
+        </div>
+      )}
       <ProductDetailModal 
         product={selectedProduct}
         isVisible={!!selectedProduct}
