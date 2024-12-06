@@ -186,8 +186,9 @@ export default function ClientComponent({
         setShowAll={setShowAll} 
         
       />
-       <SupplierCategories categories={categories} products={products} onCategoryClick={scrollToCategory}/>
-       {showAll ? (
+       {showAll ? (<>
+               <SupplierCategories categories={categories} products={products} onCategoryClick={scrollToCategory}/>
+
         <div className="categories">
           {categories.map((category) => {
             const categoryProducts = filteredProducts.filter(
@@ -209,7 +210,7 @@ export default function ClientComponent({
             );
           })}
         </div>
-      ) : (
+        </>) : (
         <div>
           {favorites.length === 0 ? (
             <p className="text-center text-gray-500 mt-4 text-xl">אין מוצרים במועדפים</p>

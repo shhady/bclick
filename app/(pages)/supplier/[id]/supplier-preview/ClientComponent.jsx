@@ -78,13 +78,16 @@ function ProductDetailModal({
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center p-4">
+        <div className=" relative flex justify-between items-center p-4">
+          <div className='absolute top-4 right-4'>
           <StarToggle 
             productId={product._id} 
             clientId={clientId} 
             onFavoriteToggle={onFavoriteToggle}
           />
-          <button onClick={onClose} className="text-red-500 font-bold text-xl">
+          </div>
+        
+          <button onClick={onClose} className="text-red-500 font-bold text-xl absolute top-4 left-4">
             X
           </button>
         </div>
@@ -192,8 +195,8 @@ export default function ClientComponent({
         setShowAll={setShowAll} 
         
       />
-       <SupplierCategories categories={categories} products={products} onCategoryClick={scrollToCategory}/>
-       {showAll ? (
+       {showAll ? (<>
+        <SupplierCategories categories={categories} products={products} onCategoryClick={scrollToCategory}/>
         <div className="categories">
           {categories.map((category) => {
             const categoryProducts = filteredProducts.filter(
@@ -214,7 +217,7 @@ export default function ClientComponent({
               </div>
             );
           })}
-        </div>
+        </div> </>
       ) : (
         <div>
           {favorites.length === 0 ? (

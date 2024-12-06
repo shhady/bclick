@@ -4,8 +4,8 @@ import { AiFillStar } from 'react-icons/ai';
 export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true); // Track whether the status is being checked
 
-  console.log(clientId);
   const toggleFavorite = async () => {
     setLoading(true);
     
@@ -44,6 +44,8 @@ export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
         setIsFavorite(data.isFavorite);
       } catch (error) {
         console.error('Error checking favorite status:', error);
+      } finally {
+        setChecking(false); // Stop checking once the status has been determined
       }
     };
 
@@ -51,15 +53,19 @@ export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
   }, [clientId, productId]);
 
   return (
-    <button
-      onClick={toggleFavorite}
-      disabled={loading}
-      className={`transition-colors ${
-        isFavorite ? 'text-yellow-500' : 'text-gray-300'
-      }`}
-    >
-      <AiFillStar size={28} />
-      {loading && <span className="loader"></span>}
-    </button>
+    <>
+      {!checking && ( // Only render the star after checking is complete
+        <button
+          onClick={toggleFavorite}
+          disabled={loading}
+          className={`transition-colors ${
+            isFavorite ? 'text-yellow-500' : 'text-gray-300'
+          }`}
+        >
+          <AiFillStar size={28} />
+          {loading && <span className="loader"></span>}
+        </button>
+      )}
+    </>
   );
 }
