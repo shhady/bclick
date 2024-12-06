@@ -9,7 +9,7 @@ import SupplierDetails from './SupplierDetails';
 import Loader from '@/components/loader/Loader';
 import SupplierCategories from './SupplierCategories';
 import SupplierCover from './SupplierCover';
-
+import Link from 'next/link';
 // ProductGrid Component
 function ProductGrid({ 
   products, 
@@ -179,6 +179,12 @@ export default function ClientComponent({
 
   return (
     <div className='mb-20'>
+      <div className='fixed top-0 md:top-20 w-full left-0 bg-black  text-center text-white p-6 z-50'>
+        <div className='mb-2'>
+      התוכן בקטלוג שלך כפי שיופיע לאחרים
+        </div>
+       <Link href={'/profile'} className='bg-gray-700 px-3 py-2 rounded-lg'><button >צא מתצוגה </button></Link> 
+      </div>
       <SupplierCover supplier={supplier}/>
       <SupplierDetails 
         supplier={supplier} 

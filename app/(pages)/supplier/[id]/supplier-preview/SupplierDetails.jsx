@@ -10,7 +10,7 @@ export default function SupplierDetails({
   setShowAll 
 }) {
   return (
-    <div className= "sticky top-0 md:top-20 z-50">
+    <div className= "sticky top-0 md:top-20 z-40">
       {/* Supplier Cover Image */}
       {/* {supplier?.coverImage && (
         <div className='h-50 lg:h-72 bg-customBlue rounded-b-xl '>
