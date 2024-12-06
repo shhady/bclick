@@ -18,22 +18,44 @@ export default async function Page({ params }) {
   await connectToDB()
   // Parallel data fetching
   const [supplier, categories, favourites, products] = await Promise.all([
-    User.findById(id).lean(),
-    Category.find({ supplierId: id, status: 'shown' }).lean(),
-    Favourite.findOne({ clientId }).populate('productIds').lean(),
+    User.findById(id).lean().catch((err) => {
+      console.error('User fetch failed:', err);
+      return null;
+    }),
+    Category.find({ supplierId: id, status: 'shown' }).lean().catch((err) => {
+      console.error('Category fetch failed:', err);
+      return [];
+    }),
+    Favourite.findOne({ clientId })
+      .populate('productIds')
+      .lean()
+      .catch((err) => {
+        console.error('Favourites fetch failed:', err);
+        return null;
+      }),
     Product.find({
       supplierId: id,
-      status: { $in: ['active', 'out_of_stock'] }
-    }).lean()
+      status: { $in: ['active', 'out_of_stock'] },
+    })
+      .lean()
+      .catch((err) => {
+        console.error('Product fetch failed:', err);
+        return [];
+      }),
   ]);
   console.log(products);
   // More robust serialization with error handling
   const serializedData = {
     supplier: supplier ? serializeSupplier(supplier) : null,
-    categories: categories.map(serializeCategory),
-    products: products.map(serializeProduct),
-    favorites: favourites?.productIds?.map(serializeProduct) || []
+    categories: categories ? categories.map(serializeCategory) : [],
+    products: products ? products.map(serializeProduct) : [],
+    favorites: favourites?.productIds?.map(serializeProduct) || [],
   };
+  
+  if (!supplier) {
+    console.error('Supplier not found for ID:', id);
+    return <h1>Supplier Not Found</h1>;
+  }
 
   return <ClientComponent {...serializedData} />;
 }
