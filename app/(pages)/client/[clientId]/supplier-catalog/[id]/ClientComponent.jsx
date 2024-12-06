@@ -78,13 +78,16 @@ function ProductDetailModal({
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center p-4">
+        <div className=" relative flex justify-between items-center p-4">
+          <div className='absolute top-4 right-4'>
           <StarToggle 
             productId={product._id} 
             clientId={clientId} 
             onFavoriteToggle={onFavoriteToggle}
           />
-          <button onClick={onClose} className="text-red-500 font-bold text-xl">
+          </div>
+        
+          <button onClick={onClose} className="text-red-500 font-bold text-xl absolute top-4 left-4">
             X
           </button>
         </div>
