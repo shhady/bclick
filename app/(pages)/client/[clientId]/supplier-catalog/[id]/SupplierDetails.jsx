@@ -48,10 +48,10 @@ export default function SupplierDetails({
 // New component for view mode toggle
 function ViewModeToggle({ mode, onToggle }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex  flex-col md:flex-row justify-center items-center gap-2">
       <button 
         onClick={() => onToggle(true)}
-        className={`flex justify-center items-center gap-2 px-3 py-1 rounded-lg transition-all ${
+        className={`flex w-full justify-center items-center gap-2 px-3 py-1 rounded-lg transition-all ${
           mode ? 'bg-customBlue text-white' : 'bg-gray-200 text-gray-700'
         }`}
       >
@@ -59,7 +59,7 @@ function ViewModeToggle({ mode, onToggle }) {
       </button>
       <button 
         onClick={() => onToggle(false)}
-        className={`flex justify-center items-center gap-2 px-3 py-1 rounded-lg transition-all ${
+        className={`flex w-full justify-center items-center gap-2 px-3 py-1 rounded-lg transition-all ${
           !mode ? 'bg-customBlue text-white' : 'bg-gray-200 text-gray-700'
         }`}
       >
