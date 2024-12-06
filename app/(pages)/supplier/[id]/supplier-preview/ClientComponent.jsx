@@ -39,7 +39,7 @@ function ProductGrid({
               className="absolute top-2 right-2 z-10"
             /> */}
             <Image
-              src={product?.imageUrl?.secure_url}
+              src={product?.imageUrl?.secure_url || '/no-image.jpg'}
               alt={product.name}
               width={160}
               height={160}
@@ -90,7 +90,7 @@ function ProductDetailModal({
         </div>
         <div className="p-16">
           <Image
-            src={product?.imageUrl?.secure_url}
+            src={product?.imageUrl?.secure_url || '/no-image.jpg'}
             alt={product.name}
             width={400}
             height={400}

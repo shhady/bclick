@@ -15,7 +15,7 @@ export default function ProductList({ products, onEdit }) {
         <Image loading="lazy"  blurDataURL="/blogo.png" placeholder="blur"
           width={1000}
           height={1000}
-          src={product.imageUrl?.secure_url || "/path/to/default-image.png"}
+          src={product.imageUrl?.secure_url || '/no-image.jpg'}
           alt={product.name}
           className="w-full h-full max-h-[100px] max-w-[100px] min-h-[100px] min-w-[100px] md:max-h-48 md:max-w-full md:min-h-48 md:min-w-fll object-contain"
         />

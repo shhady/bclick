@@ -57,7 +57,7 @@ export default function FavouritesClient({ products, clientId, onFavoriteChange 
             />
               <div className="w-full h-40 flex items-center justify-center overflow-hidden rounded" onClick={() => openPopup(product)}>
               <Image
-                src={product?.imageUrl?.secure_url}
+                src={product?.imageUrl?.secure_url || '/no-image.jpg'}
                 alt={product.name}
                 width={160}
                 height={160}

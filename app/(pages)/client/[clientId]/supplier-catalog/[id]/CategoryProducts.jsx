@@ -29,7 +29,7 @@ export default function CategoryProducts({ category, products }) {
           >
             <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded">
               <Image
-                src={product?.imageUrl?.secure_url}
+                src={product?.imageUrl?.secure_url || '/no-image.jpg'}
                 alt={product.name}
                 fill
                 className="object-contain max-h-full"

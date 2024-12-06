@@ -26,6 +26,9 @@ export default function CreateProduct() {
   const [message, setMessage] = useState('');
   const { toast } = useToast();
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false); // Track loading state
+  const [draftLoading, setDraftLoading] = useState(false); // Track loading state for saving a draft
+
   const router = useRouter();
   const validateFields = () => {
     const newErrors = {};
@@ -63,6 +66,9 @@ export default function CreateProduct() {
     e.preventDefault();
     if (!validateFields()) return setMessage('חלק מהפרטים חסרים');
 
+    if (isDraft) setDraftLoading(true); // Set draft loading state to true
+    else setLoading(true); // Set regular loading state to true
+
     try {
       let categoryId = formData.categoryId;
 
@@ -75,14 +81,9 @@ export default function CreateProduct() {
 
         if (generalCategoryResponse.ok) {
           const generalCategoryData = await generalCategoryResponse.json();
-          if (generalCategoryData && generalCategoryData.category) {
-            categoryId = generalCategoryData.category._id;
-          } else {
-            throw new Error('Failed to retrieve the General category data.');
-          }
+          categoryId = generalCategoryData.category._id;
         } else {
-          const errorResponse = await generalCategoryResponse.json();
-          throw new Error(errorResponse.error || 'Error creating General category.');
+          throw new Error('Error creating General category.');
         }
       }
 
@@ -109,7 +110,7 @@ export default function CreateProduct() {
           status: 'active',
         });
         setErrors({});
-        setMessage('')
+        setMessage('');
         toast({
           title: `${isDraft ? 'הטיוטה נשמרה בהצלחה' : 'המוצר נוצר בהצלחה'}`,
           description: 'תוכל להוסיף עוד מוצרים',
@@ -121,9 +122,11 @@ export default function CreateProduct() {
       }
     } catch (error) {
       console.error('Error in handleSubmit:', error);
+    } finally {
+      if (isDraft) setDraftLoading(false); // Reset draft loading state
+      else setLoading(false); // Reset regular loading state
     }
   };
-
   const handleCancel = () => {
     setFormData({
       name: '',
@@ -139,7 +142,7 @@ export default function CreateProduct() {
       status: 'active',
     });
     setErrors({});
-    // router.back(); // Navigates to the previous page
+    router.back(); // Navigates to the previous page
   };
   
   if (!globalUser || !globalUser._id) {
@@ -249,23 +252,38 @@ export default function CreateProduct() {
           <option value="hidden">מוסתר</option>
         </select>
       <PhotosUpload setFormData={setFormData} formData={formData} image={formData.imageUrl}/>
-        <button
+     {loading ? (<div
+          disabled={loading} // Disable button when loading
+          className="w-full bg-customBlue text-white p-2 rounded hover:bg-blue-600 animate-pulse text-center"
+        >
+           שומר...
+        </div>):(<button
           type="submit"
-          onClick={(e) => handleSubmit(e)} // Save as active product
+          onClick={(e) => handleSubmit(e)}
+          disabled={loading} // Disable button when loading
           className="w-full bg-customBlue text-white p-2 rounded hover:bg-blue-600"
         >
-          צור מוצר
-        </button>
+           צור מוצר
+        </button>)} 
         {message && <p className="text-center mt-4 text-red-500">{message}</p>}
 
-        <button
-          type="button"
-          onClick={(e) => handleSubmit(e, true)} // Save as draft
-          className="w-full border-2 border-gray-400 text-black p-2 rounded  my-4"
-        >
-          שמור טיוטה
-        </button>
-        
+       
+        {draftLoading ? (
+          <div
+            className="w-full bg-gray-300 text-gray-700 p-2 rounded hover:bg-gray-400 animate-pulse text-center  my-4"
+          >
+            שומר טיוטה...
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={(e) => handleSubmit(e, true)}
+            disabled={draftLoading}
+            className="w-full border-2 border-gray-400 text-black p-2 rounded my-4"
+          >
+            שמור טיוטה
+          </button>
+        )}
       </form>
       <Link href={`/supplier/${globalUser._id}/catalog`} >
       <button
