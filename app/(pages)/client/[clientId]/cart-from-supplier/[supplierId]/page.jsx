@@ -2,8 +2,6 @@ import React from 'react'
 
 export default function page() {
   return (
-    <div>
-        Suppliers
-    </div>
+    <div>cart from supplier X</div>
   )
 }

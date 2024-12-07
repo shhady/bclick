@@ -70,7 +70,7 @@ export default function Page() {
     };
 
     fetchUserFromDB();
-  }, [isLoaded, user, clientNumber]);
+  }, [isLoaded, user, clientNumber,setGlobalUser]);
 
   const handleCreate = async () => {
     try {
