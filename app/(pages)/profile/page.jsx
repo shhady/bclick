@@ -20,7 +20,7 @@ export default function Page() {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [clientNumber, setClientNumber] = useState('')
-  console.log(globalUser);
+  console.log(formData);
   // Fetch user data and set formData
   useEffect(() => {
     const fetchUserFromDB = async () => {
