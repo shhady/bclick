@@ -25,7 +25,7 @@ export default function SupplierDetails({
           <p>{supplier?.phone || 'טלפון לא הוזן'}</p>
         </div>
         <div className="flex flex-col items-center justify-end gap-2">
-         
+          <Link href={`/client/${clientId}/favourites/${supplier._id}`}>
             <button 
               className={`flex w-full justify-center items-center gap-1 px-2 py-1 rounded-lg transition-all bg-gray-200 text-gray-700`}
             >
@@ -44,7 +44,7 @@ export default function SupplierDetails({
               </svg>
               {isFavoritesPage ? 'המועדפים שלי' : 'מועדפים'}
             </button>
-         
+          </Link>
         </div>
       </div>
     </div>

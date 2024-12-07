@@ -1,27 +1,25 @@
 import { connectToDB } from '@/utils/database';
+import Favourite from '@/models/favourite';
+import FavoriteProducts from './FavoriteProducts';
 import User from '@/models/user';
 import Product from '@/models/product';
 import Category from '@/models/category';
-import SupplierDetails from './SupplierDetails';
-import SupplierCategories from './SupplierCategories';
-import ClientComponent from './ClientComponent';
-import Link from 'next/link';
-import Favourite from '@/models/favourite';
 
 // Enhanced Server-Side Rendering Strategy
 export const revalidate = 60; // Cache for 60 seconds
 export const dynamic = 'force-dynamic'; // Ensure fresh data for critical sections
 
 export default async function Page({ params }) {
-  const { id, clientId } = await params;
-  await connectToDB()
-  // Parallel data fetching
+  const { clientId, supplierId } = await params;
+
+  await connectToDB();
+
   const [supplier, categories, favourites, products] = await Promise.all([
-    User.findById(id).lean().catch((err) => {
+    User.findById(supplierId).lean().catch((err) => {
       console.error('User fetch failed:', err);
       return null;
     }),
-    Category.find({ supplierId: id, status: 'shown' }).lean().catch((err) => {
+    Category.find({ supplierId: supplierId, status: 'shown' }).lean().catch((err) => {
       console.error('Category fetch failed:', err);
       return [];
     }),
@@ -33,7 +31,7 @@ export default async function Page({ params }) {
         return null;
       }),
     Product.find({
-      supplierId: id,
+      supplierId: supplierId,
       status: { $in: ['active', 'out_of_stock'] },
     })
       .lean()
@@ -42,23 +40,29 @@ export default async function Page({ params }) {
         return [];
       }),
   ]);
-  console.log(products);
-  // More robust serialization with error handling
-  const serializedData = {
-    supplier: supplier ? serializeSupplier(supplier) : null,
-    categories: categories ? categories.map(serializeCategory) : [],
-    products: products ? products.map(serializeProduct) : [],
-    favorites: favourites?.productIds?.map(serializeProduct) || [],
-  };
-  
+
   if (!supplier) {
-    console.error('Supplier not found for ID:', id);
+    console.error('Supplier not found for ID:', supplierId);
     return <h1>Supplier Not Found</h1>;
   }
-  return <ClientComponent {...serializedData} clientId={clientId} />;
+
+  const serializedData = {
+    supplier: serializeSupplier(supplier),
+    categories: categories.map(serializeCategory),
+    products: products.map(serializeProduct),
+    favorites: favourites?.productIds?.map(serializeProduct) || [],
+  };
+
+  return (
+    <div className="mb-20">
+      {/* <h1 className="text-2xl font-bold my-6">
+        המועדפים שלך מהספק {serializedData.supplier.businessName}
+      </h1> */}
+      <FavoriteProducts {...serializedData} clientId={clientId} />
+    </div>
+  );
 }
 
-// Extracted serialization functions for reusability
 function serializeSupplier(supplier) {
   return {
     ...supplier,
@@ -75,19 +79,20 @@ function serializeSupplier(supplier) {
   };
 }
 
-function serializeCategory(category) {
-  return {
-    ...category,
-    _id: category._id.toString(),
-    supplierId: category.supplierId.toString(),
-  };
-}
-
 function serializeProduct(product) {
   return {
     ...product,
     _id: product._id.toString(),
     categoryId: product.categoryId.toString(),
     supplierId: product.supplierId.toString(),
+  };
+}
+
+
+function serializeCategory(category) {
+  return {
+    ...category,
+    _id: category._id.toString(),
+    supplierId: category.supplierId.toString(),
   };
 }

@@ -111,10 +111,12 @@ export default function ClientCard({ client, supplierId }) {
         
         </div>
         <div className='shadow-2xl p-2 rounded-lg text-lg'>
-
+        <p>
+        שם לקוח: {client.name}
+      </p>
         
         <p>
-        שם לקוח: {client.businessName}
+        שם עסק: {client.businessName}
       </p>
       <p>
         מספר לקוח: {client.clientNumber}

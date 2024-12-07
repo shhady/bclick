@@ -5,10 +5,12 @@ import React, { useState, useMemo, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import StarToggle from './StarToggle';
-import SupplierDetails from './SupplierDetails';
+
 import Loader from '@/components/loader/Loader';
 import SupplierCategories from './SupplierCategories';
-import SupplierCover from './SupplierCover';
+import SupplierCover from '../../favourites/[supplierId]/SupplierCover';
+import SupplierDetails from '../../favourites/[supplierId]/SupplierDetails';
+
 
 // ProductGrid Component
 function ProductGrid({ 
@@ -187,7 +189,7 @@ export default function ClientComponent({
         supplier={supplier} 
         showAll={showAll} 
         setShowAll={setShowAll} 
-        
+        clientId={clientId}
       />
        {showAll ? (<>
                <SupplierCategories categories={categories} products={products} onCategoryClick={scrollToCategory}/>
