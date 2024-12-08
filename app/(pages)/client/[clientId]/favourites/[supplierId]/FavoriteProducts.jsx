@@ -175,7 +175,7 @@ export default function FavoriteProducts({supplier,categories,
         // setShowAll={setShowAll} 
         
       />
-      <div className="bg-gray-400 text-lg text-center overflow-x-auto whitespace-nowrap sticky top-[104px] md:top-[184px] z-50 shadow-xl">המועדפים שלי</div>
+      <div className="bg-[#D9D9D9] text-lg text-center overflow-x-auto whitespace-nowrap sticky top-[104px] md:top-[184px] z-50 shadow-xl">המועדפים שלי</div>
        <div>
           {favorites.length === 0 ? (
             <p className="text-center text-gray-500 mt-4 text-xl ">אין מוצרים במועדפים</p>

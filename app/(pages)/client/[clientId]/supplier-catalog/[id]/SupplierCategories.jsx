@@ -25,14 +25,14 @@ export default function SupplierCategories({ categories, onCategoryClick, produc
   };
 
   return (
-    <div className="bg-gray-400 h-[35px] lg:h-[50px] flex items-center overflow-x-auto whitespace-nowrap sticky top-[104px] md:top-[184px] z-50 shadow-xl">
+    <div className="bg-[#D9D9D9] h-[35px] lg:h-[50px] flex items-center overflow-x-auto whitespace-nowrap sticky top-[104px] md:top-[184px] z-50 shadow-xl">
       <div className="flex items-center gap-4 px-4">
         קטגוריות:
         {sortedCategories.map((category) => (
           <button
             key={category._id}
             onClick={() => handleCategoryClick(category._id)}
-            className={`text-[18px] font-semibold transition ${
+            className={`text-[18px]  transition ${
               selectedCategory === category._id
                 ? 'text-customBlue' // Apply blue color to the selected category
                 : 'text-gray-700 hover:text-customBlue'
