@@ -3,7 +3,8 @@ import { currentUser } from '@clerk/nextjs/server';
 import User from '@/models/user';
 import { connectToDB } from '@/utils/database';
 import dynamic from 'next/dynamic';
-
+import { Suspense } from 'react';
+import Loader from '@/components/loader/Loader';
 // Dynamically import the client-side component
 const ProfilePage = dynamic(() => import('./ProfilePage'));
 
@@ -39,7 +40,8 @@ export default async function Page() {
 
   return (
     <div>
-      <ProfilePage user={serializedUser} />
+        <Suspense fallback={<Loader/>}>
+      <ProfilePage user={serializedUser} /></Suspense>
     </div>
   );
 }
