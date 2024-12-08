@@ -144,7 +144,7 @@ export default function ProfilePage({ user }) {
 
           {formData.role === 'admin' && <AdminProfile />}
           {formData.role === 'supplier' && <SupplierProfile />}
-          {formData.role === 'client' && <ClientProfile />}
+          {formData.role === 'client' && <ClientProfile user={user}/>}
         </>
       )}
     </div>

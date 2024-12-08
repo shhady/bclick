@@ -3,10 +3,7 @@ import User from '@/models/user';
 
 export async function GET(req, { params }) {
   try {
-    // Log the params object for debugging
-    // console.log("Params object:", params);
-
-    const { clerkId } = await params;
+    const { clerkId } = params;
 
     if (!clerkId) {
       return new Response(JSON.stringify({ error: 'Clerk ID is missing.' }), { status: 400 });
@@ -19,6 +16,17 @@ export async function GET(req, { params }) {
 
     // Fetch the user by clerkId
     const user = await User.findOne({ clerkId });
+
+    console.log("Before populate:", user.relatedUsers);
+
+    if (user) {
+      await user.populate({
+        path: 'relatedUsers.user',
+        select: 'name email phone address role profileImage', // Specify fields to include
+      });
+    }
+
+    console.log("After populate:", user.relatedUsers);
 
     if (!user) {
       return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
