@@ -106,7 +106,7 @@ export default function AddClientPage() {
           <p><strong>אימייל:</strong> {client.email}</p>
           <p><strong>טלפון:</strong> {client.phone}</p>
           {/* Check for self, existing client, or new client */}
-          {client._id === globalUser._id ? (
+          {client?._id === globalUser?._id ? (
             <p className="text-blue-600 font-semibold mt-4">הכרטיס שלך</p>
           ) : isClientExisting(client._id) ? (
             <p className="text-green-600 font-semibold mt-4">לקוח קיים</p>
