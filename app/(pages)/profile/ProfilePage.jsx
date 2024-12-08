@@ -67,7 +67,7 @@ export default function ProfilePage({ user }) {
     }
   }, [user, setGlobalUser]);
 
-  const handleCreate = async (formData) => {
+  const handleCreate = async () => {
     console.log(formData);
     try {
       const response = await fetch('/api/users/add-user', {

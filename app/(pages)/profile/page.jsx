@@ -12,13 +12,19 @@ export default async function Page() {
 
   const user = await currentUser();
   const userId = user.id;
-
+    console.log(user);
   let userFetched = null;
   try {
     userFetched = await User.findOne({ clerkId: userId }).lean();
     if (!userFetched) {
-      console.log('User not found in database');
-      return <div>User not found</div>;
+        userFetched= {
+            clerkId: userId,
+            role:'client',
+            name: user.firstName+ ' ' + user.lastName,
+            profileImage: user.imageUrl,
+            email:user.emailAddresses[0].emailAddress,
+        }
+        console.log('Fetched user from clerk:', userFetched);
     }
     console.log('Fetched user:', userFetched);
   } catch (err) {
