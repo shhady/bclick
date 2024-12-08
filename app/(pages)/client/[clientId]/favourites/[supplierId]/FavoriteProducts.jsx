@@ -4,6 +4,8 @@ import SupplierCover from './SupplierCover';
 import Image from 'next/image';
 import StarToggle from '../../supplier-catalog/[id]/StarToggle';
 import SupplierDetails from '../../supplier-catalog/[id]/SupplierDetails';
+import { Suspense } from 'react';
+import Loader from '@/components/loader/Loader';
 function ProductGrid({ 
     products, 
     clientId, 
@@ -167,14 +169,14 @@ export default function FavoriteProducts({supplier,categories,
       };
   return (
     <div>
+        <Suspense fallback={<Loader/>}>
          <SupplierCover supplier={supplier} clientId={clientId}/>
       <SupplierDetails 
         supplier={supplier} 
         clientId={clientId}
-        // showAll={showAll} 
-        // setShowAll={setShowAll} 
         
-      />
+        
+      /></Suspense>
       <div className="bg-[#D9D9D9] text-lg text-center overflow-x-auto whitespace-nowrap sticky top-[104px] md:top-[184px] z-50 shadow-xl">המועדפים שלי</div>
        <div>
           {favorites.length === 0 ? (

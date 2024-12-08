@@ -69,7 +69,7 @@ const Navbar = () => {
   );
 
   const renderLinks = () => {
-    if (!globalUser) return null;
+    if (!globalUser) return <Image src={'/bclick-logo.jpg'} alt='logo' width={4000} height={1000} className='h-full w-fit'/>;
 
     if (globalUser.role === 'client') {
       return (

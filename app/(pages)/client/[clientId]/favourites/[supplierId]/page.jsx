@@ -4,7 +4,8 @@ import FavoriteProducts from './FavoriteProducts';
 import User from '@/models/user';
 import Product from '@/models/product';
 import Category from '@/models/category';
-
+import { Suspense } from 'react';
+import Loader from '@/components/loader/Loader';
 // Enhanced Server-Side Rendering Strategy
 export const revalidate = 60; // Cache for 60 seconds
 export const dynamic = 'force-dynamic'; // Ensure fresh data for critical sections
@@ -58,7 +59,7 @@ export default async function Page({ params }) {
       {/* <h1 className="text-2xl font-bold my-6">
         המועדפים שלך מהספק {serializedData.supplier.businessName}
       </h1> */}
-      <FavoriteProducts {...serializedData} clientId={clientId} />
+    <Suspense fallback={<Loader/>}>  <FavoriteProducts {...serializedData} clientId={clientId} /></Suspense>
     </div>
   );
 }

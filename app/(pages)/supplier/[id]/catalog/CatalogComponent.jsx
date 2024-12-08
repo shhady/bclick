@@ -8,7 +8,8 @@ import FilterSection from "@/components/catalog/FilterSection";
 // import ProductList from "@/components/catalog/ProductList";
 import EditProductPopup from "@/components/catalog/EditProductPopup";
 import dynamic from 'next/dynamic';
-
+import { Suspense } from "react";
+import Loader from "@/components/loader/Loader";
 
 const ProductList = dynamic(() => import('@/components/catalog/ProductList'))
 
@@ -171,11 +172,13 @@ export default function CatalogPage({sProducts, sCategories}) {
                     <div className="text-center font-semibold">מחיר</div>
                   </div>
         </div>
-     
-      <ProductList
+     <Suspense fallback={<Loader/>}>
+     <ProductList
         products={filteredProducts}
         onEdit={(product) => setEditingProduct(product)}
       />
+     </Suspense>
+    
       </div>
       {/* {editingProduct && (
         <EditProductPopup

@@ -10,7 +10,7 @@ import Loader from '@/components/loader/Loader';
 // import SupplierCover from '../../favourites/[supplierId]/SupplierCover';
 // import SupplierDetails from './SupplierDetails';
 import Link from 'next/link';
-
+import { Suspense } from 'react';
 import { useUserContext } from "@/app/context/UserContext";
 const SupplierCategories = dynamic(() => import('./SupplierCategories'))
 const SupplierCover = dynamic(() => import('../../favourites/[supplierId]/SupplierCover'))
@@ -197,15 +197,17 @@ export default function ClientComponent({
          </div>
        <Link href={'/profile'} className='bg-gray-700 px-3 py-2 rounded-lg'><button >צא מתצוגה </button></Link> 
       </div>}
+      <Suspense fallback={<Loader />}>
+      
       <SupplierCover supplier={supplier}/>
       <SupplierDetails 
         supplier={supplier} 
         showAll={showAll} 
         setShowAll={setShowAll} 
         clientId={clientId}
-      />
+      /></Suspense>
        {showAll ? (<>
-               <SupplierCategories categories={categories} products={products} onCategoryClick={scrollToCategory}/>
+        <Suspense fallback={<Loader />}> <SupplierCategories categories={categories} products={products} onCategoryClick={scrollToCategory}/></Suspense>
 
         <div className="categories">
           {categories.map((category) => {
@@ -218,12 +220,12 @@ export default function ClientComponent({
             return (
               <div key={category._id} ref={(el) => (categoryRefs.current[category._id] = el)}>
                 <h2 className="text-2xl font-bold mt-4 px-4 py-2">{category.name}</h2>
-                <ProductGrid
+                <Suspense fallback={<Loader />}>   <ProductGrid
                   products={categoryProducts}
                   clientId={clientId}
                   onFavoriteToggle={handleFavoriteToggle}
                   showProductDetail={(product) => setSelectedProduct(product)}
-                />
+                /></Suspense>
               </div>
             );
           })}
@@ -244,12 +246,12 @@ export default function ClientComponent({
                 return (
                   <div key={category._id}>
                     <h2 className="text-2xl font-bold mt-4 px-4 py-2">{category.name}</h2>
-                    <ProductGrid
+                    <Suspense fallback={<Loader />}>   <ProductGrid
                       products={categoryFavorites}
                       clientId={clientId}
                       onFavoriteToggle={handleFavoriteToggle}
                       showProductDetail={(product) => setSelectedProduct(product)}
-                    />
+                    /></Suspense>
                   </div>
                 );
               })}

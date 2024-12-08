@@ -2,7 +2,8 @@
 import { connectToDB } from '@/utils/database';
 import User from '@/models/user';
 import dynamic from 'next/dynamic';
-
+import { Suspense } from 'react';
+import Loader from '@/components/loader/Loader';
 
 const Clients = dynamic(() => import('@/components/supplierComponents/Clients'))
 export default async function SupplierPage({ params }) {
@@ -37,5 +38,8 @@ export default async function SupplierPage({ params }) {
     console.log(clients);
   return (
     <>
-    <Clients clients={clients} supplierId={id}/></>
+    <Suspense fallback={<Loader/>}>
+    <Clients clients={clients} supplierId={id}/>
+    </Suspense>
+    </>
   )}
