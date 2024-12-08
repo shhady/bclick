@@ -218,7 +218,7 @@ export default function ClientComponent({
          </div>
        <Link href={'/profile'} className='bg-gray-700 px-3 py-2 rounded-lg'><button >צא מתצוגה </button></Link> 
       </div>}
-      {/* <Suspense fallback={<Loader />}> */}
+      <Suspense fallback={<Loader />}>
       
       <SupplierCover supplier={supplier}/>
       <SupplierDetails 
@@ -227,7 +227,7 @@ export default function ClientComponent({
         // setShowAll={setShowAll} 
         clientId={clientId}
       />
-      {/* </Suspense> */}
+      </Suspense>
       <>
         {/* <Suspense fallback={<Loader />}> */}
          <SupplierCategories categories={categories} products={products} onCategoryClick={scrollToCategory}/>
