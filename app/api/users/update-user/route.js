@@ -19,7 +19,7 @@ export async function PUT(request) {
     }
 
     return new Response(
-      JSON.stringify({ message: 'User updated successfully', user: updatedUser }),
+      JSON.stringify(updatedUser),
       { status: 200 }
     );
   } catch (error) {

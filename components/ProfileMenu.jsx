@@ -4,7 +4,9 @@ import { Camera, SwitchCamera, Pencil, LogOut, View ,MessageCircle,Copy  } from 
 import { useState } from 'react';
 import { SignOutButton } from '@clerk/nextjs';
 import Link from 'next/link';
-    
+import { SlHandbag } from "react-icons/sl";
+import { FaWhatsapp } from "react-icons/fa";
+
 import { useUserContext } from "@/app/context/UserContext";
 
 export default function ProfileMenu({onEdit}) {
@@ -12,6 +14,30 @@ export default function ProfileMenu({onEdit}) {
     const [openMenu, setOpenMenu] = useState(false);
     const { globalUser, setGlobalUser, setError } = useUserContext();
 
+
+
+  const renderShareButtonsMobile = () => {
+   // if (pathName === '/profile' && globalUser?.role === 'client' || pathName === '/orders' && globalUser?.role === 'client')  {
+      
+      const shareBody = `פרטים:\n\nשם: ${globalUser?.name}\nטלפון: ${globalUser?.phone}\nאימייל: ${globalUser?.email}\nשם עסק: ${globalUser?.businessName}\nמספר לקוח: ${globalUser?.clientNumber}\n`;
+
+      return (
+        <div className="">
+          <Link
+            href={`https://wa.me/?text=${encodeURIComponent(shareBody)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-600  flex flex-col md:flex-row justify-center items-center gap-1"
+          >
+            <div className='p-3  border-b-2 flex justify-between items-center gap-2'>
+           <div>שלח פרופיל לספק</div> <div><FaWhatsapp color='#908E8E' size={18}/></div>
+           </div>
+          </Link>
+        </div>
+      );
+   // }
+    //return null;
+  };
   return (
     <div className='relative'>
       <div className='bg-customBlue w-8 h-8 text-gray-700 flex justify-center items-center gap-1 rounded-full' onClick={()=>setOpenMenu(!openMenu)}>
@@ -22,7 +48,7 @@ export default function ProfileMenu({onEdit}) {
       {openMenu && <div className='absolute top-10 left-0 w-[220px] bg-white shadow-md flex flex-col gap-3 p-2 text-gray-700'>
       {globalUser.role === 'supplier' && <Link href={`/supplier/${globalUser._id}/supplier-preview`}> <div className='p-3 border-b-2 flex justify-between items-center'><div>תצוגה מקדימה</div> <div><View color='#908E8E' size={18}/></div></div></Link>}
       {globalUser.role === 'supplier' &&   <div className='p-3 flex justify-between items-center'><div>העתק קישור קטלוג</div> <div><Copy color='#908E8E' size={18}/></div></div>}
-      {globalUser.role === 'supplier' ?  (<div className='p-3 border-b-2 flex justify-between items-center'><div>שלח קישור לוואטסאפ</div> <div><MessageCircle color='#908E8E' size={18}/></div></div>) :(<div className='p-3 border-b-2 flex justify-between items-center'><div>שלח פרופיל לספק</div> <div><MessageCircle color='#908E8E' size={18}/></div></div>)}
+      {globalUser.role === 'supplier' ?  (<div className='p-3 border-b-2 flex justify-between items-center'><div>שלח קישור לוואטסאפ</div> <div><MessageCircle color='#908E8E' size={18}/></div></div>) :(<div>{renderShareButtonsMobile()}</div>)}
 
         <button
 onClick={onEdit}
