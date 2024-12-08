@@ -6,6 +6,7 @@ import StarToggle from '../../supplier-catalog/[id]/StarToggle';
 import SupplierDetails from '../../supplier-catalog/[id]/SupplierDetails';
 import { Suspense } from 'react';
 import Loader from '@/components/loader/Loader';
+
 function ProductGrid({ 
     products, 
     clientId, 
@@ -193,12 +194,12 @@ export default function FavoriteProducts({supplier,categories,
                 return (
                   <div key={category._id}>
                     <h2 className="text-2xl font-bold mt-4 px-4 py-2">{category.name}</h2>
-                    <ProductGrid
+                    <Suspense fallback={<Loader/>}> <ProductGrid
                       products={categoryFavorites}
                       clientId={clientId}
                       onFavoriteToggle={handleFavoriteToggle}
                       showProductDetail={(product) => setSelectedProduct(product)}
-                    />
+                    /></Suspense>
                   </div>
                 );
               })}

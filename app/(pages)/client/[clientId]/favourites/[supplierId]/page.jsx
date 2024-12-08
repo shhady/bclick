@@ -1,14 +1,18 @@
 import { connectToDB } from '@/utils/database';
 import Favourite from '@/models/favourite';
-import FavoriteProducts from './FavoriteProducts';
 import User from '@/models/user';
 import Product from '@/models/product';
 import Category from '@/models/category';
 import { Suspense } from 'react';
 import Loader from '@/components/loader/Loader';
+import dynamic from 'next/dynamic';
+
+
+const FavoriteProducts = dynamic(() => import('./FavoriteProducts'))
+
 // Enhanced Server-Side Rendering Strategy
 export const revalidate = 60; // Cache for 60 seconds
-export const dynamic = 'force-dynamic'; // Ensure fresh data for critical sections
+// export const dynamic = 'force-dynamic'; // Ensure fresh data for critical sections
 
 export default async function Page({ params }) {
   const { clientId, supplierId } = await params;
