@@ -1,21 +1,17 @@
 // ClientComponent.jsx
 'use client';
 
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-// import StarToggle from './StarToggle';
 import Loader from '@/components/loader/Loader';
-// import SupplierCategories from './SupplierCategories';
-// import SupplierCover from '../../favourites/[supplierId]/SupplierCover';
-// import SupplierDetails from './SupplierDetails';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { useUserContext } from "@/app/context/UserContext";
-const SupplierCategories = dynamic(() => import('./SupplierCategories'))
-const SupplierCover = dynamic(() => import('../../favourites/[supplierId]/SupplierCover'))
-const SupplierDetails = dynamic(() => import('./SupplierDetails'))
-const StarToggle = dynamic(() => import('./StarToggle'))
+import StarToggle from './StarToggle';
+const SupplierCategories = dynamic(() => import('./SupplierCategories'));
+const SupplierCover = dynamic(() => import('../../favourites/[supplierId]/SupplierCover'));
+const SupplierDetails = dynamic(() => import('./SupplierDetails'));
 
 // ProductGrid Component
 function ProductGrid({ 
@@ -133,24 +129,49 @@ function ProductDetailModal({
 
 // Main ClientComponent
 export default function ClientComponent({
-  categories,
-  supplierId,
-  clientId,
-  products: initialProducts,
-  favorites: initialFavorites,
-  supplier
+    categories, supplier, products: initialProducts, clientId, favorites: initialFavorites, totalProducts 
 }) {
-  const [showAll, setShowAll] = useState(true);
-  const [products, setProducts] = useState(initialProducts);
-  const [favorites, setFavorites] = useState(initialFavorites);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+    const [products, setProducts] = useState(initialProducts);
+    const [favorites, setFavorites] = useState(initialFavorites);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
   const { globalUser, setGlobalUser, setError } = useUserContext();
-
+  const observer = useRef();
   const categoryRefs = useRef({}); // To store references for categories
     console.log(clientId);
-  const filteredProducts = useMemo(() => {
-    return showAll ? products : favorites;
-  }, [showAll, products, favorites]);
+//   const filteredProducts = useMemo(() => {
+//     return showAll ? products : favorites;
+//   }, [showAll, products, favorites]);
+
+  const loadMoreProducts = useCallback(async () => {
+    if (loading || products.length >= totalProducts) return;
+
+    setLoading(true);
+    const res = await fetch(`/api/products?supplierId=${supplier._id}&page=${page + 1}&limit=20`);
+    const data = await res.json();
+    setProducts((prev) => [...prev, ...data.products]);
+    setPage((prev) => prev + 1);
+    setLoading(false);
+  }, [loading, page, products.length, supplier._id, totalProducts]);
+
+  const lastProductRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && products.length < totalProducts) {
+          loadMoreProducts();
+        }
+      });
+
+      if (node) observer.current.observe(node);
+    },
+    [loading, loadMoreProducts, products.length, totalProducts]
+  );
+
+  const filteredProducts = useMemo(() => products, [products]);
 
   const handleFavoriteToggle = useCallback(async (productId, isFavorite) => {
     try {
@@ -202,11 +223,11 @@ export default function ClientComponent({
       <SupplierCover supplier={supplier}/>
       <SupplierDetails 
         supplier={supplier} 
-        showAll={showAll} 
-        setShowAll={setShowAll} 
+        // showAll={showAll} 
+        // setShowAll={setShowAll} 
         clientId={clientId}
       /></Suspense>
-       {showAll ? (<>
+      <>
         <Suspense fallback={<Loader />}> <SupplierCategories categories={categories} products={products} onCategoryClick={scrollToCategory}/></Suspense>
 
         <div className="categories">
@@ -230,35 +251,8 @@ export default function ClientComponent({
             );
           })}
         </div>
-        </>) : (
-        <div>
-          {favorites.length === 0 ? (
-            <p className="text-center text-gray-500 mt-4 text-xl">אין מוצרים במועדפים</p>
-          ) : (
-            <div className="categories">
-              {categories.map((category) => {
-                const categoryFavorites = favorites.filter(
-                  (product) => product.categoryId === category._id
-                );
-
-                if (categoryFavorites.length === 0) return null;
-
-                return (
-                  <div key={category._id}>
-                    <h2 className="text-2xl font-bold mt-4 px-4 py-2">{category.name}</h2>
-                    <Suspense fallback={<Loader />}>   <ProductGrid
-                      products={categoryFavorites}
-                      clientId={clientId}
-                      onFavoriteToggle={handleFavoriteToggle}
-                      showProductDetail={(product) => setSelectedProduct(product)}
-                    /></Suspense>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+        </>
+      
       <ProductDetailModal 
         product={selectedProduct}
         isVisible={!!selectedProduct}

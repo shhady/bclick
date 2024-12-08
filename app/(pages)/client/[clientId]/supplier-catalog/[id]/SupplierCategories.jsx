@@ -9,7 +9,7 @@ export default function SupplierCategories({ categories, onCategoryClick, produc
 
   // Filter categories to only include those with products
   const filteredCategories = categories.filter((category) =>
-    products.some((product) => product.categoryId === category._id)
+    products?.some((product) => product.categoryId === category._id)
   );
 
   // Sort categories and move 'כללי' to the beginning
