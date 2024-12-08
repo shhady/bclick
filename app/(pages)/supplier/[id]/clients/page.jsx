@@ -1,7 +1,10 @@
-import Clients from '@/components/supplierComponents/Clients';
+// import Clients from '@/components/supplierComponents/Clients';
 import { connectToDB } from '@/utils/database';
 import User from '@/models/user';
+import dynamic from 'next/dynamic';
 
+
+const Clients = dynamic(() => import('@/components/supplierComponents/Clients'))
 export default async function SupplierPage({ params }) {
   const { id } = await params; // Extract the supplier ID from the route parameters
 

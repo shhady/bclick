@@ -2,11 +2,8 @@ import { connectToDB } from '@/utils/database';
 import User from '@/models/user';
 import Product from '@/models/product';
 import Category from '@/models/category';
-import SupplierDetails from './SupplierDetails';
-import SupplierCategories from './SupplierCategories';
-import ClientComponent from './ClientComponent';
-import Link from 'next/link';
 import Favourite from '@/models/favourite';
+import ClientComponent from '@/app/(pages)/client/[clientId]/supplier-catalog/[id]/ClientComponent';
 
 // Enhanced Server-Side Rendering Strategy
 export const revalidate = 60; // Cache for 60 seconds
@@ -24,7 +21,7 @@ export default async function Page({ params }) {
     Category.find({ supplierId: id, status: 'shown' }).lean().catch((err) => {
       console.error('Category fetch failed:', err);
       return [];
-    }),
+    }),  
     Favourite.findOne({ clientId })
       .populate('productIds')
       .lean()

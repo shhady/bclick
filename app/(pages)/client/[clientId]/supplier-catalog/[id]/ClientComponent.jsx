@@ -4,13 +4,18 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import StarToggle from './StarToggle';
-
+// import StarToggle from './StarToggle';
 import Loader from '@/components/loader/Loader';
-import SupplierCategories from './SupplierCategories';
-import SupplierCover from '../../favourites/[supplierId]/SupplierCover';
-import SupplierDetails from '../../favourites/[supplierId]/SupplierDetails';
+// import SupplierCategories from './SupplierCategories';
+// import SupplierCover from '../../favourites/[supplierId]/SupplierCover';
+// import SupplierDetails from './SupplierDetails';
+import Link from 'next/link';
 
+import { useUserContext } from "@/app/context/UserContext";
+const SupplierCategories = dynamic(() => import('./SupplierCategories'))
+const SupplierCover = dynamic(() => import('../../favourites/[supplierId]/SupplierCover'))
+const SupplierDetails = dynamic(() => import('./SupplierDetails'))
+const StarToggle = dynamic(() => import('./StarToggle'))
 
 // ProductGrid Component
 function ProductGrid({ 
@@ -139,6 +144,8 @@ export default function ClientComponent({
   const [products, setProducts] = useState(initialProducts);
   const [favorites, setFavorites] = useState(initialFavorites);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const { globalUser, setGlobalUser, setError } = useUserContext();
+
   const categoryRefs = useRef({}); // To store references for categories
     console.log(clientId);
   const filteredProducts = useMemo(() => {
@@ -184,6 +191,12 @@ export default function ClientComponent({
 
   return (
     <div className='mb-20'>
+          {globalUser?.role === 'supplier' &&    <div className='fixed top-0 md:top-20 w-full left-0 bg-black  text-center text-white p-6 z-50'>
+       <div className='mb-2'>
+      התוכן בקטלוג שלך כפי שיופיע לאחרים
+         </div>
+       <Link href={'/profile'} className='bg-gray-700 px-3 py-2 rounded-lg'><button >צא מתצוגה </button></Link> 
+      </div>}
       <SupplierCover supplier={supplier}/>
       <SupplierDetails 
         supplier={supplier} 

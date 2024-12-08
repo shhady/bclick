@@ -5,8 +5,12 @@ import { useUserContext } from "@/app/context/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/catalog/Header";
 import FilterSection from "@/components/catalog/FilterSection";
-import ProductList from "@/components/catalog/ProductList";
+// import ProductList from "@/components/catalog/ProductList";
 import EditProductPopup from "@/components/catalog/EditProductPopup";
+import dynamic from 'next/dynamic';
+
+
+const ProductList = dynamic(() => import('@/components/catalog/ProductList'))
 
 export default function CatalogPage({sProducts, sCategories}) {
   const { globalUser } = useUserContext();

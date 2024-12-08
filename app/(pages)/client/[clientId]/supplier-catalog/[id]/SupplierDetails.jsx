@@ -4,6 +4,8 @@
 import React from 'react';
 import Image from "next/image";
 import Link from 'next/link';
+    
+import { useUserContext } from "@/app/context/UserContext";
 
 export default function SupplierDetails({ 
   supplier, 
@@ -11,8 +13,9 @@ export default function SupplierDetails({
   setShowAll ,
   clientId
 }) {
+  const { globalUser, setGlobalUser, setError } = useUserContext();
 
-  console.log(clientId);
+  console.log(globalUser);
   return (
     <div className= "sticky top-0 md:top-20 z-50">
       <div 
@@ -24,11 +27,9 @@ export default function SupplierDetails({
           <p>{supplier?.phone || 'טלפון לא הוזן'}</p>
         </div>
         <div className="flex flex-col items-center justify-end gap-2">
-        <Link href={`/client/${clientId}/favourites/${supplier._id}`} ><button 
-        onClick={() => onToggle(false)}
-        className={`flex w-full justify-center items-center gap-2 px-3 py-1 rounded-lg transition-all ${
-          !mode ? 'bg-customBlue text-white' : 'bg-gray-200 text-gray-700'
-        }`}
+       {globalUser?.role === 'client' ? (<Link href={`/client/${clientId}/favourites/${supplier._id}`} ><button 
+        // onClick={() => onToggle(false)}
+        className={`flex w-full justify-center items-center gap-2 px-3 py-1 rounded-lg transition-all bg-gray-200 text-gray-700`}
       >
         <svg 
           width="19" 
@@ -44,7 +45,24 @@ export default function SupplierDetails({
           />
         </svg>
         מועדפים
-      </button></Link> 
+      </button></Link> ):(<button 
+        className={`flex w-full justify-center items-center gap-2 px-3 py-1 rounded-lg transition-all bg-gray-200 text-gray-700`}
+      >
+        <svg 
+          width="19" 
+          height="18" 
+          viewBox="0 0 19 18" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
+          className="mr-1"
+        >
+          <path 
+            d="M9.5 0L11.6329 6.56434H18.535L12.9511 10.6213L15.084 17.1857L9.5 13.1287L3.91604 17.1857L6.04892 10.6213L0.464963 6.56434H7.36712L9.5 0Z" 
+            fill={"#FFD700"}
+          />
+        </svg>
+        מועדפים
+      </button>)}
         </div>
       </div>
     </div>

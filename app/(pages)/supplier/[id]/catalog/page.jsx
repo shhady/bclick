@@ -2,7 +2,11 @@ import React from 'react';
 import { connectToDB } from '@/utils/database';
 import Product from '@/models/product';
 import Category from '@/models/category';
-import CatalogPage from './CatalogComponent';
+// import CatalogPage from './CatalogComponent';
+import dynamic from 'next/dynamic';
+
+
+const CatalogPage = dynamic(() => import('./CatalogComponent'))
 
 export default async function ProductsPage({ params }) {
   const { id } = await params; // Extract supplier ID from the route params

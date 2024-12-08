@@ -1,9 +1,9 @@
 'use client'
 import React, { useCallback, useRef, useState } from 'react'
 import SupplierCover from './SupplierCover';
-import SupplierDetails from './SupplierDetails';
 import Image from 'next/image';
 import StarToggle from '../../supplier-catalog/[id]/StarToggle';
+import SupplierDetails from '../../supplier-catalog/[id]/SupplierDetails';
 function ProductGrid({ 
     products, 
     clientId, 

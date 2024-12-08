@@ -4,13 +4,17 @@ import Product from '@/models/product';
 import Category from '@/models/category';
 import SupplierDetails from './SupplierDetails';
 import SupplierCategories from './SupplierCategories';
-import ClientComponent from './ClientComponent';
+// import ClientComponent from './ClientComponent';
 import Link from 'next/link';
 import Favourite from '@/models/favourite';
+import dynamic from 'next/dynamic';
+
+
+const ClientComponent = dynamic(() => import('./ClientComponent'))
 
 // Enhanced Server-Side Rendering Strategy
 export const revalidate = 60; // Cache for 60 seconds
-export const dynamic = 'force-dynamic'; // Ensure fresh data for critical sections
+// export const dynamic = 'force-dynamic'; // Ensure fresh data for critical sections
 
 export default async function Page({ params }) {
   const { id, clientId } = await params;
