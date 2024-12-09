@@ -10,9 +10,11 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
   const [page, setPage] = useState(1); // Track the current page
   const [loading, setLoading] = useState(false); // Track loading state
   const [hasMore, setHasMore] = useState(true); // Track if more products are available
+  const [initialFetchDone, setInitialFetchDone] = useState(false); // Track if the initial fetch is complete
   const observerRef = useRef(); // Ref for the Intersection Observer
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [favorites, setFavorites] = useState(initialFavorites);
+  const [groupedProducts, setGroupedProducts] = useState({}); // Grouped products by category
 
   // Function to fetch products
   const fetchMoreProducts = async (reset = false) => {
@@ -25,27 +27,55 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
 
       if (newProducts.length === 0) {
         setHasMore(false); // No more products available
-      } else {
-        setProducts((prevProducts) => (reset ? newProducts : [...prevProducts, ...newProducts])); // Append or reset products
-        setPage(reset ? 2 : page + 1); // Reset to page 2 or increment the current page
-      }
+      }   const grouped = newProducts.reduce((acc, product) => {
+        const { categoryName } = product;
+        if (!acc[categoryName]) acc[categoryName] = [];
+        acc[categoryName].push(product);
+        return acc;
+      }, {});
+
+      setGroupedProducts((prevGroups) => {
+        if (reset) {
+          return grouped;
+        } else {
+          // Merge with existing groups
+          const updatedGroups = { ...prevGroups };
+          Object.keys(grouped).forEach((category) => {
+            if (!updatedGroups[category]) updatedGroups[category] = [];
+            updatedGroups[category] = [
+              ...updatedGroups[category],
+              ...grouped[category],
+            ];
+          });
+          return updatedGroups;
+        }
+      });
+
+      setPage(reset ? 2 : page + 1); // Reset to page 2 or increment the current page
+    
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false); // Stop loading
+      setInitialFetchDone(true); // Mark initial fetch as complete
     }
   };
 
   // Initial fetch and category change handler
   useEffect(() => {
+    setGroupedProducts({}); // Reset grouped products when category changes
+
     setProducts([]); // Reset products when category changes
     setPage(1); // Reset page to 1
     setHasMore(true); // Reset hasMore
+    setInitialFetchDone(false); // Reset initial fetch tracker
     fetchMoreProducts(true); // Fetch the first batch of products
   }, [supplierId, categoryId]);
 
   // Intersection Observer for infinite scrolling
   useEffect(() => {
+    if (!initialFetchDone) return; // Wait for initial fetch to complete
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading) {
@@ -60,10 +90,12 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
     return () => {
       if (observerRef.current) observer.unobserve(observerRef.current);
     };
-  }, [loading, hasMore]);
+  }, [loading, hasMore, initialFetchDone]);
+
   const closeProductDetail = () => {
     setSelectedProduct(null);
   };
+
   const handleFavoriteToggle = useCallback(async (productId, isFavorite) => {
     try {
       const endpoint = isFavorite 
@@ -87,44 +119,63 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
       console.error('Favorite toggle failed:', error);
     }
   }, [clientId, products]);
+
   const showProductDetail = (product) => {
     setSelectedProduct(product);
   };
 
+
   return (
     <div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
-        {products.map((product, index) => (
-          <div
-          onClick={() => showProductDetail(product)}
+      <div>
+      {Object.keys(groupedProducts).map((categoryName) => (
+        <div key={categoryName} className="mt-8">
+          {/* Category Title */}
+          <h2 className="text-2xl font-bold mb-4">{categoryName}</h2>
+          {/* Products Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            {groupedProducts[categoryName].map((product, index) => (
+              <div
+              onClick={() => showProductDetail(product)}
 
-            key={product._id}
-            ref={index === products.length - 1 ? observerRef : null} // Set ref to the last product
-            className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center"
-          >
-            <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded">
-              <Image
-                src={product?.imageUrl?.secure_url || '/no-image.jpg'}
-                alt={product.name}
-                width={160}
-                height={160}
-                className="object-contain max-h-full"
-              />
-            </div>
-            <h2 className="text-sm font-bold mt-2">{product.name}</h2>
-            <p className="text-gray-600 mt-1">משקל: {product?.weight}</p>
-            <p className="text-gray-600 mt-1">מחיר: ₪{product?.price}</p>
+                key={product._id}
+                ref={
+                  index === groupedProducts[categoryName].length - 1
+                    ? observerRef
+                    : null
+                } // Set ref to the last product in the last group
+                className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center"
+              >
+                <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded">
+                  <Image
+                    src={product?.imageUrl?.secure_url || '/no-image.jpg'}
+                    alt={product.name}
+                    width={160}
+                    height={160}
+                    className="object-contain max-h-full"
+                  />
+                </div>
+                <h2 className="text-sm font-bold mt-2">{product.name}</h2>
+                <p className="text-gray-600 mt-1">משקל: {product?.weight}</p>
+                <p className="text-gray-600 mt-1">מחיר: ₪{product?.price}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      {loading && <div className="flex justify-center items-center gap-3 text-center mt-4">
-        <div className='h-1 w-1 bg-black rounded-full animate-bounce [animation-delay:-0.3s]'></div>
-              <div className='h-1 w-1 bg-black rounded-full animate-bounce [animation-delay:-0.15s]'></div>
-              <div className='h-1 w-1 bg-black rounded-full animate-bounce'></div>
-        </div>}
-      {!hasMore && (
-        <div className="text-center mt-4 text-gray-500">אין עוד מוצרים בקטגוריה זו.</div>
+        </div>
+      ))}
+      {loading && (
+        <div className="flex justify-center items-center gap-3 text-center mt-4">
+          <div className="h-1 w-1 bg-black rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="h-1 w-1 bg-black rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="h-1 w-1 bg-black rounded-full animate-bounce"></div>
+        </div>
       )}
+      {!hasMore && (
+        <div className="text-center mt-4 text-gray-500">
+          אין עוד מוצרים בקטגוריה זו.
+        </div>
+      )}
+    </div>
         <ProductDetailModal 
         product={selectedProduct}
         isVisible={!!selectedProduct}

@@ -20,18 +20,22 @@ export default function SupplierCategories({
     ? filteredCategories
     : categories.filter((category) => category.status === 'shown');
 
-  // Sort categories: 'כללי' always first
-  const sortedCategories = displayCategories.sort((a, b) => {
-    if (a.name === 'כללי') return -1;
-    if (b.name === 'כללי') return 1;
-    return 0;
-  });
+  // Add "כל המוצרים" as the first category
+  const allProductsCategory = { _id: 'all-products', name: 'כל המוצרים', status: 'shown' };
 
-  // Initialize active category to 'כללי' if found, otherwise to the first category in the sorted list
-  const [activeCategory, setActiveCategory] = useState(
-    sortedCategories.find((category) => category.name === 'כללי')?._id ||
-      sortedCategories[0]?._id || null
-  );
+  // Ensure "כללי" is prioritized if it exists and meets criteria
+  const generalCategory = displayCategories.find((category) => category.name === 'כללי');
+  const otherCategories = displayCategories.filter((category) => category.name !== 'כללי');
+
+  // Combine categories
+  const sortedCategories = [
+    allProductsCategory,
+    ...(generalCategory ? [generalCategory] : []),
+    ...otherCategories,
+  ];
+
+  // Initialize active category to "כל המוצרים" by default
+  const [activeCategory, setActiveCategory] = useState(allProductsCategory._id);
 
   useEffect(() => {
     // Call handleCategoryClick for the default active category on mount
