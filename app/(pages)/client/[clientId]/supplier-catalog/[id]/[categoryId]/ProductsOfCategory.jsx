@@ -127,7 +127,25 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
 
   return (
     <div>
+         {loading && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div
+            key={index}
+            className="border p-4 rounded-lg shadow flex flex-col items-center animate-pulse"
+          >
+            {/* Skeleton Image */}
+            <div className="w-full h-40 bg-gray-300 rounded"></div>
+            {/* Skeleton Text */}
+            <div className="w-3/4 h-4 bg-gray-300 rounded mt-4"></div>
+            <div className="w-1/2 h-4 bg-gray-300 rounded mt-2"></div>
+            <div className="w-1/3 h-4 bg-gray-300 rounded mt-2"></div>
+          </div>
+        ))}
+      </div>
+      )}
       <div>
+        
       {Object.keys(groupedProducts).map((categoryName) => (
         <div key={categoryName} className="mt-8">
           {/* Category Title */}
@@ -164,11 +182,21 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
         </div>
       ))}
       {loading && (
-        <div className="flex justify-center items-center gap-3 text-center mt-4">
-          <div className="h-1 w-1 bg-black rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-          <div className="h-1 w-1 bg-black rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-          <div className="h-1 w-1 bg-black rounded-full animate-bounce"></div>
-        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
+        {Array.from({ length: 10 }).map((_, index) => (
+          <div
+            key={index}
+            className="border p-4 rounded-lg shadow flex flex-col items-center animate-pulse"
+          >
+            {/* Skeleton Image */}
+            <div className="w-full h-40 bg-gray-300 rounded"></div>
+            {/* Skeleton Text */}
+            <div className="w-3/4 h-4 bg-gray-300 rounded mt-4"></div>
+            <div className="w-1/2 h-4 bg-gray-300 rounded mt-2"></div>
+            <div className="w-1/3 h-4 bg-gray-300 rounded mt-2"></div>
+          </div>
+        ))}
+      </div>
       )}
       {!hasMore && (
         <div className="text-center mt-4 text-gray-500">
