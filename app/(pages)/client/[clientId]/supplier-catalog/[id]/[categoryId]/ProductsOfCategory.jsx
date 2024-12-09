@@ -91,7 +91,7 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
       if (observerRef.current) observer.unobserve(observerRef.current);
     };
   }, [loading, hasMore, initialFetchDone]);
-  
+
   const closeProductDetail = () => {
     setSelectedProduct(null);
   };
@@ -165,7 +165,7 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
       ))}
       {loading && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
-    {Array.from({ length: 6 }).map((_, index) => (
+    {Array.from({ length: 4 }).map((_, index) => (
       <div
         key={index}
         className="border p-4 rounded-lg shadow flex flex-col items-center animate-pulse"
