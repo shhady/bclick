@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AiFillStar } from 'react-icons/ai';
+import { checkFavoriteStatus } from '@/app/actions/checkFavoriteStatus';
 
 export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
   const [isFavorite, setIsFavorite] = useState(false);
@@ -8,7 +9,7 @@ export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
 
   const toggleFavorite = async () => {
     setLoading(true);
-    
+
     try {
       const action = isFavorite ? 'remove' : 'add';
       const response = await fetch(`/api/favourites/${action}`, {
@@ -30,26 +31,19 @@ export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
       setLoading(false);
     }
   };
-
   useEffect(() => {
-    const checkFavoriteStatus = async () => {
+    const fetchFavoriteStatus = async () => {
       try {
-        const response = await fetch(`/api/favourites/check`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ clientId, productId }),
-        });
-
-        const data = await response.json();
-        setIsFavorite(data.isFavorite);
+        const { isFavorite } = await checkFavoriteStatus({ clientId, productId });
+        setIsFavorite(isFavorite);
       } catch (error) {
         console.error('Error checking favorite status:', error);
       } finally {
-        setChecking(false); // Stop checking once the status has been determined
+        setChecking(false);
       }
     };
-
-    checkFavoriteStatus();
+  
+    fetchFavoriteStatus();
   }, [clientId, productId]);
 
   return (
