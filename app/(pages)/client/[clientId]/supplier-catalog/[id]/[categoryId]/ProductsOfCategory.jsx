@@ -74,24 +74,24 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
 
   // Intersection Observer for infinite scrolling
   useEffect(() => {
-    if (!initialFetchDone) return; // Wait for initial fetch to complete
-
+    if (!initialFetchDone) return; // Wait for the initial fetch to complete
+  
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading) {
-          fetchMoreProducts(); // Fetch more products when the last item is visible
+          fetchMoreProducts(); // Fetch more products when the sentinel is visible
         }
       },
-      { threshold: 1.0 } // Trigger when the target is fully visible
+      { threshold: 1.0 } // Trigger when the sentinel is fully visible
     );
-
+  
     if (observerRef.current) observer.observe(observerRef.current);
-
+  
     return () => {
       if (observerRef.current) observer.unobserve(observerRef.current);
     };
   }, [loading, hasMore, initialFetchDone]);
-
+  
   const closeProductDetail = () => {
     setSelectedProduct(null);
   };
@@ -127,25 +127,7 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
 
   return (
     <div>
-         {loading && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div
-            key={index}
-            className="border p-4 rounded-lg shadow flex flex-col items-center animate-pulse"
-          >
-            {/* Skeleton Image */}
-            <div className="w-full h-40 bg-gray-300 rounded"></div>
-            {/* Skeleton Text */}
-            <div className="w-3/4 h-4 bg-gray-300 rounded mt-4"></div>
-            <div className="w-1/2 h-4 bg-gray-300 rounded mt-2"></div>
-            <div className="w-1/3 h-4 bg-gray-300 rounded mt-2"></div>
-          </div>
-        ))}
-      </div>
-      )}
       <div>
-        
       {Object.keys(groupedProducts).map((categoryName) => (
         <div key={categoryName} className="mt-8">
           {/* Category Title */}
@@ -157,11 +139,11 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
               onClick={() => showProductDetail(product)}
 
                 key={product._id}
-                ref={
-                  index === groupedProducts[categoryName].length - 1
-                    ? observerRef
-                    : null
-                } // Set ref to the last product in the last group
+                // ref={
+                //   index === groupedProducts[categoryName].length - 1
+                //     ? observerRef
+                //     : null
+                // } // Set ref to the last product in the last group
                 className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center"
               >
                 <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded">
@@ -183,26 +165,24 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
       ))}
       {loading && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
-        {Array.from({ length: 10 }).map((_, index) => (
-          <div
-            key={index}
-            className="border p-4 rounded-lg shadow flex flex-col items-center animate-pulse"
-          >
-            {/* Skeleton Image */}
-            <div className="w-full h-40 bg-gray-300 rounded"></div>
-            {/* Skeleton Text */}
-            <div className="w-3/4 h-4 bg-gray-300 rounded mt-4"></div>
-            <div className="w-1/2 h-4 bg-gray-300 rounded mt-2"></div>
-            <div className="w-1/3 h-4 bg-gray-300 rounded mt-2"></div>
-          </div>
-        ))}
+    {Array.from({ length: 6 }).map((_, index) => (
+      <div
+        key={index}
+        className="border p-4 rounded-lg shadow flex flex-col items-center animate-pulse"
+      >
+        {/* Skeleton Image */}
+        <div className="w-full h-40 bg-gray-300 rounded"></div>
+        {/* Skeleton Text */}
+        <div className="w-3/4 h-4 bg-gray-300 rounded mt-4"></div>
+        <div className="w-1/2 h-4 bg-gray-300 rounded mt-2"></div>
+        <div className="w-1/3 h-4 bg-gray-300 rounded mt-2"></div>
       </div>
+    ))}
+  </div>
       )}
-      {!hasMore && (
-        <div className="text-center mt-4 text-gray-500">
-          אין עוד מוצרים בקטגוריה זו.
-        </div>
-      )}
+     {hasMore && (
+    <div ref={observerRef} className="h-1 w-full"></div>
+  )}
     </div>
         <ProductDetailModal 
         product={selectedProduct}
