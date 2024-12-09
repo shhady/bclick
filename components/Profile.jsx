@@ -10,7 +10,7 @@ import ProfileMenu from './ProfileMenu';
 
 export default function Profile({ formData, onEdit }) {
   const { globalUser, setGlobalUser, setError } = useUserContext();
-
+  console.log(formData);
   const handleUploadSuccess = async (results) => {
     const newImage = {
       public_id: results.info.public_id,
@@ -29,7 +29,8 @@ export default function Profile({ formData, onEdit }) {
 
       if (response.ok) {
         const result = await response.json();
-        setGlobalUser(result.user);
+        console.log(result);
+        setGlobalUser(result);
         toast({
           title: 'תמונה הועלתה בהצלחה',
           description: 'התמונה עודכנה בפרופיל',

@@ -36,7 +36,7 @@ export default function ProfilePage({ user }) {
     ];
     return requiredFields.every((field) => userData[field]);
   };
-  console.log(formData);
+  
   useEffect(() => {
     // Initialize the user profile using the passed user prop
     if (user) {
