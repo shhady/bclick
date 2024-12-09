@@ -117,10 +117,10 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
           </div>
         ))}
       </div>
-      {loading && <div className="flex justify-center items-center gap-2 text-center mt-4">
-        <div className='h-2 w-2 bg-black rounded-full animate-bounce [animation-delay:-0.3s]'></div>
-              <div className='h-2 w-2 bg-black rounded-full animate-bounce [animation-delay:-0.15s]'></div>
-              <div className='h-2 w-2 bg-black rounded-full animate-bounce'></div>
+      {loading && <div className="flex justify-center items-center gap-3 text-center mt-4">
+        <div className='h-1 w-1 bg-black rounded-full animate-bounce [animation-delay:-0.3s]'></div>
+              <div className='h-1 w-1 bg-black rounded-full animate-bounce [animation-delay:-0.15s]'></div>
+              <div className='h-1 w-1 bg-black rounded-full animate-bounce'></div>
         </div>}
       {!hasMore && (
         <div className="text-center mt-4 text-gray-500">אין עוד מוצרים בקטגוריה זו.</div>
