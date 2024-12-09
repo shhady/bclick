@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { useUserContext } from "@/app/context/UserContext";
 import StarToggle from './StarToggle';
+import ProductsOfCategory from './[categoryId]/ProductsOfCategory';
 const SupplierCategories = dynamic(() => import('./SupplierCategories'));
 const SupplierCover = dynamic(() => import('../../favourites/[supplierId]/SupplierCover'));
 const SupplierDetails = dynamic(() => import('./SupplierDetails'));
@@ -133,82 +134,16 @@ export default function ClientComponent({
 }) {
     const [products, setProducts] = useState(initialProducts);
     const [favorites, setFavorites] = useState(initialFavorites);
-    const [selectedProduct, setSelectedProduct] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [page, setPage] = useState(1);
+    // const [selectedProduct, setSelectedProduct] = useState(null);
+    // const [loading, setLoading] = useState(false);
+    // const [page, setPage] = useState(1);
   const { globalUser, setGlobalUser, setError } = useUserContext();
-  const observer = useRef();
-  const categoryRefs = useRef({}); // To store references for categories
-    console.log(clientId);
-//   const filteredProducts = useMemo(() => {
-//     return showAll ? products : favorites;
-//   }, [showAll, products, favorites]);
-
-  const loadMoreProducts = useCallback(async () => {
-    if (loading || products.length >= totalProducts) return;
-
-    setLoading(true);
-    const res = await fetch(`/api/products?supplierId=${supplier._id}&page=${page + 1}&limit=20`);
-    const data = await res.json();
-    setProducts((prev) => [...prev, ...data.products]);
-    setPage((prev) => prev + 1);
-    setLoading(false);
-  }, [loading, page, products.length, supplier._id, totalProducts]);
-
-  const lastProductRef = useCallback(
-    (node) => {
-      if (loading) return;
-      if (observer.current) observer.current.disconnect();
-
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && products.length < totalProducts) {
-          loadMoreProducts();
-        }
-      });
-
-      if (node) observer.current.observe(node);
-    },
-    [loading, loadMoreProducts, products.length, totalProducts]
-  );
-
-  const filteredProducts = useMemo(() => products, [products]);
-
-  const handleFavoriteToggle = useCallback(async (productId, isFavorite) => {
-    try {
-      const endpoint = isFavorite 
-        ? `/api/favourites/add` 
-        : `/api/favourites/remove`;
-      
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        body: JSON.stringify({ clientId, productId }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (response.ok) {
-        setFavorites(current => 
-          isFavorite 
-            ? [...current, products.find(p => p._id === productId)]
-            : current.filter(p => p._id !== productId)
-        );
-      }
-    } catch (error) {
-      console.error('Favorite toggle failed:', error);
-    }
-  }, [clientId, products]);
-  console.log(favorites);
-  const showProductDetail = (product) => {
-    setSelectedProduct(product);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(categories[0]?._id || null);
+  const handleCategoryClick = (categoryId) => {
+    setSelectedCategoryId(categoryId);
   };
+  // const observer = useRef();
 
-  const closeProductDetail = () => {
-    setSelectedProduct(null);
-  };
-  const scrollToCategory = (categoryId) => {
-    if (categoryRefs.current[categoryId]) {
-      categoryRefs.current[categoryId].scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  };
 
   return (
     <div className='mb-20'>
@@ -223,46 +158,17 @@ export default function ClientComponent({
       <SupplierCover supplier={supplier}/>
       <SupplierDetails 
         supplier={supplier} 
-        // showAll={showAll} 
-        // setShowAll={setShowAll} 
         clientId={clientId}
       />
+      <SupplierCategories handleCategoryClick={handleCategoryClick} categories={categories} products={products}/>
+      <ProductsOfCategory favorites={favorites} categoryId={selectedCategoryId} supplierId={supplier._id} clientId={clientId}/>
+
       </Suspense>
       <>
-        {/* <Suspense fallback={<Loader />}> */}
-         <SupplierCategories categories={categories} products={products} onCategoryClick={scrollToCategory}/>
-         {/* </Suspense> */}
 
-        <div className="categories">
-          {categories.map((category) => {
-            const categoryProducts = filteredProducts.filter(
-              (product) => product.categoryId === category._id
-            );
-
-            if (categoryProducts.length === 0) return null;
-
-            return (
-              <div key={category._id} ref={(el) => (categoryRefs.current[category._id] = el)}>
-                <h2 className="text-2xl font-bold mt-4 px-4 py-2">{category.name}</h2>
-                <Suspense fallback={<Loader />}>   <ProductGrid
-                  products={categoryProducts}
-                  clientId={clientId}
-                  onFavoriteToggle={handleFavoriteToggle}
-                  showProductDetail={(product) => setSelectedProduct(product)}
-                /></Suspense>
-              </div>
-            );
-          })}
-        </div>
+         
+        
         </>
-      
-      <ProductDetailModal 
-        product={selectedProduct}
-        isVisible={!!selectedProduct}
-        onClose={closeProductDetail}
-        clientId={clientId}
-        onFavoriteToggle={handleFavoriteToggle}
-      />
     </div>
   );
 }

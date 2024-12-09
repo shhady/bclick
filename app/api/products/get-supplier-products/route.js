@@ -1,56 +1,56 @@
 import { connectToDB } from '@/utils/database';
 import Product from '@/models/product';
+import mongoose from 'mongoose';
 
-export const dynamic = 'force-dynamic';
-
-export async function GET(req) {
-  await connectToDB();
-
+export default async function handler(req, res) {
   try {
-    const url = new URL(req.url);
-    const supplierId = url.searchParams.get('supplierId');
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const limit = parseInt(url.searchParams.get('limit') || '20');
+    await connectToDB();
 
-    if (!supplierId) {
-      return new Response(
-        JSON.stringify({ error: 'Supplier ID is required.' }),
-        { status: 400 }
-      );
+    const { 
+      supplierId, 
+      categoryId, 
+      page = 1, 
+      limit = 20 
+    } = req.query;
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const query = {
+      supplierId: new mongoose.Types.ObjectId(supplierId),
+      status: { $in: ['active', 'out_of_stock'] }
+    };
+
+    // Add category filter if provided
+    if (categoryId) {
+      query.categoryId = new mongoose.Types.ObjectId(categoryId);
     }
 
-    // Update out-of-stock product statuses in bulk
-    await Product.updateMany(
-      { supplierId, stock: 0, status: { $ne: 'out_of_stock' } },
-      { status: 'out_of_stock' }
-    );
+    // Find products
+    const [products, totalProducts] = await Promise.all([
+      Product.find(query)
+        .sort({ createdAt: -1 }) // Sort to get latest first
+        .skip(skip)
+        .limit(limitNumber)
+        .lean(),
+      Product.countDocuments(query)
+    ]);
 
-    // Fetch paginated products
-    const products = await Product.find({ supplierId })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+    // Serialize products (similar to your existing serialization)
+    const serializedProducts = products.map(product => ({
+      ...product,
+      _id: product._id.toString(),
+      categoryId: product.categoryId.toString(),
+      supplierId: product.supplierId.toString(),
+    }));
 
-    // Get total count for pagination metadata
-    const totalProducts = await Product.countDocuments({ supplierId });
-
-    return new Response(
-      JSON.stringify({
-        products: products.map((product) => ({
-          ...product,
-          _id: product._id.toString(),
-          supplierId: product.supplierId.toString(),
-        })),
-        total: totalProducts,
-        page,
-        pages: Math.ceil(totalProducts / limit),
-      }),
-      { status: 200 }
-    );
+    res.status(200).json({
+      products: serializedProducts,
+      totalProducts
+    });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500 }
-    );
+    console.error('Error fetching products:', error);
+    res.status(500).json({ error: 'Failed to fetch products' });
   }
 }

@@ -14,7 +14,7 @@ import { FaWhatsapp } from "react-icons/fa";
 
 
   const renderShareButtonsMobile = () => {
-    if (pathName === '/profile' && globalUser?.role === 'client' || pathName === '/orders' && globalUser?.role === 'client')  {
+   // if (pathName === '/profile' && globalUser?.role === 'client' || pathName === '/orders' && globalUser?.role === 'client')  {
       
       const shareBody = `פרטים:\n\nשם: ${globalUser?.name}\nטלפון: ${globalUser?.phone}\nאימייל: ${globalUser?.email}\nשם עסק: ${globalUser?.businessName}\nמספר לקוח: ${globalUser?.clientNumber}\n`;
 
@@ -33,6 +33,6 @@ import { FaWhatsapp } from "react-icons/fa";
           </Link>
         </div>
       );
-    }
-    return null;
+   // }
+    //return null;
   };

@@ -23,6 +23,9 @@ const nextConfig = {
  
   compress: true, // Enable gzip/brotli compression for faster page loads
   reactStrictMode: true, // Enforce best practices with React strict mode
+  experimental: {
+    serverActions: true, // Enable Server Actions
+  },
 };
 
 export default nextConfig;

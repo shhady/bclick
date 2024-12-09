@@ -14,7 +14,6 @@ function ProductGrid({
     showProductDetail 
   }) {
   
-    console.log(products);
     
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
@@ -130,7 +129,7 @@ export default function FavoriteProducts({supplier,categories,
         const [favorites, setFavorites] = useState(initialFavorites);
         const [selectedProduct, setSelectedProduct] = useState(null);
         const categoryRefs = useRef({}); // To store references for categories
-          console.log(clientId);
+          console.log(favorites);
     console.log(supplier);
     const handleFavoriteToggle = useCallback(async (productId, isFavorite) => {
         try {
