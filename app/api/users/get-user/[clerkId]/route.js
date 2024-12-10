@@ -3,7 +3,7 @@ import User from '@/models/user';
 
 export async function GET(req, { params }) {
   try {
-    const { clerkId } = params;
+    const { clerkId } = await params;
 
     if (!clerkId) {
       return new Response(JSON.stringify({ error: 'Clerk ID is missing.' }), { status: 400 });

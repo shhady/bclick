@@ -61,6 +61,9 @@ export async function fetchProducts({ supplierId, categoryId, page = 1, limit = 
       weightUnit: product.weightUnit || '',
       barCode: product.barCode || '',
       status: product.status,
+      stock: product.stock,
+      description:product.description,
+      reserved:product.reserved
     }));
   } catch (error) {
     console.error('Error fetching products:', error);

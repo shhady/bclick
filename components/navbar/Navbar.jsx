@@ -31,7 +31,12 @@ const Navbar = () => {
     const supplierId = pathParts[pathParts.length - 1];
     router.push(`/client/${clientId}/supplier-catalog/${supplierId}`);
   };
-
+  const navigateToSupplierCart = () => {
+    const pathParts = pathName.split('/');
+    const clientId = pathParts[2];
+    const supplierId = pathParts[pathParts.length - 1];
+    router.push(`/client/${clientId}/cart-from-supplier/${supplierId}`);
+  };
   const renderClientNav = () => (
     <>
       {/* Catalog */}
@@ -56,7 +61,7 @@ const Navbar = () => {
         onClick={() =>
           isProfileOrOrders
             ? handlePopup('בחר ספק כדי לצפות במוצרים בעגלה שלו')
-            : navigateToSupplierCatalog()
+            : navigateToSupplierCart()
         }
         className={`flex flex-col items-center ${
           isProfileOrOrders ? 'text-gray-400 cursor-not-allowed' : getIconColor('cart')

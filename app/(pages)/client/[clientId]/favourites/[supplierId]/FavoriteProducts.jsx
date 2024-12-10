@@ -1,12 +1,12 @@
 'use client'
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useRef, useState, useEffect } from 'react'
 import SupplierCover from './SupplierCover';
 import Image from 'next/image';
 import StarToggle from '../../supplier-catalog/[id]/StarToggle';
 import SupplierDetails from '../../supplier-catalog/[id]/SupplierDetails';
 import { Suspense } from 'react';
 import Loader from '@/components/loader/Loader';
-
+import { getCart, addToCart } from '@/app/actions/cartActions';
 function ProductGrid({ 
     products, 
     clientId, 
@@ -57,10 +57,94 @@ function ProductGrid({
     isVisible, 
     onClose, 
     clientId, 
-    onFavoriteToggle 
+    onFavoriteToggle,
+    supplierId
   }) {
-    if (!product) return null;
+   
   
+    const [quantity, setQuantity] = useState(1);
+    const [error, setError] = useState('');
+    const [reserved, setReserved] = useState(product?.reserved || 0);
+    const [availableStock, setAvailableStock] = useState(
+      product?.stock - product?.reserved || 0
+    );
+  
+    useEffect(() => {
+        setReserved(product?.reserved || 0);
+        setAvailableStock(product?.stock - product?.reserved || 0);
+        setQuantity(1); // Reset quantity on product change
+        setError(''); // Clear error messages
+      }, [product]);
+
+    useEffect(() => {
+        if(!clientId || supplierId) return;
+        const fetchFavoriteStatus = async () => {
+          try {
+            const cart = await getCart({ clientId, supplierId });
+            console.log(cart);
+          } catch (error) {
+            console.error('Error checking favorite status:', error);
+          } finally {
+            setChecking(false);
+          }
+        };
+    
+        fetchFavoriteStatus();
+      }, [clientId, supplierId]);
+      
+    const handleQuantityChange = (e) => {
+      const value = parseInt(e.target.value, 10);
+      if (isNaN(value) || value <= 0) {
+        setQuantity(1);
+        setError('');
+      } else if (value > stock) {
+        setQuantity(stock);
+        setError(`רק ${stock} זמין במלאי`);
+      } else {
+        setQuantity(value);
+        setError('');
+      }
+    };
+  
+    const incrementQuantity = () => {
+      if (quantity < availableStock) {
+        setQuantity(quantity + 1);
+        setError('');
+      } else {
+        setError(`רק ${stock} זמין במלאי`);
+      }
+    };
+  
+    const decrementQuantity = () => {
+      if (quantity > 1) {
+        setQuantity(quantity - 1);
+        setError('');
+      }
+    };
+  
+    const addToCartHandler = async () => {
+        if (quantity > availableStock) {
+          setError(`רק ${availableStock} זמין במלאי`);
+          return;
+        }
+    
+        const response = await addToCart({
+          clientId,
+          supplierId,
+          productId: product._id,
+          quantity,
+        });
+    
+        if (response.success) {
+          setAvailableStock(response.updatedAvailableStock);
+          setReserved(response.reserved);
+          setError('');
+          onClose()
+        } else {
+          setError(response.message);
+        }
+      };
+       if (!product) return null;
     return (
       <div
         className={`fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-end transition-opacity duration-300 ${
@@ -74,15 +158,14 @@ function ProductGrid({
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className=" relative flex justify-between items-center p-4">
+          <div className="relative flex justify-between items-center p-4">
             <div className='absolute top-4 right-4'>
-            <StarToggle
-              productId={product._id} 
-              clientId={clientId} 
-              onFavoriteToggle={onFavoriteToggle}
-            />
+              <StarToggle
+                productId={product._id} 
+                clientId={clientId} 
+                onFavoriteToggle={onFavoriteToggle}
+              />
             </div>
-          
             <button onClick={onClose} className="text-red-500 font-bold text-xl absolute top-4 left-4">
               X
             </button>
@@ -97,7 +180,7 @@ function ProductGrid({
             />
             <div className='flex justify-between items-center mt-4'>
               <h2 className="text-lg font-bold">{product.name}</h2>
-              <h2 className="text-gray-600 font-bold">מחיר: ₪{product?.price}</h2>
+              <h2 className="text-gray-600 font-bold">₪{product?.price}</h2>
             </div>
             <div className='flex justify-center gap-4 items-center'>
               <p className="text-gray-600">משקל: {product?.weight}</p>
@@ -106,14 +189,54 @@ function ProductGrid({
             <div className='flex justify-start gap-4 items-center'>
               <p className="text-gray-600">{product?.description}</p>
             </div>
-            <div className="flex justify-center items-center gap-4 mt-4">
-              <button className="bg-gray-300 px-3 py-1 rounded">-</button>
-              <span>1</span>
-              <button className="bg-gray-300 px-3 py-1 rounded">+</button>
+            <div className='flex justify-center gap-4 items-center'>
+            <p className="text-gray-600">
+           {reserved > 0 && `שמור: ${reserved}`}
+          </p>
+          <p className="text-gray-600">
+            זמין במלאי: {availableStock} יחידות
+          </p>
+        
             </div>
-            <button className="bg-customBlue text-white mt-6 px-4 py-2 rounded w-full">
+            {availableStock === 0 ? (
+            <p className="text-red-500 font-bold text-center">מוצר אין זמין במלאי</p>
+          ):(<div>
+          <div className="flex justify-center items-center gap-4 mt-4">
+            <button 
+              className="bg-gray-300 px-3 py-1 rounded" 
+              onClick={decrementQuantity}
+              disabled={quantity === 1}
+            >
+              -
+            </button>
+            <input
+            dir='ltr'
+              type="number"
+              value={quantity}
+              onChange={handleQuantityChange}
+              className="w-20 border border-gray-300 rounded px-2 py-1 text-center"
+            />
+            <button 
+              className="bg-gray-300 px-3 py-1 rounded" 
+              onClick={incrementQuantity}
+              disabled={quantity === product.stock}
+            >
+              +
+            </button>
+            
+            </div>
+            {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
+            <div>
+            <button 
+              className="bg-customBlue text-white mt-6 px-4 py-2 rounded w-full"
+              onClick={()=>addToCartHandler(clientId, supplierId, product._id, quantity)}
+            >
               הוסף להזמנה
             </button>
+            </div>
+          </div>)}
+            
+          
           </div>
         </div>
       </div>
@@ -167,6 +290,7 @@ export default function FavoriteProducts({supplier,categories,
           categoryRefs.current[categoryId].scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       };
+      console.log(supplierId);
   return (
     <div>
         <Suspense fallback={<Loader/>}>
@@ -212,6 +336,7 @@ export default function FavoriteProducts({supplier,categories,
         onClose={closeProductDetail}
         clientId={clientId}
         onFavoriteToggle={handleFavoriteToggle}
+        supplierId={supplierId}
       />
     </div>
   )

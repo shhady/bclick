@@ -46,7 +46,6 @@ export default async function Page({ params }) {
         return [];
       }),
   ]);
-  console.log(products);
   // More robust serialization with error handling
   const serializedData = {
     supplier: supplier ? serializeSupplier(supplier) : null,
@@ -54,7 +53,7 @@ export default async function Page({ params }) {
     products: products ? products.map(serializeProduct) : [],
     favorites: favourites?.productIds?.map(serializeProduct) || [],
   };
-  
+    
   if (!supplier) {
     console.error('Supplier not found for ID:', id);
     return <h1>Supplier Not Found</h1>;
@@ -93,5 +92,7 @@ function serializeProduct(product) {
     _id: product._id.toString(),
     categoryId: product.categoryId.toString(),
     supplierId: product.supplierId.toString(),
+    stock: product.stock, // Ensure this field is included
+
   };
 }

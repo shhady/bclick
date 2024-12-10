@@ -63,7 +63,7 @@ export default async function Page({ params }) {
       {/* <h1 className="text-2xl font-bold my-6">
         המועדפים שלך מהספק {serializedData.supplier.businessName}
       </h1> */}
-    <Suspense fallback={<Loader/>}>  <FavoriteProducts {...serializedData} clientId={clientId} /></Suspense>
+    <Suspense fallback={<Loader/>}>  <FavoriteProducts {...serializedData} clientId={clientId} supplierId={supplierId}/></Suspense>
     </div>
   );
 }

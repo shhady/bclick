@@ -6,6 +6,7 @@ const ProductSchema = new mongoose.Schema({
   categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
   supplierId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Links to the supplier
   stock: { type: Number, required: true, default: 0 },
+  reserved: { type: Number, required: true, default: 0 }, 
   price: { type: Number, required: true },
   imageUrl: { type: Object },
   units : { type: String },
