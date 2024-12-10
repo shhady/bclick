@@ -1,36 +1,37 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import { AiFillStar } from 'react-icons/ai';
 import { checkFavoriteStatus } from '@/app/actions/checkFavoriteStatus';
+import { toggleFavorite } from '@/app/actions/toggleFavorite';
 
 export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true); // Track whether the status is being checked
 
-  const toggleFavorite = async () => {
+  const handleToggle = async () => {
     setLoading(true);
 
     try {
-      const action = isFavorite ? 'remove' : 'add';
-      const response = await fetch(`/api/favourites/${action}`, {
-        method: 'POST',
-        body: JSON.stringify({ clientId, productId }),
-        headers: { 'Content-Type': 'application/json' },
+      const { success, isFavorite: updatedStatus } = await toggleFavorite({
+        clientId,
+        productId,
+        isFavorite,
       });
 
-      if (response.ok) {
-        const updatedStatus = !isFavorite;
+      if (success) {
         setIsFavorite(updatedStatus);
         onFavoriteToggle(productId, updatedStatus);
       } else {
         throw new Error('Failed to update favorite status');
       }
     } catch (error) {
-      console.error('Toggle failed', error);
+      console.error('Error toggling favorite status:', error);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     const fetchFavoriteStatus = async () => {
       try {
@@ -42,7 +43,7 @@ export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
         setChecking(false);
       }
     };
-  
+
     fetchFavoriteStatus();
   }, [clientId, productId]);
 
@@ -50,7 +51,7 @@ export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
     <>
       {!checking && ( // Only render the star after checking is complete
         <button
-          onClick={toggleFavorite}
+          onClick={handleToggle}
           disabled={loading}
           className={`transition-colors ${
             isFavorite ? 'text-yellow-500' : 'text-gray-300'
