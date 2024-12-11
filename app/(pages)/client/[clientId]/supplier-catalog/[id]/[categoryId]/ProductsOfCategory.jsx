@@ -6,7 +6,7 @@ import { useEffect, useState, useRef,useCallback } from 'react';
 import StarToggle from '../StarToggle';
 import { addToCart,getCart } from '@/app/actions/cartActions';
 
-export default function ProductsOfCategory({ favorites: initialFavorites, clientId, supplierId, categoryId, limit = 10 }) {
+export default function ProductsOfCategory({ cart,favorites: initialFavorites, clientId, supplierId, categoryId, limit = 10 }) {
   const [products, setProducts] = useState([]); // Store all fetched products
   const [page, setPage] = useState(1); // Track the current page
   const [loading, setLoading] = useState(false); // Track loading state
@@ -17,6 +17,7 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
   const [favorites, setFavorites] = useState(initialFavorites);
   const [groupedProducts, setGroupedProducts] = useState({}); // Grouped products by category
 
+  console.log(products);
   // Function to fetch products
   const fetchMoreProducts = async (reset = false) => {
     if (loading || (!hasMore && !reset)) return; // Prevent duplicate fetches or unnecessary fetches
@@ -192,6 +193,7 @@ export default function ProductsOfCategory({ favorites: initialFavorites, client
         clientId={clientId}
         supplierId={supplierId}
         onFavoriteToggle={handleFavoriteToggle}
+        cart={cart}
       />
     </div>
   );
@@ -204,69 +206,78 @@ function ProductDetailModal({
     onClose, 
     clientId, 
     onFavoriteToggle,
-    supplierId
+    supplierId,
+    cart:myCart
   }) {
    
   
     const [quantity, setQuantity] = useState(1);
     const [error, setError] = useState('');
+    const [cart, setCart] = useState(myCart)
     const [reserved, setReserved] = useState(product?.reserved || 0);
     const [availableStock, setAvailableStock] = useState(
-      product?.stock - product?.reserved || 0
+      product?.stock - (product?.reserved || 0)
     );
-  
-    useEffect(() => {
-        setReserved(product?.reserved || 0);
-        setAvailableStock(product?.stock - product?.reserved || 0);
-        setQuantity(1); // Reset quantity on product change
-        setError(''); // Clear error messages
-      }, [product]);
 
+    console.log(error);
     useEffect(() => {
-        if(!clientId || supplierId) return;
-        const fetchFavoriteStatus = async () => {
-          try {
-            const cart = await getCart({ clientId, supplierId });
-            console.log(cart);
-          } catch (error) {
-            console.error('Error checking favorite status:', error);
-          } finally {
-            setChecking(false);
-          }
-        };
-    
-        fetchFavoriteStatus();
-      }, [clientId, supplierId]);
-      
-    const handleQuantityChange = (e) => {
-      const value = parseInt(e.target.value, 10);
-      if (isNaN(value) || value <= 0) {
+      setReserved(product?.reserved || 0);
+      setAvailableStock(product?.stock - (product?.reserved || 0));
+      const existingItem = cart.items.find(
+        (item) => item?.productId?._id === product?._id
+      );
+      if (existingItem) {
+        setQuantity(existingItem.quantity);
+      } else {
         setQuantity(1);
-        setError('');
-      } else if (value > stock) {
-        setQuantity(stock);
-        setError(`רק ${stock} זמין במלאי`);
-      } else {
-        setQuantity(value);
-        setError('');
       }
-    };
+      setError('');
+    }, [product, cart]);
+
+    console.log(cart);
+    // useEffect(() => {
+    //     setReserved(product?.reserved || 0);
+    //     setAvailableStock(product?.stock - product?.reserved || 0);
+    //     setQuantity(1); // Reset quantity on product change
+    //     setError(''); // Clear error messages
+    //   }, [product]);
+
+    // useEffect(() => {
+    //     if(!clientId || supplierId) return;
+    //     const fetchFavoriteStatus = async () => {
+    //       try {
+    //         const cart = await getCart({ clientId, supplierId });
+    //         console.log(cart);
+    //       } catch (error) {
+    //         console.error('Error checking favorite status:', error);
+    //       } finally {
+    //         setChecking(false);
+    //       }
+    //     };
+    
+    //     fetchFavoriteStatus();
+    //   }, [clientId, supplierId]);
+      
+    const handleQuantityChange = (newQuantity) => {
+      console.log(newQuantity);
+      if (newQuantity < 1) {
+        setError('כמות לא יכולה להיות פחות מ-1');
+        return;
+      }
   
-    const incrementQuantity = () => {
-      if (quantity < availableStock) {
-        setQuantity(quantity + 1);
-        setError('');
-      } else {
-        setError(`רק ${stock} זמין במלאי`);
+      if (newQuantity > availableStock) {
+        console.log("dsfsf-------");
+        setError(`הכמות המקסימלית הזמינה היא ${availableStock}`);
+        return;
       }
-    };
   
-    const decrementQuantity = () => {
-      if (quantity > 1) {
-        setQuantity(quantity - 1);
-        setError('');
-      }
+      setQuantity(newQuantity);
+      setError('');
     };
+
+  // const incrementQuantity = () => handleQuantityChange(quantity + 1);
+  // const decrementQuantity = () => handleQuantityChange(quantity - 1);
+
   
     const addToCartHandler = async () => {
         if (quantity > availableStock) {
@@ -282,6 +293,8 @@ function ProductDetailModal({
         });
     
         if (response.success) {
+          console.log(response.cart);
+          setCart(response.cart)
           setAvailableStock(response.updatedAvailableStock);
           setReserved(response.reserved);
           setError('');
@@ -291,6 +304,7 @@ function ProductDetailModal({
         }
       };
        if (!product) return null;
+       console.log(cart);
     return (
       <div
         className={`fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-end transition-opacity duration-300 ${
@@ -348,40 +362,52 @@ function ProductDetailModal({
             <p className="text-red-500 font-bold text-center">מוצר אין זמין במלאי</p>
           ):(<div>
           <div className="flex justify-center items-center gap-4 mt-4">
-            <button 
-              className="bg-gray-300 px-3 py-1 rounded" 
-              onClick={decrementQuantity}
-              disabled={quantity === 1}
-            >
-              -
-            </button>
-            <input
-            dir='ltr'
-              type="number"
-              value={quantity}
-              onChange={handleQuantityChange}
-              className="w-20 border border-gray-300 rounded px-2 py-1 text-center"
-            />
-            <button 
-              className="bg-gray-300 px-3 py-1 rounded" 
-              onClick={incrementQuantity}
-              disabled={quantity === product.stock}
-            >
-              +
-            </button>
-            
-            </div>
-            {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
-            <div>
-            <button 
-              className="bg-customBlue text-white mt-6 px-4 py-2 rounded w-full"
-              onClick={()=>addToCartHandler(clientId, supplierId, product._id, quantity)}
-            >
-              הוסף להזמנה
-            </button>
-            </div>
+           {quantity === 1 ? (<button className="bg-gray-100 px-3 py-1 rounded" onClick={()=>setError('כמות לא יכולה להיות פחות מ-1')}>
+            -
+</button>):(<button
+    className="bg-gray-300 px-3 py-1 rounded"
+    onClick={() => handleQuantityChange(quantity - 1)}
+    // disabled={quantity === 1}
+  >
+    -
+  </button>)} 
+  
+  <input
+    type="number"
+    value={quantity}
+    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10)))}
+    className="w-20 border border-gray-300 rounded px-2 py-1 text-center"
+  />
+  {quantity >= availableStock ? (<button className="bg-gray-100 px-3 py-1 rounded" onClick={()=>setError(`הכמות המקסימלית הזמינה היא ${availableStock}`)}>
+            +
+</button>):( <button
+    className="bg-gray-300 px-3 py-1 rounded"
+    onClick={() => handleQuantityChange(quantity + 1)}
+    // disabled={quantity >= availableStock}
+  >
+    +
+  </button>)}
+ 
+</div>
+{error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
+
+{cart.items.find((item) => item.productId._id === product._id) ? (
+  <button
+    className="bg-customBlue text-white mt-4 px-4 py-2 rounded w-full"
+    onClick={addToCartHandler}
+  >
+    עדכן כמות
+  </button>
+) : (
+  <button
+    className="bg-customBlue text-white mt-4 px-4 py-2 rounded w-full"
+    onClick={addToCartHandler}
+  >
+    הוסף להזמנה
+  </button>
+)}
           </div>)}
-            
+            {/* {error && <div>{error}</div>} */}
           
           </div>
         </div>

@@ -19,7 +19,7 @@ const SupplierDetails = dynamic(() => import('./SupplierDetails'));
 
 // Main ClientComponent
 export default function ClientComponent({
-    categories, supplier, products: initialProducts, clientId, favorites: initialFavorites, totalProducts 
+    categories, supplier, products: initialProducts, clientId, favorites: initialFavorites, totalProducts,cart 
 }) {
     const [products, setProducts] = useState(initialProducts);
     const [favorites, setFavorites] = useState(initialFavorites);
@@ -51,7 +51,7 @@ export default function ClientComponent({
         clientId={clientId}
       />
       <SupplierCategories handleCategoryClick={handleCategoryClick} categories={categories} products={products}/>
-      <ProductsOfCategory favorites={favorites} categoryId={selectedCategoryId} supplierId={supplier._id.toString()} clientId={clientId}/>
+      <ProductsOfCategory cart={cart} favorites={favorites} categoryId={selectedCategoryId} supplierId={supplier._id.toString()} clientId={clientId}/>
 
       </Suspense>
       <>

@@ -5,43 +5,60 @@ import Cart from '@/models/cart';
 import Product from '@/models/product';
 
 export async function addToCart({ clientId, supplierId, productId, quantity }) {
-    await connectToDB();
-  
-    try {
-      const product = await Product.findById(productId);
-      if (!product) throw new Error('Product not found');
-      if (product.supplierId.toString() !== supplierId) throw new Error('Invalid supplier for product');
-  
-      const availableStock = product.stock - (product.reserved || 0);
-      if (availableStock < quantity) throw new Error('Insufficient available stock');
-  
-      const cart = await Cart.findOne({ clientId, supplierId });
-      if (cart) {
-        const existingItem = cart.items.find((item) => item.productId.toString() === productId);
-  
-        if (existingItem) {
-          existingItem.quantity += quantity;
-        } else {
-          cart.items.push({ productId, quantity });
-        }
-        cart.updatedAt = new Date();
-        await cart.save();
+  await connectToDB();
+
+  try {
+    const product = await Product.findById(productId);
+    if (!product) throw new Error('Product not found');
+    if (product.supplierId.toString() !== supplierId) throw new Error('Invalid supplier for product');
+
+    const availableStock = product.stock - (product.reserved || 0);
+    if (availableStock < quantity) throw new Error('Insufficient available stock');
+
+    let cart = await Cart.findOne({ clientId, supplierId })
+
+    if (cart) {
+      const existingItem = cart.items.find((item) => item.productId._id.toString() === productId);
+
+      if (existingItem) {
+        existingItem.quantity = quantity;
       } else {
-        const newCart = new Cart({
-          clientId,
-          supplierId,
-          items: [{ productId, quantity }],
+        cart.items.push({
+          productId: productId, // Save the productId, but populate later
+          quantity,
         });
-        await newCart.save();
       }
-  
-      return { success: true, updatedAvailableStock: availableStock, reserved: product.reserved };
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      return { success: false, message: error.message };
+      cart.updatedAt = new Date();
+      await cart.save();
+    } else {
+      cart = new Cart({
+        clientId,
+        supplierId,
+        items: [{
+          productId: productId, // Save the productId, but populate later
+          quantity,
+        }],
+      });
+      await cart.save();
     }
+
+    // Fetch the updated cart with populated fields
+    const populatedCart = await Cart.findOne({ clientId, supplierId })
+      .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
+      const serializedCart = JSON.parse(JSON.stringify(populatedCart));
+
+    return {
+      success: true,
+      cart:serializedCart, // Return fully populated cart
+      updatedAvailableStock: availableStock,
+      reserved: product.reserved,
+    };
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    return { success: false, message: error.message };
   }
-  
+}
+
   
 export async function updateCartItem({ clientId, supplierId, productId, quantity }) {
     await connectToDB();

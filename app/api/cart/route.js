@@ -24,7 +24,10 @@ export async function PUT(req) {
     cart.updatedAt = new Date();
     await cart.save();
 
-    return new Response(JSON.stringify({ success: true, cart }), { status: 200 });
+    const populatedCart = await Cart.findOne({ clientId, supplierId })
+    .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
+
+    return new Response(JSON.stringify({ success: true, populatedCart }), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ success: false, message: error.message }), { status: 500 });
   }
@@ -77,4 +80,29 @@ export async function POST(req) {
   } catch (error) {
     return new Response(JSON.stringify({ success: false, message: error.message }), { status: 500 });
   }
+}
+
+
+export default async function GET(re) {
+  // const { clientId, supplierId } = params;
+
+  await connectToDB();
+  const { clientId, supplierId } = await req.json();
+
+  console.log(clientId, supplierId);
+  
+    try {
+      const cart = await Cart.findOne({ clientId, supplierId })
+        .populate('items.productId')
+        .lean();
+
+      if (!cart) {
+        return new Response(JSON.stringify({ success: false, message: 'Cart not found' }), { status: 404 });
+      }
+
+      return new Response(JSON.stringify({ success: true, cart }), { status: 200 });
+    } catch (error) {
+      return new Response(JSON.stringify({ success: false, message: error.message }), { status: 500 });
+    }
+  
 }

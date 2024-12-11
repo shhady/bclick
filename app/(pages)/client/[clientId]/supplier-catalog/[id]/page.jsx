@@ -8,6 +8,7 @@ import SupplierCategories from './SupplierCategories';
 import Link from 'next/link';
 import Favourite from '@/models/favourite';
 import dynamic from 'next/dynamic';
+import Cart from '@/models/cart';
 
 
 const ClientComponent = dynamic(() => import('./ClientComponent'))
@@ -20,7 +21,7 @@ export default async function Page({ params }) {
   const { id, clientId } = await params;
   await connectToDB()
   // Parallel data fetching
-  const [supplier, categories, favourites, products] = await Promise.all([
+  const [supplier, categories, favourites, products, cart] = await Promise.all([
     User.findById(id).lean().catch((err) => {
       console.error('User fetch failed:', err);
       return null;
@@ -45,6 +46,12 @@ export default async function Page({ params }) {
         console.error('Product fetch failed:', err);
         return [];
       }),
+       Cart.findOne({ clientId, supplierId:id })
+      .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
+      .lean().catch((err) => {
+        console.error('Cart fetch failed:', err);
+        return [];
+      })
   ]);
   // More robust serialization with error handling
   const serializedData = {
@@ -52,6 +59,8 @@ export default async function Page({ params }) {
     categories: categories ? categories.map(serializeCategory) : [],
     products: products ? products.map(serializeProduct) : [],
     favorites: favourites?.productIds?.map(serializeProduct) || [],
+    cart: cart ? serializeCart(cart) : null
+
   };
     
   if (!supplier) {
@@ -94,5 +103,25 @@ function serializeProduct(product) {
     supplierId: product.supplierId.toString(),
     stock: product.stock, // Ensure this field is included
 
+  };
+}
+
+
+function serializeCart(cart) {
+  return {
+    ...cart,
+    _id: cart._id.toString(),
+    supplierId: cart.supplierId.toString(),
+    clientId: cart.clientId.toString(),
+    items: cart.items.map((item) => ({
+      ...item,
+      _id: item._id.toString(),
+      productId: {
+        ...item.productId,
+        _id: item.productId._id.toString(),
+      },
+    })),
+    createdAt: cart.createdAt.toISOString(),
+    updatedAt: cart.updatedAt.toISOString(),
   };
 }

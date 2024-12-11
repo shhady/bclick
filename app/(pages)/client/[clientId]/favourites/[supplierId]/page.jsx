@@ -6,6 +6,7 @@ import Category from '@/models/category';
 import { Suspense } from 'react';
 import Loader from '@/components/loader/Loader';
 import dynamic from 'next/dynamic';
+import Cart from '@/models/cart';
 
 
 const FavoriteProducts = dynamic(() => import('./FavoriteProducts'))
@@ -19,7 +20,7 @@ export default async function Page({ params }) {
 
   await connectToDB();
 
-  const [supplier, categories, favourites, products] = await Promise.all([
+  const [supplier, categories, favourites, products, cart] = await Promise.all([
     User.findById(supplierId).lean().catch((err) => {
       console.error('User fetch failed:', err);
       return null;
@@ -44,6 +45,12 @@ export default async function Page({ params }) {
         console.error('Product fetch failed:', err);
         return [];
       }),
+      Cart.findOne({ clientId, supplierId })
+      .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
+      .lean().catch((err) => {
+        console.error('Cart fetch failed:', err);
+        return [];
+      })
   ]);
 
   if (!supplier) {
@@ -56,14 +63,17 @@ export default async function Page({ params }) {
     categories: categories.map(serializeCategory),
     products: products.map(serializeProduct),
     favorites: favourites?.productIds?.map(serializeProduct) || [],
-  };
+    cart: cart ? serializeCart(cart) : null
 
+  };
+ 
+  console.log(favourites);
   return (
     <div className="mb-20">
       {/* <h1 className="text-2xl font-bold my-6">
         המועדפים שלך מהספק {serializedData.supplier.businessName}
       </h1> */}
-    <Suspense fallback={<Loader/>}>  <FavoriteProducts {...serializedData} clientId={clientId} supplierId={supplierId}/></Suspense>
+    <Suspense fallback={<Loader/>}>  <FavoriteProducts {...serializedData}  clientId={clientId} supplierId={supplierId}/></Suspense>
     </div>
   );
 }
@@ -99,5 +109,24 @@ function serializeCategory(category) {
     ...category,
     _id: category._id.toString(),
     supplierId: category.supplierId.toString(),
+  };
+}
+
+function serializeCart(cart) {
+  return {
+    ...cart,
+    _id: cart._id.toString(),
+    supplierId: cart.supplierId.toString(),
+    clientId: cart.clientId.toString(),
+    items: cart.items.map((item) => ({
+      ...item,
+      _id: item._id.toString(),
+      productId: {
+        ...item.productId,
+        _id: item.productId._id.toString(),
+      },
+    })),
+    createdAt: cart.createdAt.toISOString(),
+    updatedAt: cart.updatedAt.toISOString(),
   };
 }
