@@ -281,7 +281,8 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
   };
 
   if (!product) return null;
-
+  
+  console.log(error);
   return (
     <div
       className={`fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-end transition-opacity duration-300 ${
@@ -342,7 +343,7 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
                 <button
                   className="bg-gray-300 px-3 py-1 rounded"
                   onClick={() => handleQuantityChange(quantity - 1)}
-                  disabled={quantity <= 1}
+                  // disabled={quantity <= 1}
                 >
                   -
                 </button>
@@ -355,7 +356,7 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
                 <button
                   className="bg-gray-300 px-3 py-1 rounded"
                   onClick={() => handleQuantityChange(quantity + 1)}
-                  disabled={quantity >= availableStock}
+                  // disabled={quantity >= availableStock}
                 >
                   +
                 </button>

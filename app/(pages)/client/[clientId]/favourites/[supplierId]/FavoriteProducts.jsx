@@ -193,7 +193,7 @@ function ProductGrid({
                   <button
                     className="bg-gray-300 px-3 py-1 rounded"
                     onClick={() => handleQuantityChange(quantity - 1)}
-                    disabled={quantity <= 1}
+                    // disabled={quantity <= 1}
                   >
                     -
                   </button>
@@ -206,7 +206,7 @@ function ProductGrid({
                   <button
                     className="bg-gray-300 px-3 py-1 rounded"
                     onClick={() => handleQuantityChange(quantity + 1)}
-                    disabled={quantity >= availableStock}
+                    // disabled={quantity >= availableStock}
                   >
                     +
                   </button>
