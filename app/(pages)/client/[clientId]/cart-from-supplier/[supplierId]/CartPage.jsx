@@ -14,6 +14,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   const [validationError, setValidationError] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const router = useRouter();
+  const [pendingUpdates, setPendingUpdates] = useState({});
 
   // Calculate total price
   const calculateTotalPrice = () => {
@@ -21,12 +22,16 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   };
 
   // Handle quantity changes optimistically
-  const handleQuantityChange = debounce((productId, newQuantity) => {
+  const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity < 1) {
       setError('Quantity must be at least 1');
       return;
     }
 
+    const existingItem = cart.items.find((item) => item.productId._id === productId);
+    if (!existingItem) return;
+
+    // Optimistically update the UI
     setCart((prevCart) => ({
       ...prevCart,
       items: prevCart.items.map((item) =>
@@ -34,44 +39,53 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
       ),
     }));
 
-    setPendingChanges((prevChanges) => ({
-      ...prevChanges,
-      [productId]: newQuantity,
+    // Mark the item as pending for updates
+    setPendingUpdates((prevUpdates) => ({
+      ...prevUpdates,
+      [productId]: true,
     }));
 
-    setError('');
-  }, 300);
+    // Send the update request
+    updateQuantityInDatabase(productId, newQuantity);
+  };
 
-  useEffect(() => {
-    if (Object.keys(pendingChanges).length === 0) return;
+  // Update the quantity in the database
+  const updateQuantityInDatabase = async (productId, quantity) => {
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId,
+          supplierId,
+          productId,
+          quantity,
+        }),
+      });
 
-    const saveChanges = async () => {
-      try {
-        const changes = Object.entries(pendingChanges);
-        const updatePromises = changes.map(([productId, quantity]) =>
-          fetch('/api/cart', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              clientId,
-              supplierId,
-              productId,
-              quantity,
-            }),
-          })
-        );
-
-        await Promise.all(updatePromises);
-        setPendingChanges({});
-      } catch (error) {
-        console.error('Error saving pending changes:', error);
-        setError('Failed to save changes');
+      if (!response.ok) {
+        throw new Error('Failed to update quantity');
       }
-    };
 
-    saveChanges();
-  }, [pendingChanges, clientId, supplierId]);
+      // Clear pending state for the item
+      setPendingUpdates((prevUpdates) => {
+        const { [productId]: _, ...rest } = prevUpdates;
+        return rest;
+      });
+    } catch (err) {
+      console.error('Error updating quantity:', err);
 
+      // Rollback UI update in case of an error
+      setCart((prevCart) => ({
+        ...prevCart,
+        items: prevCart.items.map((item) =>
+          item.productId._id === productId ? { ...item, quantity: quantity - 1 } : item
+        ),
+      }));
+
+      setError('Failed to update quantity. Please try again.');
+    }
+  };
   // useEffect(() => {
   //   savePendingChanges();
   //   return () => savePendingChanges.cancel();
@@ -233,11 +247,15 @@ className="w-full h-full max-h-[100px] max-w-[100px] min-h-[100px] min-w-[100px]
               <p>
                 {item.productId.weight} {item.productId.weightUnit}
               </p>
+
               <div className="flex items-center gap-1 rounded-md border-2 w-[130px]">
                 <button className="w-full" onClick={() => handleQuantityChange(item.productId._id, Math.max(item.quantity - 1, 1))}>-</button>
                 <span>{item.quantity}</span>
                 <button className="w-full" onClick={() => handleQuantityChange(item.productId._id, item.quantity + 1)}>+</button>
+
               </div>
+              {pendingUpdates[item.productId._id] ? (<span className="animate-pulse h-4">מעודכן...</span>) : (<span className="animate-pulse h-4"></span>)}
+
             </div>
             <div className="flex flex-col h-full py-2 items-center justify-between">
               <p className="text-lg font-bold">₪{item.productId.price * item.quantity}</p>
