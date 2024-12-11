@@ -203,7 +203,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   }
 
   return (
-    <div>
+    <div className='mb-20'>
       <div className="bg-gray-200 px-6 py-4 sticky top-0 left-0 md:top-20">
         <div className="flex justify-between items-center bg-gray-200 p-2 rounded">
           <h2 className="text-lg font-bold">הזמנה שלי</h2>
@@ -259,7 +259,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
         ))}
       </div>
 
-      <button onClick={handleSubmitOrder} className="bg-green-500 text-white mt-4 w-full py-2 rounded">
+      <button onClick={handleSubmitOrder} className="bg-customBlue text-white mt-4 w-full py-2 rounded">
         אישור הזמנה
       </button>
 

@@ -235,29 +235,7 @@ function ProductDetailModal({
     }, [product, cart]);
 
     console.log(cart);
-    // useEffect(() => {
-    //     setReserved(product?.reserved || 0);
-    //     setAvailableStock(product?.stock - product?.reserved || 0);
-    //     setQuantity(1); // Reset quantity on product change
-    //     setError(''); // Clear error messages
-    //   }, [product]);
-
-    // useEffect(() => {
-    //     if(!clientId || supplierId) return;
-    //     const fetchFavoriteStatus = async () => {
-    //       try {
-    //         const cart = await getCart({ clientId, supplierId });
-    //         console.log(cart);
-    //       } catch (error) {
-    //         console.error('Error checking favorite status:', error);
-    //       } finally {
-    //         setChecking(false);
-    //       }
-    //     };
-    
-    //     fetchFavoriteStatus();
-    //   }, [clientId, supplierId]);
-      
+  
     const handleQuantityChange = (newQuantity) => {
       console.log(newQuantity);
       if (newQuantity < 1) {
@@ -274,9 +252,6 @@ function ProductDetailModal({
       setQuantity(newQuantity);
       setError('');
     };
-
-  // const incrementQuantity = () => handleQuantityChange(quantity + 1);
-  // const decrementQuantity = () => handleQuantityChange(quantity - 1);
 
   
     const addToCartHandler = async () => {
