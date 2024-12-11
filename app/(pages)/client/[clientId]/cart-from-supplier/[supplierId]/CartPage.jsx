@@ -243,10 +243,10 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
               <p>
                 {item.productId.weight} {item.productId.weightUnit}
               </p>
-              <div className="flex items-center gap-4 px-2 rounded-md border-2">
-                <button onClick={() => handleQuantityChange(item.productId._id, Math.max(item.quantity - 1, 1))}>-</button>
+              <div className="flex items-center gap-1  rounded-md border-2 w-[130px]">
+                <button className='w-full' onClick={() => handleQuantityChange(item.productId._id, Math.max(item.quantity - 1, 1))}>-</button>
                 <span>{item.quantity}</span>
-                <button onClick={() => handleQuantityChange(item.productId._id, item.quantity + 1)}>+</button>
+                <button className='w-full' onClick={() => handleQuantityChange(item.productId._id, item.quantity + 1)}>+</button>
               </div>
             </div>
             <div className="flex flex-col h-full py-2 items-center justify-between">
