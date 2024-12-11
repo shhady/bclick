@@ -1,24 +1,24 @@
 import React, { Suspense } from 'react';
 import Cart from '@/models/cart';
-// import CartPage from './CartPage';
 import { connectToDB } from '@/utils/database';
 import Loader from '@/components/loader/Loader';
 import dynamic from 'next/dynamic';
+import { redirect } from 'next/navigation'; // Use redirect utility from Next.js
 
-const CartPage = dynamic(() => import('./CartPage'))
+const CartPage = dynamic(() => import('./CartPage'));
 
 export default async function Page({ params }) {
   const { supplierId, clientId } = await params;
 
-  console.log('Received params:', params);
+  console.log('Received params:', await params);
   if (!supplierId || !clientId) {
     console.error('Missing supplierId or clientId:', { supplierId, clientId });
-    return <div>Invalid parameters provided</div>;
+    redirect(`/client/${clientId}/supplier-catalog/${supplierId}`);
   }
 
   await connectToDB().catch((error) => {
     console.error('Error connecting to database:', error);
-    return <div>Error connecting to database</div>;
+    redirect(`/client/${clientId}/supplier-catalog/${supplierId}`);
   });
 
   let cart;
@@ -29,13 +29,13 @@ export default async function Page({ params }) {
 
     if (!cart) {
       console.warn(`Cart not found for cli:${clientId} / sup:${supplierId}`);
-      return <div>No cart found for the specified client and supplier</div>;
+      redirect(`/client/${clientId}/supplier-catalog/${supplierId}`);
     }
 
     console.log('Fetched cart:', cart);
   } catch (error) {
     console.error('Error fetching cart:', error);
-    return <div>Error loading cart cli:{clientId} / sup:{supplierId}</div>;
+    redirect(`/client/${clientId}/supplier-catalog/${supplierId}`);
   }
 
   const serializedCart = serializeCart(cart);
@@ -48,9 +48,10 @@ export default async function Page({ params }) {
     );
   } catch (renderError) {
     console.error('Error rendering CartPage:', renderError);
-    return <div>Error rendering cart page</div>;
+    redirect(`/client/${clientId}/supplier-catalog/${supplierId}`);
   }
 }
+
 // Helper function to serialize cart data
 function serializeCart(cart) {
   return {
