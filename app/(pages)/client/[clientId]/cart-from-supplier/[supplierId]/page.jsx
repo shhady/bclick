@@ -10,7 +10,10 @@ const CartPage = dynamic(() => import('./CartPage'))
 export default async function Page({ params }) {
   const { supplierId, clientId } = await params;
 
-  await connectToDB()
+  await connectToDB().catch((error) => {
+    console.error('Error connecting to database:', error);
+    return <div>Error connecting to database</div>;
+  });
 
   let cart;
     try {
