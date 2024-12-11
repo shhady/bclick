@@ -9,6 +9,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   const [cart, setCart] = useState(initialCart);
   const [error, setError] = useState('');
   const router = useRouter();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
   const calculateTotalPrice = () => {
     return cart?.items?.reduce((total, item) => total + item.productId.price * item.quantity, 0) || 0;
@@ -58,10 +59,15 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
           quantity: newQuantity,
         }),
       });
+      const result = await response.json();
 
       if (!response.ok) {
         throw new Error('Failed to update quantity');
       }
+
+      setCart(result.cart);
+      console.log(result.cart);
+      
     } catch (error) {
       console.error('Error updating cart item:', error);
       setError('Error updating the cart');

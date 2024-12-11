@@ -30,7 +30,7 @@ export async function PUT(req) {
     const populatedCart = await Cart.findOne({ clientId, supplierId })
     .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
 
-    return new Response(JSON.stringify({ success: true, populatedCart }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, cart:populatedCart }), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ success: false, message: error.message }), { status: 500 });
   }
