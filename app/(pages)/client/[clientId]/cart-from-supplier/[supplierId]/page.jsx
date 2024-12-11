@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Cart from '@/models/cart';
-import CartPage from './CartPage';
+// import CartPage from './CartPage';
 import { connectToDB } from '@/utils/database';
+import Loader from '@/components/loader/Loader';
+import dynamic from 'next/dynamic';
+
+const CartPage = dynamic(() => import('./CartPage'))
 
 export default async function Page({ params }) {
   const { supplierId, clientId } = await params;
@@ -20,12 +24,12 @@ export default async function Page({ params }) {
    
   } catch (error) {
     console.error('Error fetching cart:', error);
-    return <div>Error loading cart</div>;
+    return <div>Error loading cart cli:{clientId} / sup:{supplierId}</div>;
   }
 
   const serializedCart = cart ? serializeCart(cart) : null;
 
-  return <CartPage cart={serializedCart} supplierId={supplierId} clientId={clientId}/>;
+  return <Suspense fallback={<Loader />}><CartPage cart={serializedCart} supplierId={supplierId} clientId={clientId}/></Suspense>;
 }
 
 // Helper function to serialize cart data
