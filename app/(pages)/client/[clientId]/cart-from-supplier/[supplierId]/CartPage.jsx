@@ -61,13 +61,14 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
       });
       const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error('Failed to update quantity');
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to update quantity');
       }
 
       setCart(result.cart);
       console.log(result.cart);
-      
+      console.log('Updated quantity')
+      setError('');
     } catch (error) {
       console.error('Error updating cart item:', error);
       setError('Error updating the cart');
