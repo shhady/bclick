@@ -1,8 +1,8 @@
-import connectToDB from '@/utils/database';
+import {connectToDB} from '@/utils/database';
 import User from '@/models/user';
 
 export async function GET(req, { params }) {
-  const { supplierId } = params;
+  const { supplierId } = await params;
 
   await connectToDB();
 

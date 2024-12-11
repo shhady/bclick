@@ -163,7 +163,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
       <div className="flex flex-col justify-start items-start gap-2">
           <span>תאריך: {new Date(cart.createdAt).toLocaleDateString()}</span>
           <div className="">
-        <h3 className="font-bold ">סה"כ: ₪{calculateTotalPrice()}</h3>
+        <h3 className="font-bold ">סה&quot;כ: ₪{calculateTotalPrice()}</h3>
       </div>
         </div>
         <div className='flex flex-col justify-end items-end h-full gap-4'>
