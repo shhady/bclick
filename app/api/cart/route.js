@@ -1,6 +1,9 @@
 import { connectToDB } from '@/utils/database';
 import Cart from '@/models/cart';
 
+export const config = {
+  runtime: 'nodejs', // Ensure Node.js runtime is used
+};
 export async function PUT(req) {
   await connectToDB();
   try {
