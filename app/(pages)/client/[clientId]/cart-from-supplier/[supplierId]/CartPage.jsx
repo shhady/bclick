@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { deleteCart } from '@/app/actions/cartActions';
 import Link from 'next/link';
+import debounce from 'lodash.debounce';
 
 export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   const [cart, setCart] = useState(initialCart);
@@ -19,7 +20,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
     return cart?.items?.reduce((total, item) => total + item.productId.price * item.quantity, 0) || 0;
   };
 
-  // Handle quantity changes locally
+  // Handle quantity changes optimistically
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity < 1) {
       setError('Quantity must be at least 1');
@@ -32,63 +33,50 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
         item.productId._id === productId ? { ...item, quantity: newQuantity } : item
       ),
     }));
+
     setPendingChanges((prevChanges) => ({
       ...prevChanges,
       [productId]: newQuantity,
     }));
+
     setError('');
   };
-  const savePendingChanges = useCallback(async () => {
-    try {
-      const changes = Object.entries(pendingChanges);
-      if (changes.length === 0) return;
 
-      const updatePromises = changes.map(([productId, quantity]) =>
-        fetch(`/api/cart`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            clientId,
-            supplierId,
-            productId,
-            quantity,
-          }),
-        })
-      );
+  // Save pending changes to the server
+  const savePendingChanges = useCallback(
+    debounce(async () => {
+      try {
+        const changes = Object.entries(pendingChanges);
+        if (changes.length === 0) return;
 
-      await Promise.all(updatePromises);
-      setPendingChanges({});
-    } catch (error) {
-      console.error('Error saving pending changes:', error);
-      setError('Failed to save changes');
-    }
-  }, [pendingChanges, clientId, supplierId]);
+        const updatePromises = changes.map(([productId, quantity]) =>
+          fetch('/api/cart', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              clientId,
+              supplierId,
+              productId,
+              quantity,
+            }),
+          })
+        );
 
-  // Save changes on component unmount or page navigation
+        await Promise.all(updatePromises);
+        setPendingChanges({});
+      } catch (error) {
+        console.error('Error saving pending changes:', error);
+        setError('Failed to save changes');
+      }
+    }, 500),
+    [pendingChanges, clientId, supplierId]
+  );
+
   useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      if (Object.keys(pendingChanges).length > 0) {
-        savePendingChanges();
-        event.preventDefault();
-        event.returnValue = ''; // Necessary for showing a confirmation dialog in some browsers
-      }
-    };
+    savePendingChanges();
+    return () => savePendingChanges.cancel();
+  }, [pendingChanges, savePendingChanges]);
 
-    const handleRouteChange = async () => {
-      if (Object.keys(pendingChanges).length > 0) {
-        await savePendingChanges();
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    router.events?.on('routeChangeStart', handleRouteChange);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      router.events?.off('routeChangeStart', handleRouteChange);
-      savePendingChanges();
-    };
-  }, [pendingChanges, savePendingChanges, router.events]);
   // Validate stock before proceeding
   const validateStock = () => {
     const errors = [];
@@ -129,21 +117,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
 
     setShowConfirmation(true);
   };
-  const handleDeleteItem = async (productId) => {
-    try {
-      setCart((prevCart) => ({
-        ...prevCart,
-        items: prevCart.items.filter((item) => item.productId._id !== productId),
-      }));
 
-      await fetch(`/api/cart?clientId=${clientId}&supplierId=${supplierId}&productId=${productId}`, {
-        method: 'DELETE',
-      });
-    } catch (error) {
-      console.error('Error deleting cart item:', error);
-      setError('Error deleting item');
-    }
-  };
   const confirmOrder = async () => {
     try {
       const total = calculateTotalPrice();
@@ -160,8 +134,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
         total,
       };
 
-      // Create the order
-      const response = await fetch(`/api/orders`, {
+      const response = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderDetails),
@@ -171,7 +144,6 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
         throw new Error('Failed to create order');
       }
 
-      // Delete the cart
       await deleteCart({ clientId, supplierId });
       setCart(null);
       setShowConfirmation(false);
@@ -191,6 +163,23 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
       console.error('Error deleting cart:', error);
     }
   };
+  // Handle item deletion
+  const handleDeleteItem = async (productId) => {
+    try {
+      setCart((prevCart) => ({
+        ...prevCart,
+        items: prevCart.items.filter((item) => item.productId._id !== productId),
+      }));
+
+      await fetch(`/api/cart?clientId=${clientId}&supplierId=${supplierId}&productId=${productId}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.error('Error deleting cart item:', error);
+      setError('Error deleting item');
+    }
+  };
+
   if (!cart) {
     return (
       <div className="h-screen flex flex-col items-center justify-center gap-4">
@@ -203,7 +192,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   }
 
   return (
-    <div className='mb-20'>
+    <div className="mb-20">
       <div className="bg-gray-200 px-6 py-4 sticky top-0 left-0 md:top-20">
         <div className="flex justify-between items-center bg-gray-200 p-2 rounded">
           <h2 className="text-lg font-bold">הזמנה שלי</h2>
@@ -215,7 +204,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
         <div className="p-2 grid grid-cols-2">
           <div className="flex flex-col justify-start items-start gap-2">
             <span>תאריך: {new Date(cart.createdAt).toLocaleDateString()}</span>
-            <h3 className="font-bold">סה&quot;כ: ₪{calculateTotalPrice()}</h3>
+            <h3 className="font-bold">סה"כ: ₪{calculateTotalPrice()}</h3>
           </div>
           <div className="flex flex-col justify-end items-end h-full gap-4">
             <button
@@ -232,21 +221,22 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
         {cart?.items?.map((item) => (
           <div key={item.productId._id} className="grid grid-cols-3 p-2 bg-white rounded shadow mb-2">
             <Image
-               src={item.productId.imageUrl?.secure_url || '/no-image.jpg'}
-               alt={item.productId.name}
-               width={100}
-               height={100}
-               className="w-full h-full max-h-[100px] max-w-[100px] min-h-[100px] min-w-[100px] md:max-h-48 md:max-w-1/2 md:min-h-48 md:min-w-fll object-contain"
-             />
+              
+src={item.productId.imageUrl?.secure_url || '/no-image.jpg'}
+alt={item.productId.name}
+width={100}
+height={100}
+className="w-full h-full max-h-[100px] max-w-[100px] min-h-[100px] min-w-[100px] md:max-h-48 md:max-w-1/2 md:min-h-48 md:min-w-fll object-contain"
+/>
             <div className="flex flex-col py-2 h-full justify-between items-start">
               <h3 className="font-bold">{item.productId.name}</h3>
               <p>
                 {item.productId.weight} {item.productId.weightUnit}
               </p>
-              <div className="flex items-center gap-1  rounded-md border-2 w-[130px]">
-                <button className='w-full' onClick={() => handleQuantityChange(item.productId._id, Math.max(item.quantity - 1, 1))}>-</button>
+              <div className="flex items-center gap-1 rounded-md border-2 w-[130px]">
+                <button className="w-full" onClick={() => handleQuantityChange(item.productId._id, Math.max(item.quantity - 1, 1))}>-</button>
                 <span>{item.quantity}</span>
-                <button className='w-full' onClick={() => handleQuantityChange(item.productId._id, item.quantity + 1)}>+</button>
+                <button className="w-full" onClick={() => handleQuantityChange(item.productId._id, item.quantity + 1)}>+</button>
               </div>
             </div>
             <div className="flex flex-col h-full py-2 items-center justify-between">
@@ -287,190 +277,3 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   );
 }
 
-
-
-// 'use client';
-
-// import { useState, useEffect, useCallback } from 'react';
-// import Image from 'next/image';
-// import { useRouter } from 'next/navigation';
-// import { deleteCart } from '@/app/actions/cartActions';
-// import Link from 'next/link';
-
-// export default function CartPage({ clientId, supplierId, cart: initialCart }) {
-//   const [cart, setCart] = useState(initialCart);
-//   const [pendingChanges, setPendingChanges] = useState({});
-//   const [error, setError] = useState('');
-//   const router = useRouter();
-
-//   // Calculate total price
-//   const calculateTotalPrice = () => {
-//     return cart?.items?.reduce((total, item) => total + item.productId.price * item.quantity, 0) || 0;
-//   };
-
-//   // Handle quantity changes locally
-//   const handleQuantityChange = (productId, newQuantity) => {
-//     if (newQuantity < 1) {
-//       setError('Quantity must be at least 1');
-//       return;
-//     }
-
-//     setCart((prevCart) => ({
-//       ...prevCart,
-//       items: prevCart.items.map((item) =>
-//         item.productId._id === productId ? { ...item, quantity: newQuantity } : item
-//       ),
-//     }));
-
-//     setPendingChanges((prevChanges) => ({
-//       ...prevChanges,
-//       [productId]: newQuantity,
-//     }));
-//     setError('');
-//   };
-
-//   // Save changes to the database
-//   const savePendingChanges = useCallback(async () => {
-//     try {
-//       const changes = Object.entries(pendingChanges);
-//       if (changes.length === 0) return;
-
-//       const updatePromises = changes.map(([productId, quantity]) =>
-//         fetch(`/api/cart`, {
-//           method: 'PUT',
-//           headers: { 'Content-Type': 'application/json' },
-//           body: JSON.stringify({
-//             clientId,
-//             supplierId,
-//             productId,
-//             quantity,
-//           }),
-//         })
-//       );
-
-//       await Promise.all(updatePromises);
-//       setPendingChanges({});
-//     } catch (error) {
-//       console.error('Error saving pending changes:', error);
-//       setError('Failed to save changes');
-//     }
-//   }, [pendingChanges, clientId, supplierId]);
-
-//   // Save changes on component unmount or page navigation
-//   useEffect(() => {
-//     const handleBeforeUnload = () => {
-//       if (Object.keys(pendingChanges).length > 0) {
-//         savePendingChanges();
-//       }
-//     };
-
-//     window.addEventListener('beforeunload', handleBeforeUnload);
-//     return () => {
-//       window.removeEventListener('beforeunload', handleBeforeUnload);
-//       savePendingChanges();
-//     };
-//   }, [pendingChanges, savePendingChanges]);
-
-//   // Handle item deletion
-//   const handleDeleteItem = async (productId) => {
-//     try {
-//       setCart((prevCart) => ({
-//         ...prevCart,
-//         items: prevCart.items.filter((item) => item.productId._id !== productId),
-//       }));
-
-//       await fetch(`/api/cart?clientId=${clientId}&supplierId=${supplierId}&productId=${productId}`, {
-//         method: 'DELETE',
-//       });
-//     } catch (error) {
-//       console.error('Error deleting cart item:', error);
-//       setError('Error deleting item');
-//     }
-//   };
-
-//   // Handle cart deletion
-//   const handleDeleteCart = async () => {
-//     try {
-//       await deleteCart({ clientId, supplierId });
-//       setCart(null);
-//     } catch (error) {
-//       console.error('Error deleting cart:', error);
-//     }
-//   };
-
-//   if (!cart) {
-//     return (
-//       <div className="h-screen flex flex-col items-center justify-center gap-4">
-//         <h2 className="text-2xl">העגלה שלך עם הספק הזה ריקה</h2>
-//         <Link href={`/client/${clientId}/supplier-catalog/${supplierId}`} className="bg-customBlue px-4 py-4 rounded-md">
-//           <button>חזור לקלוג</button>
-//         </Link>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div>
-//       <div className="bg-gray-200 px-6 py-4 sticky top-0 left-0 md:top-20">
-//         <div className="flex justify-between items-center bg-gray-200 p-2 rounded">
-//           <h2 className="text-lg font-bold">הזמנה שלי</h2>
-//           <button onClick={handleDeleteCart} className="text-red-500 text-lg">
-//             🗑️
-//           </button>
-//         </div>
-
-//         <div className="p-2 grid grid-cols-2">
-//           <div className="flex flex-col justify-start items-start gap-2">
-//             <span>תאריך: {new Date(cart.createdAt).toLocaleDateString()}</span>
-//             <h3 className="font-bold">סה&quot;כ: ₪{calculateTotalPrice()}</h3>
-//           </div>
-//           <div className="flex flex-col justify-end items-end h-full gap-4">
-//             <button
-//               onClick={() => router.push(`/client/${clientId}/supplier-catalog/${supplierId}`)}
-//               className="text-gray-600 border-2 border-gray-600 px-2 w-fit rounded-md"
-//             >
-//               הוסף עוד +
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="mt-4">
-//         {cart?.items?.map((item) => (
-//           <div key={item.productId._id} className="grid grid-cols-3 p-2 bg-white rounded shadow mb-2">
-//             <Image
-//              src={item.productId.imageUrl?.secure_url || '/no-image.jpg'}
-//              alt={item.productId.name}
-//              width={100}
-//              height={100}
-//              className="w-full h-full max-h-[100px] max-w-[100px] min-h-[100px] min-w-[100px] md:max-h-48 md:max-w-1/2 md:min-h-48 md:min-w-fll object-contain"
-//            />
-//             <div className="flex flex-col py-2 h-full justify-between items-start">
-//               <h3 className="font-bold">{item.productId.name}</h3>
-//               <p>
-//                 {item.productId.weight} {item.productId.weightUnit}
-//               </p>
-//               <div className="flex items-center gap-4 px-2 rounded-md border-2">
-//                 <button onClick={() => handleQuantityChange(item.productId._id, Math.max(item.quantity - 1, 1))}>-</button>
-//                 <span>{item.quantity}</span>
-//                 <button onClick={() => handleQuantityChange(item.productId._id, item.quantity + 1)}>+</button>
-//               </div>
-//             </div>
-//             <div className="flex flex-col h-full py-2 items-center justify-between">
-//               <p className="text-lg font-bold">₪{item.productId.price * item.quantity}</p>
-//               <button onClick={() => handleDeleteItem(item.productId._id)} className="text-red-500">
-//                 🗑️
-//               </button>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-
-//       {/* <button onClick={savePendingChanges} className="bg-blue-500 text-white mt-4 w-full py-2 rounded">
-//         שמור שינויים
-//       </button> */}
-
-//       {error && <p className="text-red-500 font-bold text-center mt-4">{error}</p>}
-//     </div>
-//   );
-// }
