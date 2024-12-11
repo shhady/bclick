@@ -223,7 +223,7 @@ function ProductDetailModal({
     useEffect(() => {
       setReserved(product?.reserved || 0);
       setAvailableStock(product?.stock - (product?.reserved || 0));
-      const existingItem = cart.items.find(
+      const existingItem = cart?.items.find(
         (item) => item?.productId?._id === product?._id
       );
       if (existingItem) {
@@ -391,7 +391,7 @@ function ProductDetailModal({
 </div>
 {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
 
-{cart.items.find((item) => item.productId._id === product._id) ? (
+{cart?.items.find((item) => item.productId._id === product._id) ? (
   <button
     className="bg-customBlue text-white mt-4 px-4 py-2 rounded w-full"
     onClick={addToCartHandler}
