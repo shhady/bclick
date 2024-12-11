@@ -21,7 +21,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   };
 
   // Handle quantity changes optimistically
-  const handleQuantityChange = (productId, newQuantity) => {
+  const handleQuantityChange = debounce((productId, newQuantity) => {
     if (newQuantity < 1) {
       setError('Quantity must be at least 1');
       return;
@@ -40,15 +40,14 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
     }));
 
     setError('');
-  };
+  }, 300);
 
-  // Save pending changes to the server
-  const savePendingChanges = useCallback(
-    debounce(async () => {
+  useEffect(() => {
+    if (Object.keys(pendingChanges).length === 0) return;
+
+    const saveChanges = async () => {
       try {
         const changes = Object.entries(pendingChanges);
-        if (changes.length === 0) return;
-
         const updatePromises = changes.map(([productId, quantity]) =>
           fetch('/api/cart', {
             method: 'PUT',
@@ -68,14 +67,15 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
         console.error('Error saving pending changes:', error);
         setError('Failed to save changes');
       }
-    }, 500),
-    [pendingChanges, clientId, supplierId]
-  );
+    };
 
-  useEffect(() => {
-    savePendingChanges();
-    return () => savePendingChanges.cancel();
-  }, [pendingChanges, savePendingChanges]);
+    saveChanges();
+  }, [pendingChanges, clientId, supplierId]);
+
+  // useEffect(() => {
+  //   savePendingChanges();
+  //   return () => savePendingChanges.cancel();
+  // }, [pendingChanges, savePendingChanges]);
 
   // Validate stock before proceeding
   const validateStock = () => {
@@ -204,7 +204,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
         <div className="p-2 grid grid-cols-2">
           <div className="flex flex-col justify-start items-start gap-2">
             <span>תאריך: {new Date(cart.createdAt).toLocaleDateString()}</span>
-            <h3 className="font-bold">סה"כ: ₪{calculateTotalPrice()}</h3>
+            <h3 className="font-bold">סה&quot;כ: ₪{calculateTotalPrice()}</h3>
           </div>
           <div className="flex flex-col justify-end items-end h-full gap-4">
             <button
