@@ -18,7 +18,7 @@ export default function VideoInsideComputer() {
         />
         {/* Video */}
         <div className="absolute top-[2%] left-[10%] md:top-[2%] md:left-[10%] xl:top-[2%] xl:left-[10%] w-[80%] h-[88%] overflow-hidden rounded-lg">
-        <iframe width="949" height="534" src="https://www.youtube.com/embed/reUZRyXxUs4" 
+        {/* <iframe width="949" height="534" src="https://www.youtube.com/embed/reUZRyXxUs4" 
         title="How AI Could Empower Any Business | Andrew Ng | TED" 
         frameBorder="0" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -26,8 +26,12 @@ export default function VideoInsideComputer() {
          allowFullScreen={true}
          className='w-full h-full'
 >
-
-         </iframe>
+  </iframe> */}
+<video width="100%" height="100%" controls className='h-full'>
+  <source src="video.webm" type="video/webm"/>
+  
+  Your browser does not support the video tag.
+</video>
           
         </div>
       </div>
