@@ -7,6 +7,8 @@ import SupplierDetails from '../../supplier-catalog/[id]/SupplierDetails';
 import { Suspense } from 'react';
 import Loader from '@/components/loader/Loader';
 import {  addToCart } from '@/app/actions/cartActions';
+import { useCartContext } from '@/app/context/CartContext';
+
 function ProductGrid({ 
     products, 
     clientId, 
@@ -69,7 +71,8 @@ function ProductGrid({
       product?.stock - (product?.reserved || 0)
     ); 
      const [isUpdating, setIsUpdating] = useState(false);
-  
+     const { fetchCartAgain } = useCartContext();
+
   
     useEffect(() => {
       setReserved(product?.reserved || 0);
@@ -119,6 +122,7 @@ function ProductGrid({
           setAvailableStock(response.updatedAvailableStock);
           setReserved(response.reserved);
           setError('');
+          fetchCartAgain()
           onClose();
         } else {
           setError(response.message);

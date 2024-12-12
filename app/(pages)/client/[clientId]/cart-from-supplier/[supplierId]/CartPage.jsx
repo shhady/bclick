@@ -6,91 +6,110 @@ import { useRouter } from 'next/navigation';
 import { deleteCart } from '@/app/actions/cartActions';
 import Link from 'next/link';
 import debounce from 'lodash.debounce';
+import { useCartContext } from '@/app/context/CartContext';
 
 export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   const [cart, setCart] = useState(initialCart);
-  const [pendingChanges, setPendingChanges] = useState({});
+  const [pendingChanges, setPendingChanges] = useState('');
   const [error, setError] = useState('');
   const [validationError, setValidationError] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const router = useRouter();
   const [pendingUpdates, setPendingUpdates] = useState({});
+  const { fetchCartAgain } = useCartContext();
 
   // Calculate total price
   const calculateTotalPrice = () => {
     return cart?.items?.reduce((total, item) => total + item.productId.price * item.quantity, 0) || 0;
   };
+  const debouncedUpdate = useCallback(
+    debounce(async (productId, quantity) => {
+      if (quantity < 1) return; // Don't update invalid quantities
 
-  // Handle quantity changes optimistically
-  const handleQuantityChange = (productId, newQuantity) => {
-    if (newQuantity < 1) {
-      setError('Quantity must be at least 1');
-      return;
-    }
+      try {
+        const response = await fetch('/api/cart', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientId,
+            supplierId,
+            productId,
+            quantity,
+          }),
+        });
 
-    const existingItem = cart.items.find((item) => item.productId._id === productId);
-    if (!existingItem) return;
+        if (!response.ok) {
+          throw new Error('Failed to update quantity');
+        }
 
-    // Optimistically update the UI
+        // Remove pending update status
+        setPendingUpdates((prev) => {
+          const { [productId]: _, ...rest } = prev;
+          return rest;
+        });
+      } catch (err) {
+        console.error('Error updating quantity:', err);
+      }
+    }, 500),
+    [] // Empty dependency ensures the function is only created once
+  );
+ 
+// Validates the new quantity and updates the cart state
+const validateAndUpdateQuantity = (productId, newQuantity) => {
+  const existingItem = cart.items.find((item) => item.productId._id === productId);
+  if (!existingItem) return;
+
+  const maxAvailable = existingItem.productId.stock - (existingItem.productId.reserved || 0);
+
+  if (newQuantity > maxAvailable) {
     setCart((prevCart) => ({
       ...prevCart,
       items: prevCart.items.map((item) =>
-        item.productId._id === productId ? { ...item, quantity: newQuantity } : item
+        item.productId._id === productId
+          ? { ...item, invalid: true, errorMessage: `הכמות מקסימלית ${maxAvailable}` }
+          : item
       ),
     }));
+    return;
+  }
 
-    // Mark the item as pending for updates
-    setPendingUpdates((prevUpdates) => ({
-      ...prevUpdates,
-      [productId]: true,
+  if (newQuantity < 1) {
+    setCart((prevCart) => ({
+      ...prevCart,
+      items: prevCart.items.map((item) =>
+        item.productId._id === productId
+          ? { ...item, invalid: true, errorMessage: 'כמות מינימלית היא 1' }
+          : item
+      ),
     }));
+    return;
+  }
 
-    // Send the update request
-    updateQuantityInDatabase(productId, newQuantity);
-  };
+  // Clear invalid state if quantity is valid
+  setCart((prevCart) => ({
+    ...prevCart,
+    items: prevCart.items.map((item) =>
+      item.productId._id === productId
+        ? { ...item, invalid: false, errorMessage: '', quantity: newQuantity }
+        : item
+    ),
+  }));
 
-  // Update the quantity in the database
-  const updateQuantityInDatabase = async (productId, quantity) => {
-    try {
-      const response = await fetch('/api/cart', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientId,
-          supplierId,
-          productId,
-          quantity,
-        }),
-      });
+  // Trigger database update
+  debouncedUpdate(productId, newQuantity);
 
-      if (!response.ok) {
-        throw new Error('Failed to update quantity');
-      }
+  // Mark the item as pending for updates
+  setPendingUpdates((prevUpdates) => ({
+    ...prevUpdates,
+    [productId]: true,
+  }));
+};
 
-      // Clear pending state for the item
-      setPendingUpdates((prevUpdates) => {
-        const { [productId]: _, ...rest } = prevUpdates;
-        return rest;
-      });
-    } catch (err) {
-      console.error('Error updating quantity:', err);
-
-      // Rollback UI update in case of an error
-      setCart((prevCart) => ({
-        ...prevCart,
-        items: prevCart.items.map((item) =>
-          item.productId._id === productId ? { ...item, quantity: quantity - 1 } : item
-        ),
-      }));
-
-      setError('Failed to update quantity. Please try again.');
-    }
-  };
-  // useEffect(() => {
-  //   savePendingChanges();
-  //   return () => savePendingChanges.cancel();
-  // }, [pendingChanges, savePendingChanges]);
-
+// Handles quantity change for both button clicks and input changes
+const handleQuantityChange = (productId, newQuantity) => {
+  validateAndUpdateQuantity(productId, newQuantity);
+};
+  
   // Validate stock before proceeding
   const validateStock = () => {
     const errors = [];
@@ -207,10 +226,16 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
 
   return (
     <div className="mb-20">
+      <div>
+
+      </div>
       <div className="bg-gray-200 px-6 py-4 sticky top-0 left-0 md:top-20">
         <div className="flex justify-between items-center bg-gray-200 p-2 rounded">
           <h2 className="text-lg font-bold">הזמנה שלי</h2>
-          <button onClick={handleDeleteCart} className="text-red-500 text-lg">
+          <button  onClick={async () => {
+      await handleDeleteCart(); // Ensure the cart is deleted first
+      fetchCartAgain();        // Trigger the cart fetch after deletion
+    }} className="text-red-500 text-lg">
             🗑️
           </button>
         </div>
@@ -249,17 +274,70 @@ className="w-full h-full max-h-[100px] max-w-[100px] min-h-[100px] min-w-[100px]
               </p>
 
               <div className="flex items-center gap-1 rounded-md border-2 w-[130px]">
-                <button className="w-full" onClick={() => handleQuantityChange(item.productId._id, Math.max(item.quantity - 1, 1))}>-</button>
-                <span>{item.quantity}</span>
-                <button className="w-full" onClick={() => handleQuantityChange(item.productId._id, item.quantity + 1)}>+</button>
+              <button
+    className="w-full"
+    onClick={() =>
+      handleQuantityChange(item.productId._id, Math.max(item.quantity - 1, 1))
+    }
+  >
+    -
+  </button>                {/* <span>{item.quantity}</span> */}
+                <input
+    type="number"
+    className={`border rounded px-2 w-16 ${item.invalid ? 'border-red-500' : ''}`}
+    value={item.quantity || ''} // Allow empty input
+    onFocus={(e) => e.target.select()} // Select the entire value on focus
+    onChange={(e) => {
+      const value = e.target.value;
 
-              </div>
-              {pendingUpdates[item.productId._id] ? (<span className="animate-pulse h-4">מעודכן...</span>) : (<span className="animate-pulse h-4"></span>)}
+      // Allow clearing the input temporarily
+      if (value === '') {
+        setCart((prevCart) => ({
+          ...prevCart,
+          items: prevCart.items.map((i) =>
+            i.productId._id === item.productId._id
+              ? { ...i, quantity: '', invalid: true, errorMessage: 'חייב 1 לפחות' }
+              : i
+          ),
+        }));
+        return;
+      }
 
+      const newValue = parseInt(value, 10);
+      handleQuantityChange(item.productId._id, newValue);
+    }}
+    onBlur={(e) => {
+      const value = e.target.value;
+
+      // Reset to minimum if empty or invalid on blur
+      if (value === '' || parseInt(value, 10) < 1) {
+        validateAndUpdateQuantity(item.productId._id, item.quantity);
+      }
+    }}
+  />
+  <button
+    className="w-full"
+    onClick={() => handleQuantityChange(item.productId._id, item.quantity + 1)}
+  >
+    +
+  </button>
+</div>
+              {item.invalid ? (
+      <span className="text-red-500 text-sm h-2">{item.errorMessage}</span>
+    ):(<span className="animate-pulse h-2"></span>)}
+    {pendingUpdates[item.productId._id] && !item.invalid ? (
+      <span className="animate-pulse h-2 text-sm">מעדכן...</span>
+    ):( <span className="animate-pulse h-2"></span>)}
+    {pendingChanges ? (
+      <span className="text-red-500 text-sm h-2">{pendingChanges}</span>
+    ):(<span className="animate-pulse h-2"></span>)}
             </div>
             <div className="flex flex-col h-full py-2 items-center justify-between">
               <p className="text-lg font-bold">₪{item.productId.price * item.quantity}</p>
-              <button onClick={() => handleDeleteItem(item.productId._id)} className="text-red-500">
+              <button onClick={async () => {
+      await handleDeleteItem(item.productId._id); // Ensure the cart is deleted first
+      fetchCartAgain();        // Trigger the cart fetch after deletion
+    }} className="text-red-500">
                 🗑️
               </button>
             </div>

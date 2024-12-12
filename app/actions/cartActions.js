@@ -91,12 +91,13 @@ export async function updateCartItem({ clientId, supplierId, productId, quantity
   
     try {
       const cart = await Cart.findOne({ clientId, supplierId })
-        .populate('items.productId')
+        .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
         .lean(); // Converts the result to plain objects
   
       if (cart) {
+        const serializedCart = JSON.stringify(cart)
         console.log('Cart found:', cart);
-        return { success: true, cart }; // Plain object returned
+        return { success: true, serializedCart }; // Plain object returned
       } else {
         console.log('Cart not found');
         return { success: false, message: 'Cart not found' };

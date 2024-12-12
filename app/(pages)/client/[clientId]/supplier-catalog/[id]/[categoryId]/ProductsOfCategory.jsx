@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useEffect, useState, useRef,useCallback } from 'react';
 import StarToggle from '../StarToggle';
 import { addToCart,getCart } from '@/app/actions/cartActions';
+import { useCartContext } from '@/app/context/CartContext';
 
 export default function ProductsOfCategory({ cart,favorites: initialFavorites, clientId, supplierId, categoryId, limit = 10 }) {
   const [products, setProducts] = useState([]); // Store all fetched products
@@ -218,6 +219,7 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
     product?.stock - (product?.reserved || 0)
   ); 
    const [isUpdating, setIsUpdating] = useState(false);
+   const { fetchCartAgain } = useCartContext();
 
 
   useEffect(() => {
@@ -268,6 +270,7 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
         setAvailableStock(response.updatedAvailableStock);
         setReserved(response.reserved);
         setError('');
+        fetchCartAgain()
         onClose();
       } else {
         setError(response.message);

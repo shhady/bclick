@@ -8,6 +8,7 @@ import {
   UserButton
 } from '@clerk/nextjs'
 import { UserProvider } from '@/app/context/UserContext';
+import { CartProvider } from '@/app/context/CartContext';
 
 import { Rubik } from 'next/font/google';
 import Head from "next/head";
@@ -82,6 +83,7 @@ export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
       <UserProvider>
+        <CartProvider>
     <html lang="en" dir="rtl" className="bg-[#f8f8ff]">
       <Head>
       <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
@@ -96,6 +98,7 @@ export default function RootLayout({ children }) {
         {children}
       </body>
     </html>
+    </CartProvider>
     </UserProvider>
   </ClerkProvider>
   );

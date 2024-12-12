@@ -1,19 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FaShoppingCart, FaUser, FaTags, FaList} from 'react-icons/fa';
 import { SlHandbag } from 'react-icons/sl';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useUserContext } from '@/app/context/UserContext';
+import { getCart } from '@/app/actions/cartActions';
+import { useCartContext } from '@/app/context/CartContext';
 
 const Navbar = () => {
   const { globalUser } = useUserContext();
   const pathName = usePathname();
   const router = useRouter();
   const [popupMessage, setPopupMessage] = useState('');
-
+  const { itemCount } = useCartContext();
   const getIconColor = (path) => {
     return pathName?.includes(path) ? 'text-customBlue' : 'text-gray-600';
   };
@@ -37,6 +39,8 @@ const Navbar = () => {
     const supplierId = pathParts[pathParts.length - 1];
     router.push(`/client/${clientId}/cart-from-supplier/${supplierId}`);
   };
+
+
   const renderClientNav = () => (
     <>
       {/* Catalog */}
@@ -56,19 +60,25 @@ const Navbar = () => {
       </button>
 
       {/* Cart */}
-      <button
-        // disabled={isProfileOrOrders}
+       <button
         onClick={() =>
           isProfileOrOrders
             ? handlePopup('בחר ספק כדי לצפות במוצרים בעגלה שלו')
             : navigateToSupplierCart()
         }
-        className={`flex flex-col items-center ${
+        className={`flex flex-col items-center relative ${
           isProfileOrOrders ? 'text-gray-400 cursor-not-allowed' : getIconColor('cart')
         }`}
       >
-        <SlHandbag size={20} className='md:hidden'/>
+        <SlHandbag size={20} className="md:hidden" />
         <span className="text-xs md:text-base mt-1">עגלה</span>
+
+        {/* Badge for item count */}
+        {itemCount > 0 && (
+          <span className="absolute top-0 left-4 md:left-7 bg-red-500 text-white rounded-full text-xs px-2">
+            {itemCount}
+          </span>
+        )}
       </button>
     </>
   );
