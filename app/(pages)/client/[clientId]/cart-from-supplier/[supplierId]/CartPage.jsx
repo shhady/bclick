@@ -16,7 +16,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const router = useRouter();
   const [pendingUpdates, setPendingUpdates] = useState({});
-  const { fetchCartAgain } = useCartContext();
+  const { fetchCartAgain, setItemCount } = useCartContext();
 
   // Calculate total price
   const calculateTotalPrice = () => {
@@ -203,7 +203,8 @@ const handleQuantityChange = (productId, newQuantity) => {
         ...prevCart,
         items: prevCart.items.filter((item) => item.productId._id !== productId),
       }));
-
+      
+     
       await fetch(`/api/cart?clientId=${clientId}&supplierId=${supplierId}&productId=${productId}`, {
         method: 'DELETE',
       });
@@ -213,6 +214,7 @@ const handleQuantityChange = (productId, newQuantity) => {
     }
   };
 
+console.log(cart);
   if (!cart) {
     return (
       <div className="h-screen flex flex-col items-center justify-center gap-4">
