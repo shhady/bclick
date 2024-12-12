@@ -4,6 +4,7 @@ import { connectToDB } from '@/utils/database';
 import Loader from '@/components/loader/Loader';
 import dynamic from 'next/dynamic';
 import { redirect } from 'next/navigation'; // Use redirect utility from Next.js
+import Link from 'next/link';
 
 const CartPage = dynamic(() => import('./CartPage'));
 
@@ -28,8 +29,16 @@ export default async function Page({ params }) {
       .lean();
 
     if (!cart) {
-      console.warn(`Cart not found for cli:${clientId} / sup:${supplierId}`);
-      redirect(`/client/${clientId}/supplier-catalog/${supplierId}`);
+      
+        return <div className="h-screen flex flex-col items-center justify-center gap-4">
+        <h2 className="text-2xl">העגלה שלך עם הספק הזה ריקה</h2>
+        <Link href={`/client/${clientId}/supplier-catalog/${supplierId}`} className="bg-customBlue px-4 py-4 rounded-md">
+          <button>חזור לקלוג</button>
+        </Link>
+      </div>
+      
+      // console.warn(`Cart not found for cli:${clientId} / sup:${supplierId}`);
+      // redirect(`/client/${clientId}/supplier-catalog/${supplierId}`);
     }
 
     console.log('Fetched cart:', cart);
