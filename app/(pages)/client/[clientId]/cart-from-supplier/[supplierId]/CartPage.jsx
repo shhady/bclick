@@ -217,12 +217,26 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
               </p>
 
               <div className="flex items-center gap-1 rounded-md border-2 w-[130px]">
-                <button
-                  className="w-full"
-                  onClick={() => handleQuantityChange(item.productId._id, Math.max(item.quantity - 1, 1))}
-                >
-                  -
-                </button>
+              <button
+  className="w-full"
+  onClick={() => {
+    if (item.quantity === 1) {
+      // Show the minimum quantity error
+      setCart((prevCart) => ({
+        ...prevCart,
+        items: prevCart.items.map((i) =>
+          i.productId._id === item.productId._id
+            ? { ...i, invalid: true, errorMessage: 'כמות מינימלית היא 1' }
+            : i
+        ),
+      }));
+      return;
+    }
+    handleQuantityChange(item.productId._id, Math.max(item.quantity - 1, 1));
+  }}
+>
+  -
+</button>
                 <input
                   type="number"
                   className={`border rounded px-2 w-16 ${item.invalid ? 'border-red-500' : ''}`}

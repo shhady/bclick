@@ -127,45 +127,56 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
     setSelectedProduct(product);
   };
 
-
+  useEffect(() => {
+    const checkAndRefetch = async () => {
+      if (Object.keys(groupedProducts).length === 0) {
+        console.log('No products found, refetching...');
+        await fetchMoreProducts(true);
+      }
+    };
+  
+    checkAndRefetch();
+  }, [groupedProducts]);
   return (
     <div>
       <div>
-      {Object.keys(groupedProducts).map((categoryName) => (
-        <div key={categoryName} className="mt-8">
-          {/* Category Title */}
-          <h2 className="text-2xl font-bold mb-4">{categoryName}</h2>
-          {/* Products Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {groupedProducts[categoryName].map((product, index) => (
-              <div
+      {Object.keys(groupedProducts).length > 0 ? (
+  Object.keys(groupedProducts).map((categoryName) => (
+    <div key={categoryName} className="mt-8">
+      <h2 className="text-2xl font-bold mb-4">{categoryName}</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+        {groupedProducts[categoryName].length > 0 ? (
+          groupedProducts[categoryName].map((product) => (
+            <div
+              key={product._id}
               onClick={() => showProductDetail(product)}
-
-                key={product._id}
-                // ref={
-                //   index === groupedProducts[categoryName].length - 1
-                //     ? observerRef
-                //     : null
-                // } // Set ref to the last product in the last group
-                className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center"
-              >
-                <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded">
-                  <Image
-                    src={product?.imageUrl?.secure_url || '/no-image.jpg'}
-                    alt={product.name}
-                    width={160}
-                    height={160}
-                    className="object-contain max-h-full"
-                  />
-                </div>
-                <h2 className="text-sm font-bold mt-2">{product.name}</h2>
-                <p className="text-gray-600 mt-1">משקל: {product?.weight}</p>
-                <p className="text-gray-600 mt-1">מחיר: ₪{product?.price}</p>
+              className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center"
+            >
+              <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded">
+                <Image
+                  src={product?.imageUrl?.secure_url || '/no-image.jpg'}
+                  alt={product.name}
+                  width={160}
+                  height={160}
+                  className="object-contain max-h-full"
+                />
               </div>
-            ))}
-          </div>
-        </div>
-      ))}
+              <h2 className="text-sm font-bold mt-2">{product.name}</h2>
+              <p className="text-gray-600 mt-1">משקל: {product?.weight}</p>
+              <p className="text-gray-600 mt-1">מחיר: ₪{product?.price}</p>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-600 mt-4">אין מוצרים בקטגוריה זו.</p>
+        )}
+      </div>
+    </div>
+  ))
+) : (
+  <div className="text-center mt-4">
+    <p className="text-gray-600">טוען מוצרים...</p>
+  </div>
+)}
       {loading && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
     {Array.from({ length: 4 }).map((_, index) => (
