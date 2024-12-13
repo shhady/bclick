@@ -101,15 +101,15 @@ export default function SubmitOrder({ cart, clientId, supplierId }) {
           <div className="bg-white p-6 rounded-md shadow-lg z-50">
             <p>האם אתה בטוח שברצונך ליצור את ההזמנה?</p>
             {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
-            <textarea
+            {errorMessage ? (<div onClick={() => {setShowConfirmation(false);setErrorMessage('')}}>חזור</div>):( <> <textarea
               name="message"
               className="border w-full mt-2 p-2 rounded"
               placeholder="הוסף הערה (אופציונלי)"
               value={note}
               onChange={(e) => setNote(e.target.value)} // Update the note state
             />
-            <div className="flex justify-end gap-2 mt-4">
-              <button
+           <div className="flex justify-end gap-2 mt-4">
+            <button
                 onClick={confirmOrder}
                 className="bg-green-500 text-white px-4 py-2 rounded"
                 disabled={loading}
@@ -122,7 +122,7 @@ export default function SubmitOrder({ cart, clientId, supplierId }) {
               >
                 לא
               </button>
-            </div>
+            </div></>)}  
           </div>
         </div>
       )}
