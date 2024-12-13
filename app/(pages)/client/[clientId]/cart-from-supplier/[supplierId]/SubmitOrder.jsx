@@ -20,15 +20,7 @@ export default function SubmitOrder({ cart, clientId, supplierId }) {
   const confirmOrder = async () => {
     setLoading(true);
     setErrorMessage('');
-     const items = cart.items.map((item) => ({
-      productId: item.productId._id,
-      quantity: item.quantity,
-      price: item.productId.price,
-      total: item.quantity * item.productId.price,
-      name: item.productId.name,
-      barCode: item.productId.barCode || 'N/A', // Include barcode if available
-    }));
-
+    
     try {
       // Validate stock
       const response = await fetch('/api/orders/validate-stock', {
