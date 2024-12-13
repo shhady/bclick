@@ -15,6 +15,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   const router = useRouter();
   const { fetchCartAgain } = useCartContext();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [updatingProducts, setUpdatingProducts] = useState({}); // Track updating state per product
 
   // Calculate total price
   const calculateTotalPrice = () => {
@@ -28,36 +29,42 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
     setCart(initialCart)
   },[initialCart])
   // Debounced database update
+
   const debouncedUpdate = useCallback(
-    debounce(async (changes) => {
+    debounce(async (productId, quantity) => {
       try {
-        setIsUpdating(true);
-
-        const updatePromises = Object.entries(changes).map(([productId, quantity]) =>
-          fetch('/api/cart', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ clientId, supplierId, productId, quantity }),
-          })
-        );
-        await Promise.all(updatePromises);
-        setLocalChanges({});
-        setIsUpdating(false);
-
+        setUpdatingProducts((prev) => ({
+          ...prev,
+          [productId]: true, // Set the product as updating
+        }));
+  
+        const response = await fetch('/api/cart', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId, supplierId, productId, quantity }),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to update product quantity');
+        }
       } catch (error) {
-        console.error('Error updating cart:', error);
-      } 
+        console.error(`Error updating product ${productId}:`, error);
+      } finally {
+        setUpdatingProducts((prev) => ({
+          ...prev,
+          [productId]: false, // Reset updating state for the product
+        }));
+      }
     }, 500),
     []
   );
-
-  // Handle quantity changes
+  
   const handleQuantityChange = (productId, newQuantity) => {
     const existingItem = cart.items.find((item) => item.productId._id === productId);
     if (!existingItem) return;
-
+  
     const maxAvailable = existingItem.productId.stock - (existingItem.productId.reserved || 0);
-
+  
     if (newQuantity > maxAvailable) {
       setCart((prevCart) => ({
         ...prevCart,
@@ -69,7 +76,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
       }));
       return;
     }
-
+  
     if (newQuantity < 1) {
       setCart((prevCart) => ({
         ...prevCart,
@@ -81,7 +88,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
       }));
       return;
     }
-
+  
     setCart((prevCart) => ({
       ...prevCart,
       items: prevCart.items.map((item) =>
@@ -90,14 +97,10 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
           : item
       ),
     }));
-
-    setLocalChanges((prev) => ({
-      ...prev,
-      [productId]: newQuantity,
-    }));
-    
-    debouncedUpdate(localChanges);
+  
+    debouncedUpdate(productId, newQuantity);
   };
+  
 
   // Save changes before leaving the page
   const saveChangesBeforeLeave = async () => {
@@ -273,10 +276,17 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
               </div>
 
               {item.invalid ? (
-                <span className="text-red-500 text-sm h-2">{item.errorMessage}</span>
-              ) : (
-                <span className="animate-pulse h-2"></span>
-              )}
+  <span className="text-red-500 text-sm h-2">{item.errorMessage}</span>
+) : (
+  <div className="animate-pulse h-2">
+    {updatingProducts[item.productId._id] && (
+     <><div className='fixed h-screen top-0 left-0 bg-black bg-opacity-5 w-full z-50'>
+        
+      </div>
+      <span className="text-sm text-blue-500 animate-pulse">מעדכן...</span></> 
+    )}
+  </div>
+)}
             </div>
             <div className="flex flex-col h-full py-2 items-center justify-between">
               <p className="text-lg font-bold">₪{item.productId.price * item.quantity}</p>
