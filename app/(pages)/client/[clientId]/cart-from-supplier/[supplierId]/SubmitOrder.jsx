@@ -96,7 +96,7 @@ export default function SubmitOrder({ cart, clientId, supplierId }) {
       {showConfirmation && (
         <div
           className="fixed top-0 left-0 w-full h-screen flex justify-center items-center bg-black bg-opacity-40"
-          onClick={(e) => e.stopPropagation()} // Prevent background click from closing
+          onClick={(e) => {e.stopPropagation()}} // Prevent background click from closing
         >
           <div className="bg-white p-6 rounded-md shadow-lg z-50">
             <p>האם אתה בטוח שברצונך ליצור את ההזמנה?</p>
@@ -117,7 +117,7 @@ export default function SubmitOrder({ cart, clientId, supplierId }) {
                 {loading ? 'מעבד...' : 'כן'}
               </button>
               <button
-                onClick={() => setShowConfirmation(false)}
+                onClick={() => {setShowConfirmation(false);setErrorMessage('')}}
                 className="bg-gray-300 px-4 py-2 rounded"
               >
                 לא
