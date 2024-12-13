@@ -82,8 +82,8 @@ function serializeSupplier(supplier) {
     })) || [],
     orders: supplier.orders?.map((orderId) => orderId.toString()) || [],
     products: supplier.products?.map((productId) => productId.toString()) || [],
-    createdAt: supplier.createdAt ? supplier.createdAt.toISOString() : null,
-    updatedAt: supplier.updatedAt ? supplier.updatedAt.toISOString() : null,
+    createdAt: supplier.createdAt?.toISOString() || null,
+    updatedAt: supplier.updatedAt?.toISOString() || null,
   };
 }
 
@@ -99,29 +99,29 @@ function serializeProduct(product) {
   return {
     ...product,
     _id: product._id.toString(),
-    categoryId: product.categoryId.toString(),
-    supplierId: product.supplierId.toString(),
-    stock: product.stock, // Ensure this field is included
-
+    categoryId: product.categoryId?.toString() || null,
+    supplierId: product.supplierId?.toString() || null,
+    stock: product.stock, // Ensure stock field is included
   };
 }
 
-
 function serializeCart(cart) {
+  if (!cart || !cart.items) return null;
+
   return {
     ...cart,
-    _id: cart._id.toString(),
-    supplierId: cart.supplierId.toString(),
-    clientId: cart.clientId.toString(),
+    _id: cart._id?.toString() || null,
+    supplierId: cart.supplierId?.toString() || null,
+    clientId: cart.clientId?.toString() || null,
     items: cart.items.map((item) => ({
       ...item,
-      _id: item._id.toString(),
+      _id: item._id?.toString() || null,
       productId: {
         ...item.productId,
-        _id: item.productId._id.toString(),
+        _id: item.productId?._id?.toString() || null,
       },
     })),
-    createdAt: cart.createdAt.toISOString(),
-    updatedAt: cart.updatedAt.toISOString(),
+    createdAt: cart.createdAt?.toISOString() || null,
+    updatedAt: cart.updatedAt?.toISOString() || null,
   };
 }

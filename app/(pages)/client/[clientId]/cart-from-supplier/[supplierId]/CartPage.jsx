@@ -168,7 +168,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   }
 
   return (
-    <div className="mb-20">
+    <div className="mb-32 md:mb-20">
      {isUpdating &&  
      <div className='fixed h-screen top-0 left-0 bg-black bg-opacity-5 w-full z-50'>
         
@@ -279,13 +279,15 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
           </div>
         ))}
       </div>
-
-      <button
+        <div className='fixed w-full px-4 pb-4 md:px-8 md:pb-4 bottom-16 md:bottom-0 left-0 bg-[#f8f8ff]'>
+        <button
         onClick={handleSubmitOrder}
-        className="bg-customBlue text-white mt-4 w-full py-2 rounded"
+        className="bg-customBlue text-white mt-1 w-full py-2 rounded"
       >
         אישור הזמנה
       </button>
+        </div>
+      
     </div>
   );
 }
