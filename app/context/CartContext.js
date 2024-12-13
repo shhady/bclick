@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { getCart } from '@/app/actions/cartActions';
+import { getCart, deleteCart } from '@/app/actions/cartActions';
 import { usePathname } from 'next/navigation';
 
 const CartContext = createContext();
@@ -18,15 +18,14 @@ export const CartProvider = ({ children }) => {
       const clientId = pathParts[2];
       const supplierId = pathParts[pathParts.length - 1];
 
-      if(isProfileOrOrders) setItemCount(null);
+      if (isProfileOrOrders) setItemCount(null);
       if (clientId && supplierId) {
         const response = await getCart({ clientId, supplierId });
-        console.log(response); // Log the response for debugging
-  
         if (response.success && response.serializedCart) {
           try {
-            const cart = JSON.parse(response.serializedCart); // Parse the serializedCart
-            const itemCount = cart?.items?.length || 0; // Safeguard in case items is undefined
+            const cart = JSON.parse(response.serializedCart);
+            const itemCount = cart?.items?.length || 0;
+            setCart(cart);
             setItemCount(itemCount);
           } catch (error) {
             console.error('Error parsing serializedCart:', error);
@@ -40,20 +39,20 @@ export const CartProvider = ({ children }) => {
 
     fetchCart();
   }, [pathName]);
+
   const fetchCartAgain = async () => {
     const pathParts = pathName.split('/');
     const clientId = pathParts[2];
     const supplierId = pathParts[pathParts.length - 1];
 
-    if(isProfileOrOrders) setItemCount(null);
+    if (isProfileOrOrders) setItemCount(null);
     if (clientId && supplierId) {
       const response = await getCart({ clientId, supplierId });
-      console.log(response); // Log the response for debugging
-
       if (response.success && response.serializedCart) {
         try {
-          const cart = JSON.parse(response.serializedCart); // Parse the serializedCart
-          const itemCount = cart?.items?.length || 0; // Safeguard in case items is undefined
+          const cart = JSON.parse(response.serializedCart);
+          const itemCount = cart?.items?.length || 0;
+          setCart(cart);
           setItemCount(itemCount);
         } catch (error) {
           console.error('Error parsing serializedCart:', error);
@@ -65,14 +64,24 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  console.log(itemCount);
+  const clearCart = async (clientId, supplierId) => {
+    console.log(clientId, supplierId);
+    try {
+      await deleteCart({ clientId, supplierId });
+      setCart(null);
+      setItemCount(0);
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+    }
+  };
+
   const addItemToCart = (newCart) => {
     setCart(newCart);
     setItemCount(newCart?.items?.reduce((total, item) => total + item.quantity, 0) || 0);
   };
 
   return (
-    <CartContext.Provider value={{ cart, itemCount,setItemCount, addItemToCart, fetchCartAgain }}>
+    <CartContext.Provider value={{ cart, itemCount, setItemCount, addItemToCart, fetchCartAgain, clearCart }}>
       {children}
     </CartContext.Provider>
   );

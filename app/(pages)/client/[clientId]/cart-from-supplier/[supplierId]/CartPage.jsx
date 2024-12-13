@@ -7,6 +7,7 @@ import { deleteCart } from '@/app/actions/cartActions';
 import Link from 'next/link';
 import debounce from 'lodash.debounce';
 import { useCartContext } from '@/app/context/CartContext';
+import SubmitOrder from './SubmitOrder';
 
 export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   const [cart, setCart] = useState({});
@@ -304,12 +305,15 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
         ))}
       </div>
         <div className='fixed w-full px-4 pb-4 md:px-8 md:pb-4 bottom-16 md:bottom-0 left-0 bg-[#f8f8ff]'>
-        <button
+
+        <SubmitOrder cart={cart}/>
+
+        {/* <button
         onClick={handleSubmitOrder}
         className="bg-customBlue text-white mt-1 w-full py-2 rounded"
       >
         אישור הזמנה
-      </button>
+      </button> */}
         </div>
       
     </div>
