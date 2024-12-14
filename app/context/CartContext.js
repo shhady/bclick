@@ -38,7 +38,7 @@ export const CartProvider = ({ children }) => {
     };
 
     fetchCart();
-  }, [pathName]);
+  }, [pathName,isProfileOrOrders]);
 
   const fetchCartAgain = async () => {
     const pathParts = pathName.split('/');

@@ -12,7 +12,7 @@ export default function OrderDetailsPage({ order, onClose }) {
 
         </div>
     <div className='flex justify-between items-center mt-4'>
-    <h1 className="text-xl font-bold mt-4">מס' הזמנה: {order.orderNumber}</h1>
+    <h1 className="text-xl font-bold mt-4">מס&apos; הזמנה: {order.orderNumber}</h1>
       <p>תאריך: {new Date(order.date).toLocaleDateString('he-IL')}</p>
 
     </div>
