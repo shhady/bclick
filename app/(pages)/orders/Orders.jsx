@@ -7,9 +7,9 @@ export default function OrdersPage({ orders }) {
   const [activeTab, setActiveTab] = useState('pending'); // State to track the active tab
 
   // Group orders by status
-  const pendingOrders = orders.filter((order) => order?.status === 'pending');
-  const approvedOrders = orders.filter((order) => order?.status === 'approved');
-  const rejectedOrders = orders.filter((order) => order?.status === 'rejected');
+  const pendingOrders = orders?.filter((order) => order?.status === 'pending');
+  const approvedOrders = orders?.filter((order) => order?.status === 'approved');
+  const rejectedOrders = orders?.filter((order) => order?.status === 'rejected');
 
   // Show order details
   const showOrderDetails = (order) => {
@@ -92,12 +92,12 @@ function OrderTable({ orders, onShowDetails }) {
         </tr>
       </thead>
       <tbody>
-        {orders.map((order) => (
+        {orders?.map((order) => (
           <tr key={order?._id}>
             <td className="border border-gray-300 px-4 py-2">{order?.orderNumber}</td>
             <td className="border border-gray-300 px-4 py-2">{order?.items.length}</td>
             <td className="border border-gray-300 px-4 py-2">
-              {new Date(order.date).toLocaleDateString('he-IL')}
+              {new Date(order?.date).toLocaleDateString('he-IL')}
             </td>
             <td className="border border-gray-300 px-4 py-2 text-center">
               <button

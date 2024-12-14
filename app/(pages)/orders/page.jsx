@@ -66,7 +66,7 @@ export default async function Page() {
   return (
     <div>
       <Suspense fallback={<Loader />}>
-        <Orders user={serializedUser} orders={serializedUser.orders}/>
+        <Orders user={serializedUser} orders={serializedUser?.orders}/>
       </Suspense>
     </div>
   );
