@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
+const Schema = mongoose.Schema;
 
-const OrderItemSchema = new mongoose.Schema({
+const OrderItemSchema = new Schema({
   productId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
@@ -21,7 +22,7 @@ const OrderItemSchema = new mongoose.Schema({
   },
 });
 
-const OrderSchema = new mongoose.Schema(
+const OrderSchema = new Schema(
   {
     clientId: {
       type: mongoose.Schema.Types.ObjectId,

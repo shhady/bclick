@@ -6,6 +6,7 @@ export default function OrdersPage({ orders }) {
   const [selectedOrder, setSelectedOrder] = useState(null); // State to track selected order
   const [activeTab, setActiveTab] = useState('pending'); // State to track the active tab
 
+  console.log(orders);
   // Group orders by status
   const pendingOrders = orders?.filter((order) => order?.status === 'pending');
   const approvedOrders = orders?.filter((order) => order?.status === 'approved');
