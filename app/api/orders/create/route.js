@@ -148,7 +148,7 @@ export async function POST(req) {
         </div>
       `,
     };
-
+    
     // Send email
     await transporter.sendMail(mailOptions);
 

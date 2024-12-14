@@ -23,7 +23,7 @@ export default function OrderDetailsPage({ order, onClose }) {
             <th className="border border-gray-300 px-4 py-2">פריט</th>
             <th className="border border-gray-300 px-4 py-2">כמות</th>
             <th className="border border-gray-300 px-4 py-2">מחיר ליחידה</th>
-            <th className="border border-gray-300 px-4 py-2">סה"כ</th>
+            <th className="border border-gray-300 px-4 py-2">סה&quot;כ</th>
           </tr>
         </thead>
         <tbody>
@@ -39,9 +39,9 @@ export default function OrderDetailsPage({ order, onClose }) {
       </table>
 
       <div className="mt-4">
-        <p>סה"כ לפני מע"מ: ₪{totalPriceBeforeTax.toFixed(2)}</p>
-        <p>מע"מ (17%): ₪{taxAmount.toFixed(2)}</p>
-        <p className="font-bold">סה"כ להזמנה: ₪{order.total.toFixed(2)}</p>
+        <p>סה&quot;כ לפני מע&quot;מ: ₪{totalPriceBeforeTax.toFixed(2)}</p>
+        <p>מע&quot;מ (17%): ₪{taxAmount.toFixed(2)}</p>
+        <p className="font-bold">סה&quot;כ להזמנה: ₪{order.total.toFixed(2)}</p>
       </div>
 
       {order.notes && (
