@@ -12,7 +12,7 @@ export default async function Page() {
   await connectToDB();
 
   const user = await currentUser();
-  const userId = user.id;
+  const userId = user?.id;
     console.log(user);
   let userFetched = null;
   try {
