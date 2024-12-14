@@ -23,7 +23,12 @@ export async function POST(req) {
         );
       }
     }
+    const lastOrder = await Order.findOne()
+            .sort({ clientNumber: -1 }) // Sort by clientNumber descending
+            .collation({ locale: "en", numericOrdering: true }) // Ensure numeric sorting
+            .lean();
 
+        const nextOrderNumber = lastOrder?.clientNumber ? parseInt(lastOrder.clientNumber) + 1 : 1;
     // Create the order
     const newOrder = await Order.create({
       clientId,
@@ -32,6 +37,7 @@ export async function POST(req) {
       total,
       tax,
       note, // Optional note
+      orderNumber: nextOrderNumber
     });
 
     // After successfully creating the order, update reserved stock

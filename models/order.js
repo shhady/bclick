@@ -54,6 +54,10 @@ const OrderSchema = new mongoose.Schema(
       required: true,
       default: 0.17, // Fixed 17% tax rate
     },
+    orderNumber:{
+        type: Number,
+        required: true}
+        ,
     status: {
       type: String,
       enum: ['pending', 'approved', 'rejected'],

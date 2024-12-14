@@ -84,7 +84,7 @@ const Navbar = () => {
   );
 
   const renderLinks = () => {
-    if (!globalUser) return <div className='md:hidden'><Image src={'/bclick-logo.jpg'} alt='logo' width={4000} height={100} className='h-[40px] w-fit'/></div>;
+    if (!globalUser) return <div className='md:hidden'><Image src={'/bclick-logo.jpg'} alt='logo' width={1000} height={100} className='h-[40px] w-fit'/></div>;
 
     if (globalUser.role === 'client') {
       return (
