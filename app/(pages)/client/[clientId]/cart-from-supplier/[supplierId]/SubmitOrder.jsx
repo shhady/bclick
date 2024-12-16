@@ -17,6 +17,7 @@ export default function SubmitOrder({ cart, clientId, supplierId }) {
     setShowConfirmation(true);
   };
 
+  console.log(note);
   const confirmOrder = async () => {
     setLoading(true);
     setErrorMessage('');
@@ -55,14 +56,15 @@ export default function SubmitOrder({ cart, clientId, supplierId }) {
             price: item.productId.price,
             total: item.quantity * item.productId.price,
             name: item.productId.name,
-            barCode: item.productId.barCode
+            barCode: item.productId.barCode,
+            notes:note
           })),
           total: cart.items.reduce(
             (sum, item) => sum + item.quantity * item.productId.price,
             0
           ),
           tax: 0.17,
-          note, // Include the optional note in the order payload
+          notes:note, // Include the optional note in the order payload
         }),
       });
 

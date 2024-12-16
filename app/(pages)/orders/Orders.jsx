@@ -42,7 +42,7 @@ export default function OrdersPage({ orders }) {
         <>
           <h1 className="text-xl font-bold text-center">הזמנות שלי</h1>
 
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center mt-4 gap-2">
             <button
               className={`px-4 py-2 ${
                 activeTab === 'pending' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
@@ -52,7 +52,7 @@ export default function OrdersPage({ orders }) {
               הזמנות נוכחיות
             </button>
             <button
-              className={`px-4 py-2 ml-2 ${
+              className={`px-4 py-2  ${
                 activeTab === 'approved' ? 'bg-green-500 text-white' : 'bg-gray-300 text-black'
               } rounded`}
               onClick={() => setActiveTab('approved')}
@@ -60,7 +60,7 @@ export default function OrdersPage({ orders }) {
               היסטוריית הזמנות
             </button>
             <button
-              className={`px-4 py-2 ml-2 ${
+              className={`px-4 py-2  ${
                 activeTab === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-300 text-black'
               } rounded`}
               onClick={() => setActiveTab('rejected')}

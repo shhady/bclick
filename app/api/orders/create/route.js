@@ -8,9 +8,9 @@ export async function POST(req) {
   try {
     await connectToDB();
 
-    const { clientId, supplierId, items, total, tax, note } = await req.json();
+    const { clientId, supplierId, items, total, tax, notes } = await req.json();
 
-    console.log(items);
+    console.log(notes);
     // Check stock availability for each product
     for (const item of items) {
       const product = await Product.findById(item.productId);
@@ -24,11 +24,11 @@ export async function POST(req) {
       }
     }
     const lastOrder = await Order.findOne()
-            .sort({ clientNumber: -1 }) // Sort by clientNumber descending
+            .sort({ orderNumber: -1 }) // Sort by clientNumber descending
             .collation({ locale: "en", numericOrdering: true }) // Ensure numeric sorting
             .lean();
 
-        const nextOrderNumber = lastOrder?.clientNumber ? parseInt(lastOrder.clientNumber) + 1 : 1;
+        const nextOrderNumber = lastOrder?.orderNumber ? parseInt(lastOrder.orderNumber) + 1 : 1;
     // Create the order
     const newOrder = await Order.create({
       clientId,
@@ -36,7 +36,7 @@ export async function POST(req) {
       items,
       total,
       tax,
-      note, // Optional note
+      notes, // Optional note
       orderNumber: nextOrderNumber
     });
 
@@ -143,7 +143,7 @@ export async function POST(req) {
         <h1>הזמנה חדשה התקבלה: בסה&quot;כ כולל מע&quot;מ ₪${total.toFixed(2)}</h1>
         ${clientDetails}
       
-        <p>הערות: ${note || 'אין הערות נוספות.'}</p>
+        <p>הערות: ${notes || 'אין הערות נוספות.'}</p>
         ${productTable}
         </div>
       `,
