@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-
+import './user'
+import './product'
 const FavouriteSchema = new mongoose.Schema(
   {
     clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-
+import './category'
+import './user'
 const ProductSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },

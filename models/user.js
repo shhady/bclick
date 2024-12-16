@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import './order';
+import './product'
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema(

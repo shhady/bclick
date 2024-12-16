@@ -2,8 +2,8 @@
 import React from 'react';
 
 export default function OrderDetailsPage({ order, onClose }) {
-  const totalPriceBeforeTax = order.total / (1 + order.tax);
-  const taxAmount = order.total - totalPriceBeforeTax;
+  const totalPriceBeforeTax = order?.total / (1 + order?.tax);
+  const taxAmount = order?.total - totalPriceBeforeTax;
 
   return (
     <div className="p-4">
@@ -12,7 +12,7 @@ export default function OrderDetailsPage({ order, onClose }) {
 
         </div>
     <div className='flex justify-between items-center mt-4'>
-    <h1 className="text-xl font-bold mt-4">מס&apos; הזמנה: {order.orderNumber}</h1>
+    <h1 className="text-xl font-bold mt-4">מס&apos; הזמנה: {order?.orderNumber}</h1>
       <p>תאריך: {new Date(order.date).toLocaleDateString('he-IL')}</p>
 
     </div>
@@ -27,12 +27,12 @@ export default function OrderDetailsPage({ order, onClose }) {
           </tr>
         </thead>
         <tbody>
-          {order.items.map((item) => (
-            <tr key={item.productId._id}>
-              <td className="border border-gray-300 px-4 py-2">{item.productId.name}</td>
-              <td className="border border-gray-300 px-4 py-2">{item.quantity}</td>
-              <td className="border border-gray-300 px-4 py-2">₪{item.productId.price.toFixed(2)}</td>
-              <td className="border border-gray-300 px-4 py-2">₪{(item.quantity * item.productId.price).toFixed(2)}</td>
+          {order?.items.map((item) => (
+            <tr key={item?.productId._id}>
+              <td className="border border-gray-300 px-4 py-2">{item?.productId?.name}</td>
+              <td className="border border-gray-300 px-4 py-2">{item?.quantity}</td>
+              <td className="border border-gray-300 px-4 py-2">₪{item?.productId?.price.toFixed(2)}</td>
+              <td className="border border-gray-300 px-4 py-2">₪{(item?.quantity * item?.productId?.price).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>

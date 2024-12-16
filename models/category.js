@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import './user'
 
 const CategorySchema = new mongoose.Schema({
   name: { type: String, required: true },
