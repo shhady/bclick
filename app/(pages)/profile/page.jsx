@@ -24,9 +24,9 @@ export default async function Page() {
         userFetched= {
             clerkId: userId,
             role:'client',
-            name: user.firstName+ ' ' + user.lastName,
-            profileImage: user.imageUrl,
-            email:user.emailAddresses[0].emailAddress,
+            name: user?.firstName+ ' ' + user?.lastName,
+            profileImage: user?.imageUrl,
+            email:user?.emailAddresses[0].emailAddress,
         }
         console.log('Fetched user from clerk:', userFetched);
     }
