@@ -1,28 +1,52 @@
 'use client';
 import React, { useState } from 'react';
-import OrderDetailsPage from './OrderDetailsPage'; // Import the OrderDetails component
+import OrderDetailsPage from './OrderDetailsPage';
+import { useToast } from '@/hooks/use-toast';
 
-export default function OrdersPage({ orders }) {
-  const [selectedOrder, setSelectedOrder] = useState(null); // State to track selected order
-  const [activeTab, setActiveTab] = useState('pending'); // State to track the active tab
+export default function OrdersPage({ orders, onUpdateOrder }) {
+  const [selectedOrder, setSelectedOrder] = useState(null); // Track selected order
+  const [activeTab, setActiveTab] = useState('pending'); // Track active tab
+  const [orderList, setOrderList] = useState(orders); // Track the current orders list
+  const { toast } = useToast();
 
-  console.log(orders);
-  // Group orders by status
-  const pendingOrders = orders?.filter((order) => order?.status === 'pending');
-  const approvedOrders = orders?.filter((order) => order?.status === 'approved');
-  const rejectedOrders = orders?.filter((order) => order?.status === 'rejected');
+  const pendingOrders = orderList?.filter((order) => order?.status === 'pending');
+  const approvedOrders = orderList?.filter((order) => order?.status === 'approved');
+  const rejectedOrders = orderList?.filter((order) => order?.status === 'rejected');
 
-  // Show order details
   const showOrderDetails = (order) => {
-    setSelectedOrder(order); // Set the selected order
+    setSelectedOrder(order); // Open order details
   };
 
-  // Hide order details
   const hideOrderDetails = () => {
-    setSelectedOrder(null); // Clear the selected order
+    setSelectedOrder(null); // Close order details
   };
 
-  // Get orders based on the active tab
+  const handleDeleteOrder = async (orderId) => {
+    try {
+      const response = await fetch('/api/orders/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: selectedOrder._id, supplierId: selectedOrder.supplierId, clientId:selectedOrder.clientId }),
+      });
+
+      if (response.ok) {
+        setOrderList((prev) => prev.filter((order) => order._id !== orderId)); // Remove the deleted order from state
+        toast({
+          title: 'Deleted',
+          description: 'ההזמנה נמחקה בהצלחה!',
+          variant: 'destructive',
+        });
+        hideOrderDetails(); 
+           } else {
+        const data = await response.json();
+        alert(data.message || 'שגיאה במחיקת ההזמנה. אנא נסה שוב.');
+      }
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      alert('שגיאה במחיקת ההזמנה. אנא נסה שוב.');
+    }
+  };
+
   const getOrdersByTab = () => {
     switch (activeTab) {
       case 'pending':
@@ -37,50 +61,46 @@ export default function OrdersPage({ orders }) {
   };
 
   return (
-    <div className="p-4  mb-16">
+    <div className="p-4 mb-16">
       {!selectedOrder ? (
         <>
           <h1 className="text-xl font-bold text-center">הזמנות שלי</h1>
 
+          {/* Tabs */}
           <div className="flex justify-center mt-4 gap-2">
-            <button
-              className={`px-4 py-2 ${
-                activeTab === 'pending' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
-              } rounded`}
-              onClick={() => setActiveTab('pending')}
-            >
-              הזמנות נוכחיות
-            </button>
-            <button
-              className={`px-4 py-2  ${
-                activeTab === 'approved' ? 'bg-green-500 text-white' : 'bg-gray-300 text-black'
-              } rounded`}
-              onClick={() => setActiveTab('approved')}
-            >
-              היסטוריית הזמנות
-            </button>
-            <button
-              className={`px-4 py-2  ${
-                activeTab === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-300 text-black'
-              } rounded`}
-              onClick={() => setActiveTab('rejected')}
-            >
-              הזמנות נדחו
-            </button>
+            {['pending', 'approved', 'rejected'].map((tab) => (
+              <button
+                key={tab}
+                className={`px-4 py-2 ${
+                  activeTab === tab
+                    ? `bg-${tab === 'pending' ? 'blue' : tab === 'approved' ? 'green' : 'red'}-500 text-white`
+                    : 'bg-gray-300 text-black'
+                } rounded`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab === 'pending' ? 'הזמנות נוכחיות' : tab === 'approved' ? 'היסטוריית הזמנות' : 'הזמנות נדחו'}
+              </button>
+            ))}
           </div>
 
+          {/* Orders Table */}
           <div className="mt-4">
             <OrderTable orders={getOrdersByTab()} onShowDetails={showOrderDetails} />
           </div>
         </>
       ) : (
-        <OrderDetailsPage order={selectedOrder} onClose={hideOrderDetails} />
+        <OrderDetailsPage
+          order={selectedOrder}
+          onClose={hideOrderDetails}
+          onUpdateOrder={onUpdateOrder}
+          onDeleteOrder={handleDeleteOrder} // Pass delete handler to OrderDetailsPage
+        />
       )}
     </div>
   );
 }
 
-// Table component for orders
+// Table Component
 function OrderTable({ orders, onShowDetails }) {
   return (
     <table className="table-auto w-full border-collapse border border-gray-300 mt-2">
@@ -103,7 +123,7 @@ function OrderTable({ orders, onShowDetails }) {
             <td className="border border-gray-300 px-4 py-2 text-center">
               <button
                 onClick={() => onShowDetails(order)}
-                className="px-4 py-2 text-gray-600 w-full h-full rounded"
+                className="px-4 py-2 bg-blue-500 text-white rounded"
               >
                 הצג
               </button>

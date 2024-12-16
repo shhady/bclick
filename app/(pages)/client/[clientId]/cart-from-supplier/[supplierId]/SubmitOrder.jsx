@@ -57,14 +57,14 @@ export default function SubmitOrder({ cart, clientId, supplierId }) {
             total: item.quantity * item.productId.price,
             name: item.productId.name,
             barCode: item.productId.barCode,
-            notes:note
+            note:note
           })),
           total: cart.items.reduce(
             (sum, item) => sum + item.quantity * item.productId.price,
             0
           ),
           tax: 0.17,
-          notes:note, // Include the optional note in the order payload
+          note:note, // Include the optional note in the order payload
         }),
       });
 

@@ -66,11 +66,17 @@ const OrderSchema = new Schema(
       enum: ['pending', 'approved', 'rejected'],
       default: 'pending',
     },
-    notes: {
-      type: String,
-      maxlength: 500, // Optional field for notes (e.g., special instructions)
+    notes: [
+        {
+          message: { type: String, required: true },
+          date: { type: Date, default: Date.now },
+        },
+      ],
+      performanceTracking: {
+        approvedDate: Date,
+        rejectedDate: Date,
+      },
     },
-  },
   {
     timestamps: true, // Automatically manage createdAt and updatedAt fields
   }

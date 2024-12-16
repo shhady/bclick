@@ -8,9 +8,9 @@ export async function POST(req) {
   try {
     await connectToDB();
 
-    const { clientId, supplierId, items, total, tax, notes } = await req.json();
+    const { clientId, supplierId, items, total, tax, note } = await req.json();
 
-    console.log(notes);
+    const notesArray = note ? [{ message: note, date: new Date() }] : [];    console.log(note);
     // Check stock availability for each product
     for (const item of items) {
       const product = await Product.findById(item.productId);
@@ -36,7 +36,7 @@ export async function POST(req) {
       items,
       total,
       tax,
-      notes, // Optional note
+      notes: notesArray, // Handle notes as an array
       orderNumber: nextOrderNumber
     });
 
@@ -143,7 +143,7 @@ export async function POST(req) {
         <h1>הזמנה חדשה התקבלה: בסה&quot;כ כולל מע&quot;מ ₪${total.toFixed(2)}</h1>
         ${clientDetails}
       
-        <p>הערות: ${notes || 'אין הערות נוספות.'}</p>
+        <p>הערות: ${note || 'אין הערות נוספות.'}</p>
         ${productTable}
         </div>
       `,
