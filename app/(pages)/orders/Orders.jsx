@@ -59,7 +59,33 @@ export default function OrdersPage({ orders, onUpdateOrder }) {
         return [];
     }
   };
-
+  const handleUpdateOrderStatus = async (orderId, status, note) => {
+    try {
+      const response = await fetch('/api/orders/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status, note,userId: selectedOrder.supplierId._id }),
+      });
+      // { orderId: order._id, status: 'rejected', note, userId: globalUser._id }
+      if (response.ok) {
+        const { order } = await response.json();
+        setOrderList((prev) =>
+          prev.map((o) => (o._id === order._id ? { ...o, status: order.status, notes: order.notes } : o))
+        );
+        toast({
+          title: 'Success',
+          description: `הזמנה ${status === 'approved' ? 'אושרה' : 'נדחתה'} בהצלחה!`,
+        });
+      } else {
+        const data = await response.json();
+        alert(data.message || 'שגיאה בעדכון ההזמנה.');
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+      alert('שגיאה בעדכון ההזמנה.');
+    }
+  };
+  
   return (
     <div className="p-4 mb-16">
       {!selectedOrder ? (
@@ -90,11 +116,12 @@ export default function OrdersPage({ orders, onUpdateOrder }) {
         </>
       ) : (
         <OrderDetailsPage
-          order={selectedOrder}
-          onClose={hideOrderDetails}
-          onUpdateOrder={onUpdateOrder}
-          onDeleteOrder={handleDeleteOrder} // Pass delete handler to OrderDetailsPage
-        />
+  order={selectedOrder}
+  onClose={hideOrderDetails}
+  onUpdateOrderStatus={handleUpdateOrderStatus}
+  onDeleteOrder={handleDeleteOrder}
+/>
+
       )}
     </div>
   );

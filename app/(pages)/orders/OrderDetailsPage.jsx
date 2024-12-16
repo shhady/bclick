@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useUserContext } from '@/app/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
 
-export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDeleteOrder }) {
+export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDeleteOrder, onUpdateOrderStatus }) {
   const { globalUser } = useUserContext();
   const { toast } = useToast();
   const [note, setNote] = useState('');
@@ -14,53 +14,30 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDele
   const handleAccept = async () => {
     setErrorMessage('');
     try {
-      const response = await fetch('/api/orders/update', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order._id, status: 'approved', userId: globalUser._id }),
+      await onUpdateOrderStatus(order._id, 'approved', null); // Update status
+      toast({
+        title: 'Success',
+        description: 'ההזמנה אושרה בהצלחה!',
       });
-  
-      if (response.ok) {
-        const data = await response.json();
-        toast({
-          title: 'Success',
-          description: 'ההזמנה אושרה בהצלחה!',
-        });
-        onClose(); // Close the details page and go back to the table
-      } else {
-        const data = await response.json();
-        setErrorMessage(data.message || 'שגיאה באישור ההזמנה. אנא נסה שוב.');
-      }
+      onClose(); // Close the details page and go back to the table
     } catch (error) {
       setErrorMessage('שגיאה באישור ההזמנה. אנא נסה שוב.');
     }
   };
-  
+
   const handleReject = async () => {
     if (!note) {
       setErrorMessage('יש להוסיף הערה לדחייה.');
       return;
     }
-  
     setErrorMessage('');
     try {
-      const response = await fetch('/api/orders/update', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order._id, status: 'rejected', note, userId: globalUser._id }),
+      await onUpdateOrderStatus(order._id, 'rejected', note); // Update status
+      toast({
+        title: 'Success',
+        description: 'ההזמנה נדחתה בהצלחה!',
       });
-  
-      if (response.ok) {
-        const data = await response.json();
-        toast({
-          title: 'Success',
-          description: 'ההזמנה נדחתה בהצלחה!',
-        });
-        onClose(); // Close the details page and go back to the table
-      } else {
-        const data = await response.json();
-        setErrorMessage(data.message || 'שגיאה בדחיית ההזמנה. אנא נסה שוב.');
-      }
+      onClose(); // Close the details page and go back to the table
     } catch (error) {
       setErrorMessage('שגיאה בדחיית ההזמנה. אנא נסה שוב.');
     }

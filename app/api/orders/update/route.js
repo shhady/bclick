@@ -6,7 +6,7 @@ export async function PUT(req) {
   try {
     const { orderId, status, note, userId } = await req.json();
     await connectToDB();
-
+    console.log(userId);
     // Fetch the order
     const order = await Order.findById(orderId).populate('items.productId');
     if (!order) {
