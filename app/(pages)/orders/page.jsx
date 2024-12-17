@@ -13,8 +13,7 @@ export default async function Page() {
   await connectToDB();
 
   const user = await currentUser();
-  const userId = user.id;
-  console.log("-------------------------------------", userId);
+  const userId = user?.id;
   let userFetched = null;
 
   try {
@@ -48,9 +47,9 @@ export default async function Page() {
       userFetched = {
         clerkId: userId,
         role: 'client',
-        name: `${user.firstName} ${user.lastName}`,
-        profileImage: user.imageUrl,
-        email: user.emailAddresses[0].emailAddress,
+        name: `${user?.firstName} ${user?.lastName}`,
+        profileImage: user?.imageUrl,
+        email: user?.emailAddresses[0].emailAddress,
         orders: [], // Default to an empty orders array
       };
     }
