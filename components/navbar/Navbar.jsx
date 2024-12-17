@@ -84,7 +84,7 @@ const Navbar = () => {
   );
 
   const renderLinks = () => {
-    if (!globalUser) return <div className='md:hidden'><Image src={'/bclick-logo.jpg'} alt='logo' width={1000} height={100} className='h-[40px] w-fit'/></div>;
+    if (!globalUser) return <div className='md:hidden'><Image src={'/bclick-logo.jpg'} alt='logo'  layout="intrinsic" width={100} height={100} className='h-[40px] w-fit'/></div>;
 
     if (globalUser.role === 'client') {
       return (
@@ -127,11 +127,17 @@ const Navbar = () => {
         )}
 
         {/* Orders */}
-        <Link href="/orders" className={`flex flex-col items-center ${getIconColor('orders')}`}>
-          <FaShoppingCart size={20} className='md:hidden'/>
-          <span className="text-xs md:text-base mt-1">הזמנות</span>
-        </Link>
+        <Link href="/orders" className={`flex flex-col items-center relative ${getIconColor('orders')}`}>
+          <FaShoppingCart size={20} className="md:hidden" />
+          <span className="text-xs md:text-base mt-1">הזמנות </span>
 
+          {/* Badge for pending orders */}
+          {globalUser?.orders?.filter((order) => order.status === 'pending').length > 0 && (
+            <span className="absolute top-0 left-4 md:left-7 bg-red-500 text-white rounded-full text-xs px-2">
+              {globalUser?.orders?.filter((order) => order.status === 'pending').length}
+            </span>
+          )}
+        </Link>
         {/* Profile */}
         <Link href="/profile" className={`flex flex-col items-center ${getIconColor('profile')}`}>
           <FaUser size={20} className='md:hidden'/>

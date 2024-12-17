@@ -16,10 +16,16 @@ export default async function Page() {
     console.log(user);
   let userFetched = null;
   try {
-    userFetched = await User.findOne({ clerkId: userId }).lean().populate({
-        path: 'relatedUsers.user',
-        select: 'name email phone address role profileImage businessName', // Specify fields to include
-      });
+    userFetched = await User.findOne({ clerkId: userId })
+  .lean()
+  .populate({
+    path: 'relatedUsers.user',
+    select: 'name email phone address role profileImage businessName', // Specify fields to include
+  })
+  .populate({
+    path: 'orders', // Populate orders
+    select: '_id status', // Only include id and status
+  });
     if (!userFetched) {
         userFetched= {
             clerkId: userId,

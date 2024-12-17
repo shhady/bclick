@@ -4,7 +4,7 @@ import { useUserContext } from '@/app/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
 
 export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDeleteOrder, onUpdateOrderStatus }) {
-  const { globalUser } = useUserContext();
+  const { globalUser,updateGlobalUser  } = useUserContext();
   const { toast } = useToast();
   const [note, setNote] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -19,6 +19,10 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDele
         title: 'Success',
         description: 'ההזמנה אושרה בהצלחה!',
       });
+      const updatedOrders = globalUser.orders.map((o) =>
+        o._id === order._id ? { ...o, status: 'approved' } : o
+      );
+      updateGlobalUser({ orders: updatedOrders });
       onClose(); // Close the details page and go back to the table
     } catch (error) {
       setErrorMessage('שגיאה באישור ההזמנה. אנא נסה שוב.');
@@ -37,6 +41,10 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDele
         title: 'Success',
         description: 'ההזמנה נדחתה בהצלחה!',
       });
+      const updatedOrders = globalUser.orders.map((o) =>
+        o._id === order._id ? { ...o, status: 'rejected' } : o
+      );
+      updateGlobalUser({ orders: updatedOrders });
       onClose(); // Close the details page and go back to the table
     } catch (error) {
       setErrorMessage('שגיאה בדחיית ההזמנה. אנא נסה שוב.');

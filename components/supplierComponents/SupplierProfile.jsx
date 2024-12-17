@@ -8,6 +8,8 @@ export default function SupplierProfile() {
   const { globalUser } = useUserContext(); // Access globalUser from the context
   const totalClients = globalUser?.relatedUsers?.length || 0; // Safely get the length of relatedUsers
   const totalProducts = globalUser?.products?.length || 0;
+  const totalOrders = globalUser?.orders?.length || 0;
+  console.log(totalOrders);
   return (
     <div className="flex flex-col items-center space-y-2 p-6  md:mb-0">
         {/* Clients */}
@@ -22,10 +24,10 @@ export default function SupplierProfile() {
       </Link>
 
       {/* Orders */}
-      <Link href="/supplier/all-orders" className="flex items-center justify-between w-full max-w-md p-4 bg-white rounded-lg shadow-md">
+      <Link href="/orders" className="flex items-center justify-between w-full max-w-md p-4 bg-white rounded-lg shadow-md">
         <div className="flex justify-between items-center w-full">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-black">45</h2>
+            <h2 className="text-3xl font-bold text-black">{totalOrders}</h2>
             <p className="text-gray-600">סה&quot;כ הזמנות</p>
           </div>
           <div className="w-12 h-12 bg-blue-300 rounded-full"></div>

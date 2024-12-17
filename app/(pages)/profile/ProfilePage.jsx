@@ -16,7 +16,7 @@ const AdminProfile = dynamic(() => import('@/components/adminComponents/AdminPro
 const SupplierProfile = dynamic(() => import('@/components/supplierComponents/SupplierProfile'))
 const ClientProfile = dynamic(() => import('@/components/clientComponents/ClientProfile'))
 
-export default function ProfilePage({ user }) {
+export default function ProfilePage({ user,pendingOrdersCount,totalOrdersCount }) {
   const { globalUser, setGlobalUser, updateGlobalUser } = useUserContext();
 
   const [formData, setFormData] = useState(null);
@@ -143,7 +143,7 @@ export default function ProfilePage({ user }) {
           )}
 
           {formData.role === 'admin' && <AdminProfile />}
-          {formData.role === 'supplier' && <SupplierProfile />}
+          {formData.role === 'supplier' && <SupplierProfile pendingOrdersCount={pendingOrdersCount} totalOrdersCount={totalOrdersCount}/>}
           {formData.role === 'client' && <ClientProfile user={user}/>}
         </>
       )}
