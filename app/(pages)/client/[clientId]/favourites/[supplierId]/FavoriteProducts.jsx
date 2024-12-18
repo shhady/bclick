@@ -23,7 +23,7 @@ function ProductGrid({
         {products.map((product) => (
           <div
             key={product._id}
-            className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center"
+            className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center bg-white"
             onClick={() => showProductDetail(product)}
           >
             <div 

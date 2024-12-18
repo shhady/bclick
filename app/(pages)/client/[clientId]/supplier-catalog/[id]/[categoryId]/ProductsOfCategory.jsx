@@ -150,7 +150,7 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
             <div
               key={product._id}
               onClick={() => showProductDetail(product)}
-              className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center"
+              className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center bg-white"
             >
               <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded">
                 <Image
