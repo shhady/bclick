@@ -113,7 +113,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDele
       </table>
 
       {/* Order Summary */}
-      <div className="mt-4">
+      <div className="mt-4 flex flex-col justify-end items-end">
         <p>
           <strong>סה&quot;כ לפני מע&quot;מ:</strong> ₪{totalPriceBeforeTax.toFixed(2)}
         </p>
@@ -157,17 +157,17 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDele
 
           <div >
             {globalUser?.role === 'supplier' ? (
-              <div  className='flex justify-between items-center mt-4'>
-                <div className='flex justify-center items-center gap-2'>
+              <div  className=' mt-4'>
+                <div className='flex justify-between items-center gap-2'>
                 <button onClick={handleAccept} className="px-4 py-2 bg-green-500 text-white rounded">
-                  אישור
+                   אישור הזמנה
                 </button>
                 <button onClick={handleReject} className="px-4 py-2 bg-red-500 text-white rounded">
-                  דחייה
+                    דחיית הזמנה
                 </button>
                 </div>
                
-                <button onClick={onClose} className="px-4 py-2 bg-customBlue text-white rounded">
+                <button onClick={onClose} className="px-4 py-2 bg-customBlue text-white rounded mt-4">
                      חזור
                  </button>
               </div>
