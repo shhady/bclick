@@ -144,7 +144,7 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
   Object.keys(groupedProducts).map((categoryName) => (
     <div key={categoryName} className="mt-8">
       <h2 className="text-2xl font-bold mb-4">{categoryName}</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 px-2">
         {groupedProducts[categoryName].length > 0 ? (
           groupedProducts[categoryName].map((product) => (
             <div

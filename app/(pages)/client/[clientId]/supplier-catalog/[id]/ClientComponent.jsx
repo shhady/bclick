@@ -44,8 +44,12 @@ export default function ClientComponent({
        <Link href={'/profile'} className='bg-gray-700 px-3 py-2 rounded-lg'><button >צא מתצוגה </button></Link> 
       </div>}
       <Suspense fallback={<Loader />}>
+
+      <SupplierCover supplier={supplier}/>      </Suspense>
+
+      <Suspense fallback={<Loader />}>
       
-      <SupplierCover supplier={supplier}/>
+      
       <SupplierDetails 
         supplier={supplier} 
         clientId={clientId}
