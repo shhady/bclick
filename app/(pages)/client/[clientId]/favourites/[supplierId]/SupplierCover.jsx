@@ -3,7 +3,7 @@ import React from 'react';
 
 export default function SupplierCover({ supplier }) {
   const imageUrl = supplier?.coverImage?.secure_url
-    ? `${supplier.coverImage.secure_url}?q=75&f_auto&c_fill,g_auto,w_1920,h_1080&fm=webp`
+    ? `${supplier.coverImage.secure_url}`
     : null;
 
   return (
