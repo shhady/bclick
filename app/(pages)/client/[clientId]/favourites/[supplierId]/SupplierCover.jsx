@@ -14,6 +14,7 @@ export default function SupplierCover({supplier}) {
             className='w-full h-full object-cover max-h-1/4'
             priority
             placeholder='blur'
+            loading='eager'
           />
         </div>
       )}
