@@ -7,11 +7,13 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
 
   useEffect(() => {
     if (order) {
+      console.log('Setting initial items:', order.items);
       setEditedItems(order.items.map(item => {
         const available = stockInfo?.[item.productId._id]?.available || 0;
         const totalAvailable = available + item.quantity;
         return {
           ...item,
+          productId: item.productId,
           availableStock: totalAvailable,
           originalQuantity: item.quantity,
           quantity: item.quantity,
@@ -36,6 +38,32 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
       }
       return item;
     }));
+  };
+
+  const handleConfirm = () => {
+    // Validate all quantities
+    if (hasInvalidInputs) return;
+
+    // Create updated items array with only changed quantities
+    const updatedItems = editedItems.map(item => {
+      console.log('Processing item:', item);
+      return {
+        productId: item.productId._id,
+        quantity: parseInt(item.quantity),
+        price: item.productId.price,
+        total: item.productId.price * parseInt(item.quantity)
+      };
+    });
+
+    console.log('Updated items:', updatedItems);
+
+    const updatedOrder = {
+      ...order,
+      items: updatedItems,
+      total: updatedItems.reduce((sum, item) => sum + item.total, 0)
+    };
+
+    onConfirm(updatedOrder);
   };
 
   if (!isOpen || loading) return null;
@@ -127,18 +155,12 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
               ביטול
             </button>
             <button
-              onClick={() => {
-                const updatedOrder = {
-                  ...order,
-                  items: editedItems
-                };
-                onConfirm(updatedOrder);
-              }}
-              disabled={hasInvalidInputs}
+              onClick={handleConfirm}
+              disabled={hasInvalidInputs || loadingAction === 'updating'}
               className="px-4 py-2 bg-customBlue text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                     {loadingAction === 'updating' ? 'מעדכן...' : 'עדכן הזמנה'}
-                     </button>
+              {loadingAction === 'updating' ? 'מעדכן...' : 'עדכן הזמנה'}
+            </button>
           </div>
         </div>
       </div>

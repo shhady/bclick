@@ -51,18 +51,30 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
   const handleUpdateConfirm = async (updatedOrder) => {
     setLoadingAction('updating');
     try {
+      // Log the data being sent
+      console.log('UpdatedOrder:', updatedOrder);
+      console.log('Items to update:', updatedOrder.items);
+
+      const formattedItems = updatedOrder.items.map(item => ({
+        productId: typeof item.productId === 'string' ? item.productId : item.productId._id,
+        quantity: parseInt(item.quantity)
+      }));
+
+      console.log('Formatted items:', formattedItems);
+
       const response = await fetch('/api/orders/update', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderId: updatedOrder._id,
-          items: updatedOrder.items,
+          items: formattedItems,
           note: 'עודכנו כמויות בהזמנה'
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update order');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update order');
       }
 
       const data = await response.json();
@@ -78,9 +90,10 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
       });
       onClose();
     } catch (error) {
+      console.error('Update error:', error);
       toast({
         title: 'שגיאה',
-        description: 'שגיאה בעדכון ההזמנה',
+        description: error.message || 'שגיאה בעדכון ההזמנה',
         variant: 'destructive',
       });
     } finally {
@@ -91,21 +104,21 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
   const handleAccept = async () => {
     setLoadingAction('accepting');
     try {
-      const response = await fetch('/api/orders/update', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId: order._id,
-          status: 'approved',
-          note: note || 'ההזמנה אושרה',
-          userId: globalUser._id
-        }),
-      });
+      // const response = await fetch('/api/orders/update', {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     orderId: order._id,
+      //     status: 'approved',
+      //     note: note || 'ההזמנה אושרה',
+      //     userId: globalUser._id
+      //   }),
+      // });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to approve order');
-      }
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   throw new Error(errorData.error || 'Failed to approve order');
+      // }
 
       await onUpdateOrderStatus(order._id, 'approved', note);
       toast({
@@ -133,10 +146,35 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
 
     setLoadingAction('rejecting');
     try {
+      // const response = await fetch('/api/orders/update', {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     orderId: order._id,
+      //     status: 'rejected',
+      //     note: note,
+      //     userId: globalUser._id
+      //   }),
+      // });
+
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   throw new Error(errorData.error || 'Failed to reject order');
+      // }
+
       await onUpdateOrderStatus(order._id, 'rejected', note);
+      toast({
+        title: 'הצלחה',
+        description: 'ההזמנה נדחתה בהצלחה',
+      });
       onClose();
     } catch (error) {
       setErrorMessage('שגיאה בדחיית ההזמנה. אנא נסה שוב.');
+      toast({
+        title: 'שגיאה',
+        description: error.message || 'שגיאה בדחיית ההזמנה',
+        variant: 'destructive',
+      });
     } finally {
       setLoadingAction(null);
     }

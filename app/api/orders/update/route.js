@@ -1,127 +1,181 @@
 import { connectToDB } from '@/utils/database';
 import Order from '@/models/order';
 import Product from '@/models/product';
+import { sendOrderUpdateEmail, sendOrderStatusEmail } from '@/utils/emails';
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 
 export async function PUT(request) {
   try {
     await connectToDB();
-    const { orderId, status, note, userId } = await request.json();
+    const { orderId, items, note, status } = await request.json();
 
-    // Get the current order first
-    const currentOrder = await Order.findById(orderId)
-      .populate('clientId', 'email name businessName phone')
-      .populate('supplierId', 'name email businessName')
-      .populate('items.productId');
+    if (!orderId) {
+      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+    }
 
-    if (!currentOrder) {
+    const order = await Order.findById(orderId)
+      .populate('items.productId')
+      .populate('supplierId')
+      .populate('clientId');
+
+    if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Handle stock updates based on status
-    if (status === 'approved' || status === 'rejected') {
-      for (const item of currentOrder.items) {
-        const product = await Product.findById(item.productId._id);
+    try {
+      // If updating quantities
+      if (items) {
+        console.log('Received items:', items);
         
-        if (!product) {
-          return NextResponse.json(
-            { error: `Product not found: ${item.productId._id}` },
-            { status: 400 }
-          );
-        }
+        // First, get all products to check stock
+        const productIds = items.map(item => item.productId);
+        const products = await Product.find({ _id: { $in: productIds } });
+        const productsMap = products.reduce((map, product) => {
+          map[product._id.toString()] = product;
+          return map;
+        }, {});
 
-        if (status === 'approved') {
-          // When approving: reduce actual stock and remove from reserved
-          product.stock -= item.quantity;
-          product.reserved = (product.reserved || 0) - item.quantity;
+        // Validate stock availability for all items
+        for (const item of items) {
+          const product = productsMap[item.productId];
+          if (!product) {
+            throw new Error(`Product not found: ${item.productId}`);
+          }
+
+          const oldItem = order.items.find(
+            orderItem => orderItem.productId._id.toString() === item.productId
+          );
           
-          if (product.stock < 0) {
-            return NextResponse.json(
-              { error: `Not enough stock for ${product.name}` },
-              { status: 400 }
+          const oldQuantity = oldItem ? oldItem.quantity : 0;
+          const quantityDiff = item.quantity - oldQuantity;
+          
+          // Check if we have enough available stock
+          const availableStock = product.stock - (product.reserved - oldQuantity);
+          if (availableStock < item.quantity) {
+            throw new Error(
+              `Not enough stock for ${product.name}. Available: ${availableStock}, Requested: ${item.quantity}`
             );
           }
-        } else if (status === 'rejected') {
-          // When rejecting: just remove from reserved, don't touch actual stock
-          product.reserved = (product.reserved || 0) - item.quantity;
         }
 
-        await product.save();
+        // Update reserved quantities and prepare updated items
+        const updatedItems = await Promise.all(items.map(async (item) => {
+          const product = productsMap[item.productId];
+          const oldItem = order.items.find(
+            orderItem => orderItem.productId._id.toString() === item.productId
+          );
+          const oldQuantity = oldItem ? oldItem.quantity : 0;
+          const quantityDiff = item.quantity - oldQuantity;
+
+          // Update product reserved quantity
+          await Product.findByIdAndUpdate(product._id, {
+            $inc: { reserved: quantityDiff }
+          });
+
+          return {
+            productId: product._id,
+            quantity: item.quantity,
+            price: product.price,
+            total: product.price * item.quantity
+          };
+        }));
+
+        // Calculate new total
+        const total = updatedItems.reduce((sum, item) => sum + item.total, 0);
+
+        // Update order with new items and total
+        order.items = updatedItems;
+        order.total = total;
+        order.notes.push({
+          message: note || 'עודכנו כמויות בהזמנה',
+          date: new Date()
+        });
+
+        await order.save();
+
+        // Send email to supplier about quantity updates
+        await sendOrderUpdateEmail({
+          order,
+          type: 'quantity_update',
+          recipientEmail: order.supplierId.email,
+          businessName: order.clientId.businessName
+        });
       }
+
+      // If updating status
+      if (status) {
+        console.log('Processing order status:', status);
+        
+        if (status === 'approved' || status === 'rejected') {
+          for (const item of order.items) {
+            const product = await Product.findById(item.productId._id);
+            console.log('Before update - Product:', product.name, 'Stock:', product.stock, 'Reserved:', product.reserved);
+            
+            if (!product) {
+              throw new Error(`Product not found: ${item.productId._id}`);
+            }
+
+            if (status === 'approved') {
+              if (product.stock < item.quantity) {
+                throw new Error(`Not enough stock for ${product.name}`);
+              }
+              
+              await Product.findByIdAndUpdate(product._id, {
+                $inc: { 
+                  stock: -item.quantity,    // Reduce stock
+                  reserved: -item.quantity  // Remove from reserved
+                }
+              });
+            } else if (status === 'rejected') {
+              await Product.findByIdAndUpdate(product._id, {
+                $inc: { reserved: -item.quantity }
+              });
+            }
+
+            const updatedProduct = await Product.findById(product._id);
+            console.log('After update - Product:', updatedProduct.name, 'Stock:', updatedProduct.stock, 'Reserved:', updatedProduct.reserved);
+          }
+        }
+
+        order.status = status;
+        if (note) {
+          order.notes.push({
+            message: note,
+            date: new Date()
+          });
+        }
+
+        await order.save();
+
+        // Send email to client about status update
+        await sendOrderStatusEmail({
+          order,
+          status,
+          note
+        });
+      }
+
+      // Return populated order
+      const populatedOrder = await Order.findById(order._id)
+        .populate('items.productId')
+        .populate('supplierId')
+        .populate('clientId');
+
+      return NextResponse.json({ 
+        message: status ? `Order ${status} successfully` : 'Order updated successfully',
+        order: populatedOrder
+      });
+
+    } catch (error) {
+      console.error('Error during update:', error);
+      return NextResponse.json({ 
+        error: error.message || 'Failed to update order'
+      }, { status: 400 });
     }
-
-    // Update the order
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      { 
-        $set: { status },
-        ...(note && { $push: { notes: { message: note, date: new Date() } } })
-      },
-      { new: true }
-    )
-    .populate('clientId', 'email name businessName phone')
-    .populate('supplierId', 'name email businessName')
-    .populate('items.productId');
-
-    // Send email notification to client
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    const statusText = status === 'approved' ? 'אושרה' : 'נדחתה';
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: updatedOrder.clientId.email,
-      subject: `הזמנה מספר ${updatedOrder.orderNumber} ${statusText}`,
-      html: `
-        <div dir="rtl">
-          <h1>הזמנה מספר ${updatedOrder.orderNumber} ${statusText}</h1>
-          <p>שם העסק: ${updatedOrder.supplierId.businessName}</p>
-          <p>סטטוס: ${statusText}</p>
-          ${note ? `<p>הערה: ${note}</p>` : ''}
-          <h2>פרטי ההזמנה:</h2>
-          <table style="border-collapse: collapse; width: 100%;">
-            <thead>
-              <tr>
-                <th style="border: 1px solid black; padding: 8px;">מוצר</th>
-                <th style="border: 1px solid black; padding: 8px;">כמות</th>
-                <th style="border: 1px solid black; padding: 8px;">מחיר ליחידה</th>
-                <th style="border: 1px solid black; padding: 8px;">סה"כ</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${updatedOrder.items.map(item => `
-                <tr>
-                  <td style="border: 1px solid black; padding: 8px;">${item.productId.name}</td>
-                  <td style="border: 1px solid black; padding: 8px;">${item.quantity}</td>
-                  <td style="border: 1px solid black; padding: 8px;">₪${item.productId.price}</td>
-                  <td style="border: 1px solid black; padding: 8px;">₪${(item.quantity * item.productId.price).toFixed(2)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          <p><strong>סה"כ להזמנה: ₪${updatedOrder.total.toFixed(2)}</strong></p>
-        </div>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    return NextResponse.json({ 
-      order: updatedOrder,
-      message: `ההזמנה ${statusText} בהצלחה ונשלח מייל ללקוח`
-    });
-
   } catch (error) {
     console.error('Error updating order:', error);
-    return NextResponse.json(
-      { error: 'Failed to update order' },
-      { status: 500 }
-    );
+    return NextResponse.json({ 
+      error: error.message || 'Internal server error'
+    }, { status: 500 });
   }
 }

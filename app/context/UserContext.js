@@ -28,6 +28,15 @@ export function UserProvider({ children }) {
       ...updatedData, // Merge new updates
     }));
   };
+  const updateGlobalOrders = (updatedOrder) => {
+    setGlobalUser((prev) => {
+      if (!prev) return prev; // Ensure globalUser exists
+      const updatedOrders = prev.orders.map((order) =>
+        order._id === updatedOrder._id ? updatedOrder : order
+      );
+      return { ...prev, orders: updatedOrders };
+    });
+  };
   
   useEffect(() => {
     const fetchUser = async () => {
@@ -59,6 +68,7 @@ export function UserProvider({ children }) {
         globalUser,
         setGlobalUser,
         updateGlobalUser,
+        updateGlobalOrders,
         updateRelatedUserStatus, // Expose the helper for updating related user status
         loading,
         error,
