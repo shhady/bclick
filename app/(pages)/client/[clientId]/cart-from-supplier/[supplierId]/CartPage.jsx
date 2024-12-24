@@ -60,7 +60,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
     []
   );
   
-  const handleQuantityChange = (productId, newQuantity) => {
+  const handleQuantityChange = useCallback((productId, newQuantity) => {
     const existingItem = cart.items.find((item) => item.productId._id === productId);
     if (!existingItem) return;
   
@@ -100,7 +100,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
     }));
   
     debouncedUpdate(productId, newQuantity);
-  };
+  }, [cart, debouncedUpdate]);
   
 
   // Save changes before leaving the page
@@ -111,16 +111,11 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   };
 
   useEffect(() => {
-    const handleBeforeUnload = async () => {
-      await saveChangesBeforeLeave();
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('beforeunload', saveChangesBeforeLeave);
     return () => {
-      handleBeforeUnload();
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('beforeunload', saveChangesBeforeLeave);
     };
-  }, [localChanges]);
+  }, [saveChangesBeforeLeave]);
 
   
   // Confirm order

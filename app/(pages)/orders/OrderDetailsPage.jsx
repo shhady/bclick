@@ -142,7 +142,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold">מס' הזמנה: {order?.orderNumber}</h1>
+          <h1 className="text-xl font-bold">מס&apos; הזמנה: {order?.orderNumber}</h1>
           <p className="text-gray-500 text-sm">תאריך: {new Date(order.createdAt).toLocaleDateString('he-IL')}</p>
           <p className="text-gray-600">
             {globalUser?.role === 'client' 
@@ -165,7 +165,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
             <th className="border border-gray-300 px-4 py-2">פריט</th>
             <th className="border border-gray-300 px-4 py-2">כמות</th>
             <th className="border border-gray-300 px-4 py-2">מחיר ליחידה</th>
-            <th className="border border-gray-300 px-4 py-2">סה"כ</th>
+            <th className="border border-gray-300 px-4 py-2">סה&quot;כ</th>
           </tr>
         </thead>
         <tbody>
@@ -185,13 +185,13 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
       {/* Order Summary */}
       <div className="mt-4 flex flex-col justify-end items-end">
         <p>
-          <strong>סה"כ לפני מע"מ:</strong> ₪{(order?.total / (1 + order?.tax)).toFixed(2)}
+          <strong>סה&quot;כ לפני מע&quot;מ:</strong> ₪{(order?.total / (1 + order?.tax)).toFixed(2)}
         </p>
         <p>
-          <strong>מע"מ (17%):</strong> ₪{(order?.total - order?.total / (1 + order?.tax)).toFixed(2)}
+          <strong>מע&quot;מ (18%):</strong> ₪{(order?.total - order?.total / (1 + order?.tax)).toFixed(2)}
         </p>
         <p className="font-bold">
-          <strong>סה"כ להזמנה:</strong> ₪{order?.total.toFixed(2)}
+          <strong>סה&quot;כ להזמנה:</strong> ₪{order?.total.toFixed(2)}
         </p>
       </div>
       <div className="mt-4">

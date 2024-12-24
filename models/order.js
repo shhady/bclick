@@ -55,7 +55,7 @@ const OrderSchema = new Schema(
     tax: {
       type: Number,
       required: true,
-      default: 0.17, // Fixed 17% tax rate
+      default: 0.18, // Fixed 18% tax rate
     },
     orderNumber:{
         type: Number,

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import OrderDetailsPage from './OrderDetailsPage';
 import { useToast } from '@/hooks/use-toast';
 import { useUserContext } from "@/app/context/UserContext";
@@ -9,9 +9,31 @@ import { ReorderConfirmationDialog } from '@/components/ReorderConfirmationDialo
 export default function Orders({ orders }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeTab, setActiveTab] = useState('pending');
-  const [orderList, setOrderList] = useState(orders);
   const { globalUser } = useUserContext();
   const { toast } = useToast();
+
+  // Filter orders based on user role and ID
+  const filteredOrders = useMemo(() => {
+    if (!orders || !globalUser) return [];
+    
+    return orders.filter(order => {
+      if (globalUser.role === 'supplier') {
+        return order.supplierId._id === globalUser._id;
+      } else if (globalUser.role === 'client') {
+        return order.clientId._id === globalUser._id;
+      }
+      return false;
+    });
+  }, [orders, globalUser]);
+
+  // Set initial orderList with filtered orders
+  const [orderList, setOrderList] = useState(filteredOrders);
+
+  // Update orderList when filteredOrders changes
+  useEffect(() => {
+    setOrderList(filteredOrders);
+  }, [filteredOrders]);
+
   const [isReordering, setIsReordering] = useState(false);
   const [showReorderDialog, setShowReorderDialog] = useState(false);
   const [selectedReorder, setSelectedReorder] = useState(null);
