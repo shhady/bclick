@@ -5,68 +5,34 @@ import { connectToDB } from '@/utils/database';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import Loader from '@/components/loader/Loader';
+import Order from '@/models/order';
 
 // Dynamically import the client-side component
 const Orders = dynamic(() => import('./Orders'));
 
-export default async function Page() {
+export default async function OrdersPage() {
   await connectToDB();
-
-  const user = await currentUser();
-  const userId = user?.id;
-  let userFetched = null;
-
+  
   try {
-    // Fetch the user and populate their orders
-    userFetched = await User.findOne({ clerkId: userId })
-      .lean()
-      .populate({
-        path: 'orders', // Populate the orders array in the user object
-        populate: [
-          {
-            path: 'items.productId', // Populate product details in order items
-            model: 'Product',
-            select: 'name price barCode', // Select relevant fields from products
-          },
-          {
-            path: 'supplierId', // Populate supplier details for the order
-            model: 'User',
-            select: 'name email phone address city businessName businessNumber',
-          },
-          {
-            path: 'clientId', // Populate client details for the order
-            model: 'User',
-            select: 'name email phone address city clientNumber businessName businessNumber',
-          },
-        ],
-      });
+    const orders = await Order.find()
+      .populate('clientId', 'email name businessName') // Populate client details
+      .populate('supplierId', 'name businessName email')
+      .populate('items.productId')
+      .sort({ createdAt: -1 });
 
-      console.log(userFetched);
-    if (!userFetched) {
-      // If user is not found in the database, fallback to basic user details from Clerk
-      userFetched = {
-        clerkId: userId,
-        role: 'client',
-        name: `${user?.firstName} ${user?.lastName}`,
-        profileImage: user?.imageUrl,
-        email: user?.emailAddresses[0].emailAddress,
-        orders: [], // Default to an empty orders array
-      };
-    }
+    // Serialize the orders to prevent JSON circular references
+    const serializedOrders = JSON.parse(JSON.stringify(orders));
 
-    console.log('Fetched user with populated orders:', userFetched);
-  } catch (err) {
-    console.error('Error fetching user with orders:', err);
+    return (
+      <div>
+        <Suspense fallback={<Loader />}>
+          <Orders orders={serializedOrders} />
+        </Suspense>
+      </div>
+    );
+
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return <div>Error loading orders</div>;
   }
-
-  // Serialize the userFetched object to pass to the client
-  const serializedUser = JSON.parse(JSON.stringify(userFetched));
-
-  return (
-    <div>
-      <Suspense fallback={<Loader />}>
-        <Orders user={serializedUser} orders={serializedUser?.orders}/>
-      </Suspense>
-    </div>
-  );
 }

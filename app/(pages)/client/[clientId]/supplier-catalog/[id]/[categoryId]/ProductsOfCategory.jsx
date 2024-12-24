@@ -164,6 +164,14 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
               <h2 className="text-sm font-bold mt-2">{product.name}</h2>
               <p className="text-gray-600 mt-1">משקל: {product?.weight}</p>
               <p className="text-gray-600 mt-1">מחיר: ₪{product?.price}</p>
+              <div className='flex justify-center items-center gap-4'>
+<p className="text-gray-600">
+{cart?.items.find((item) => item.productId?._id === product?._id)
+  ? <span className='text-customBlue'>עדכן כמות</span>
+  : ''}
+</p>
+{product.stock - (product.reserved || 0) === 0 && <p className="text-red-500">אינו זמין במלאי</p>}
+</div>
             </div>
           ))
         ) : (

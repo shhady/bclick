@@ -2,6 +2,8 @@ import { connectToDB } from '@/utils/database';
 import Cart from '@/models/cart';
 
 import Product from '@/models/product';
+import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 
 export async function PUT(req) {
   await connectToDB();
@@ -84,27 +86,44 @@ export async function POST(req) {
   }
 }
 
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const clientId = searchParams.get('clientId');
+    const supplierId = searchParams.get('supplierId');
 
-export default async function GET(re) {
-  // const { clientId, supplierId } = params;
-
-  await connectToDB();
-  const { clientId, supplierId } = await req.json();
-
-  console.log(clientId, supplierId);
-  
-    try {
-      const cart = await Cart.findOne({ clientId, supplierId })
-        .populate('items.productId')
-        .lean();
-
-      if (!cart) {
-        return new Response(JSON.stringify({ success: false, message: 'Cart not found' }), { status: 404 });
-      }
-
-      return new Response(JSON.stringify({ success: true, cart }), { status: 200 });
-    } catch (error) {
-      return new Response(JSON.stringify({ success: false, message: error.message }), { status: 500 });
+    if (!clientId || !supplierId) {
+      return NextResponse.json(
+        { success: false, message: 'Missing client or supplier ID' },
+        { status: 400 }
+      );
     }
-  
+
+    await connectToDB();
+    
+    const cart = await Cart.findOne({ clientId, supplierId })
+      .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
+      .lean();
+
+    if (!cart) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Cart not found' 
+      });
+    }
+
+    // Serialize the cart data
+    const serializedCart = JSON.stringify(cart);
+
+    return NextResponse.json({ 
+      success: true, 
+      serializedCart 
+    });
+  } catch (error) {
+    console.error('Error in cart API:', error);
+    return NextResponse.json(
+      { success: false, message: error.message },
+      { status: 500 }
+    );
+  }
 }

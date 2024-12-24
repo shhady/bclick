@@ -2,30 +2,125 @@
 import React, { useState } from 'react';
 import { useUserContext } from '@/app/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
+import { OrderUpdateDialog } from '@/components/OrderUpdateDialog';
 
-export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDeleteOrder, onUpdateOrderStatus }) {
-  const { globalUser,updateGlobalUser  } = useUserContext();
+export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, onDeleteOrder, onOrderUpdate }) {
+  const { globalUser, updateGlobalUser } = useUserContext();
   const { toast } = useToast();
   const [note, setNote] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [stockInfo, setStockInfo] = useState(null);
 
-  const totalPriceBeforeTax = order?.total / (1 + order?.tax);
-  const taxAmount = order?.total - totalPriceBeforeTax;
-  const handleAccept = async () => {
-    setErrorMessage('');
+  const canModifyOrder = order?.status === 'pending' && globalUser?.role === 'client';
+  const isSupplier = globalUser?.role === 'supplier';
+
+  const checkStockAvailability = async (items) => {
     try {
-      await onUpdateOrderStatus(order._id, 'approved', null); // Update status
-      toast({
-        title: 'Success',
-        description: 'ההזמנה אושרה בהצלחה!',
+      const response = await fetch('/api/products/validate-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items })
       });
-      const updatedOrders = globalUser.orders.map((o) =>
-        o._id === order._id ? { ...o, status: 'approved' } : o
-      );
-      updateGlobalUser({ orders: updatedOrders });
-      onClose(); // Close the details page and go back to the table
+      
+      if (!response.ok) throw new Error('Failed to validate stock');
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error checking stock:', error);
+      throw error;
+    }
+  };
+
+  const handleUpdateClick = async () => {
+    try {
+      const stockData = await checkStockAvailability(order.items);
+      setStockInfo(stockData.stockInfo);
+      setShowUpdateDialog(true);
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: 'שגיאה בבדיקת המלאי',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdateConfirm = async (updatedOrder) => {
+    try {
+      const response = await fetch('/api/orders/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: updatedOrder._id,
+          items: updatedOrder.items,
+          note: 'עודכנו כמויות בהזמנה'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update order');
+      }
+
+      const data = await response.json();
+      setShowUpdateDialog(false);
+      
+      if (onOrderUpdate) {
+        onOrderUpdate(data.order);
+      }
+
+      toast({
+        title: 'הצלחה',
+        description: data.message || 'ההזמנה עודכנה בהצלחה',
+      });
+      
+      onClose();
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: 'שגיאה בעדכון ההזמנה',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAccept = async () => {
+    try {
+      const response = await fetch('/api/orders/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order._id,
+          status: 'approved',
+          note: note || 'ההזמנה אושרה',
+          userId: globalUser._id
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to approve order');
+      }
+
+      const { order: updatedOrder } = await response.json();
+
+      // Call the parent component's update function
+      await onUpdateOrderStatus(order._id, 'approved', note);
+
+      toast({
+        title: 'הצלחה',
+        description: 'ההזמנה אושרה בהצלחה ונשלח מייל ללקוח',
+      });
+
+      onClose();
     } catch (error) {
       setErrorMessage('שגיאה באישור ההזמנה. אנא נסה שוב.');
+      toast({
+        title: 'שגיאה',
+        description: error.message || 'שגיאה באישור ההזמנה',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -34,59 +129,34 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDele
       setErrorMessage('יש להוסיף הערה לדחייה.');
       return;
     }
-    setErrorMessage('');
+
     try {
-      await onUpdateOrderStatus(order._id, 'rejected', note); // Update status
-      toast({
-        title: 'Success',
-        description: 'ההזמנה נדחתה בהצלחה!',
-      });
-      const updatedOrders = globalUser.orders.map((o) =>
-        o._id === order._id ? { ...o, status: 'rejected' } : o
-      );
-      updateGlobalUser({ orders: updatedOrders });
-      onClose(); // Close the details page and go back to the table
+      await onUpdateOrderStatus(order._id, 'rejected', note);
+      onClose();
     } catch (error) {
       setErrorMessage('שגיאה בדחיית ההזמנה. אנא נסה שוב.');
     }
   };
 
-  const handleUpdate = async () => {
-    if (!note) {
-      setErrorMessage('יש להוסיף פרטים לעדכון ההזמנה.');
-      return;
-    }
-    setErrorMessage('');
-    try {
-      await onUpdateOrder(order._id, 'pending', note);
-      toast({
-        title: 'Success',
-        description: 'ההזמנה עודכנה בהצלחה!',
-      });
-      onClose(); // Close the details page and go back to the table
-    } catch (error) {
-      setErrorMessage('שגיאה בעדכון ההזמנה. אנא נסה שוב.');
-    }
-  };
-  const handleDelete = async () => {
-    try {
-      await onDeleteOrder(order._id); // Call the passed function to delete the order
-    } catch (error) {
-      setErrorMessage('שגיאה במחיקת ההזמנה. אנא נסה שוב.');
-    }
-  };
-  
   return (
-    <div className="p-4">
+    <div className="container mx-auto p-4">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold">מס&apos; הזמנה: {order?.orderNumber}</h1>
+          <h1 className="text-xl font-bold">מס' הזמנה: {order?.orderNumber}</h1>
           <p className="text-gray-500 text-sm">תאריך: {new Date(order.createdAt).toLocaleDateString('he-IL')}</p>
+          <p className="text-gray-600">
+            {globalUser?.role === 'client' 
+              ? `ספק: ${order?.supplierId?.businessName}`
+              : `לקוח: ${order?.clientId?.businessName}`
+            }
+          </p>
         </div>
         <button onClick={onClose} className="text-red-500 text-xl">
           X
         </button>
       </div>
+
+     
 
       {/* Order Table */}
       <table className="table-auto w-full border-collapse border border-gray-300 mt-12">
@@ -95,7 +165,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDele
             <th className="border border-gray-300 px-4 py-2">פריט</th>
             <th className="border border-gray-300 px-4 py-2">כמות</th>
             <th className="border border-gray-300 px-4 py-2">מחיר ליחידה</th>
-            <th className="border border-gray-300 px-4 py-2">סה&quot;כ</th>
+            <th className="border border-gray-300 px-4 py-2">סה"כ</th>
           </tr>
         </thead>
         <tbody>
@@ -115,16 +185,85 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDele
       {/* Order Summary */}
       <div className="mt-4 flex flex-col justify-end items-end">
         <p>
-          <strong>סה&quot;כ לפני מע&quot;מ:</strong> ₪{totalPriceBeforeTax.toFixed(2)}
+          <strong>סה"כ לפני מע"מ:</strong> ₪{(order?.total / (1 + order?.tax)).toFixed(2)}
         </p>
         <p>
-          <strong>מע&quot;מ (17%):</strong> ₪{taxAmount.toFixed(2)}
+          <strong>מע"מ (17%):</strong> ₪{(order?.total - order?.total / (1 + order?.tax)).toFixed(2)}
         </p>
         <p className="font-bold">
-          <strong>סה&quot;כ להזמנה:</strong> ₪{order.total.toFixed(2)}
+          <strong>סה"כ להזמנה:</strong> ₪{order?.total.toFixed(2)}
         </p>
       </div>
+      <div className="mt-4">
+        {/* <button
+          onClick={onClose}
+          className="px-4 py-2 bg-gray-500 text-white rounded"
+        >
+          חזור
+        </button> */}
 
+        {/* Add Note Section */}
+        {order?.status === 'pending' && (
+          <div className="mt-4 ">
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={isSupplier ? "הוסף הערה (חובה לדחייה)" : "הוסף הערה (אופציונלי)"}
+              className="border w-full lg:w-1/2 mt-2 p-2 rounded"
+            ></textarea>
+
+            {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+
+            <div className="mt-4">
+             
+
+              {isSupplier && (
+                <div className="flex justify-between items-center">
+                  <button 
+                    onClick={handleAccept} 
+                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  >
+                    אישור הזמנה
+                  </button>
+                  <button 
+                    onClick={handleReject} 
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    דחיית הזמנה
+                  </button>
+                </div>
+              )}
+
+              {canModifyOrder && (
+                <div className="flex justify-between items-center">
+                  
+                  <button
+                    onClick={handleUpdateClick}
+                    className="px-4 py-2 bg-blue-500 text-white rounded"
+                  >
+                    עדכן הזמנה
+                  </button>
+                  <button
+                    onClick={() => onDeleteOrder(order._id)}
+                    className="px-4 py-2 bg-red-500 text-white rounded"
+                  >
+                    מחק הזמנה
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className='flex justify-center items-center'>
+            <button
+                onClick={onClose}
+                className="px-4 py-2 bg-customBlue text-white rounded w-1/2  mt-4"
+              >
+                חזור
+              </button>
+            </div>
+           
+          </div>
+        )}
+      </div>
       {/* Notes Section */}
       {order?.notes?.length > 0 && (
         <div className="mt-4">
@@ -142,44 +281,13 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrder, onDele
         </div>
       )}
 
-
-      {/* Add Note Section */}
-      {order?.status === 'pending' && (
-        <div className="mt-4">
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="הוסף הערה (אופציונלי)"
-            className="border w-full mt-2 p-2 rounded"
-          ></textarea>
-
-          {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
-
-          <div >
-            {globalUser?.role === 'supplier' ? (
-              <div  className=' mt-4'>
-                <div className='flex justify-between items-center gap-2'>
-                <button onClick={handleAccept} className="px-4 py-2 bg-green-500 text-white rounded">
-                   אישור הזמנה
-                </button>
-                <button onClick={handleReject} className="px-4 py-2 bg-red-500 text-white rounded">
-                    דחיית הזמנה
-                </button>
-                </div>
-               
-                <button onClick={onClose} className="px-4 py-2 bg-customBlue text-white rounded mt-4">
-                     חזור
-                 </button>
-              </div>
-            ) : globalUser?.role === 'client' ? (
-                <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded">
-    מחק הזמנה
-  </button>
-
-            ) : null}
-          </div>
-        </div>
-      )}
+      <OrderUpdateDialog
+        isOpen={showUpdateDialog}
+        onClose={() => setShowUpdateDialog(false)}
+        onConfirm={handleUpdateConfirm}
+        order={order}
+        stockInfo={stockInfo}
+      />
     </div>
   );
 }
