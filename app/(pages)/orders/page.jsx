@@ -11,28 +11,28 @@ import Order from '@/models/order';
 const Orders = dynamic(() => import('./Orders'));
 
 export default async function OrdersPage() {
-  await connectToDB();
+  // await connectToDB();
   
-  try {
-    const orders = await Order.find()
-      .populate('clientId', 'email name businessName') // Populate client details
-      .populate('supplierId', 'name businessName email')
-      .populate('items.productId')
-      .sort({ createdAt: -1 });
+  // try {
+    // const orders = await Order.find()
+    //   .populate('clientId', 'email name businessName') // Populate client details
+    //   .populate('supplierId', 'name businessName email')
+    //   .populate('items.productId')
+    //   .sort({ createdAt: -1 });
 
-    // Serialize the orders to prevent JSON circular references
-    const serializedOrders = JSON.parse(JSON.stringify(orders));
+    // // Serialize the orders to prevent JSON circular references
+    // const serializedOrders = JSON.parse(JSON.stringify(orders));
 
     return (
       <div>
         <Suspense fallback={<Loader />}>
-          <Orders orders={serializedOrders} />
+          <Orders  />
         </Suspense>
       </div>
     );
 
-  } catch (error) {
-    console.error('Error fetching orders:', error);
-    return <div>Error loading orders</div>;
-  }
+  // } catch (error) {
+  //   console.error('Error fetching orders:', error);
+  //   return <div>Error loading orders</div>;
+  // }
 }

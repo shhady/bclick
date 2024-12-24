@@ -6,36 +6,23 @@ import { useUserContext } from "@/app/context/UserContext";
 import Image from 'next/image';
 import { ReorderConfirmationDialog } from '@/components/ReorderConfirmationDialog';
 
-export default function Orders({ orders: initialOrders }) {
-  const [orders, setOrders] = useState(initialOrders);
+export default function Orders() {
+  const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeTab, setActiveTab] = useState('pending');
   const { globalUser } = useUserContext();
   const { toast } = useToast();
 
   // Fetch fresh data when component mounts
-  useEffect(() => {
-    const fetchLatestOrders = async () => {
-      try {
-        const response = await fetch('/api/orders', {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setOrders(data);
-        }
-      } catch (error) {
-        console.error('Error fetching latest orders:', error);
-      }
-    };
-
-    fetchLatestOrders();
-  }, []);
-
+  
+  useEffect(()=>{
+    const fetchOrders = async()=>{
+      const response = await fetch ('/api/orders');
+      const data = await response.json();
+      setOrders(data);
+    }
+    fetchOrders()
+  },[])
   // Filter orders based on user role and ID
   const filteredOrders = useMemo(() => {
     if (!orders || !globalUser) return [];
