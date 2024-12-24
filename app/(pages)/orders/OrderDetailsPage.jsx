@@ -11,7 +11,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
   const [errorMessage, setErrorMessage] = useState('');
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [stockInfo, setStockInfo] = useState(null);
-
+  const [loadingAction, setLoadingAction] = useState(null); // New state to track the current loading action
   const canModifyOrder = order?.status === 'pending' && globalUser?.role === 'client';
   const isSupplier = globalUser?.role === 'supplier';
 
@@ -34,6 +34,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
   };
 
   const handleUpdateClick = async () => {
+    
     try {
       const stockData = await checkStockAvailability(order.items);
       setStockInfo(stockData.stockInfo);
@@ -48,6 +49,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
   };
 
   const handleUpdateConfirm = async (updatedOrder) => {
+    setLoadingAction('updating');
     try {
       const response = await fetch('/api/orders/update', {
         method: 'PUT',
@@ -65,7 +67,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
 
       const data = await response.json();
       setShowUpdateDialog(false);
-      
+
       if (onOrderUpdate) {
         onOrderUpdate(data.order);
       }
@@ -74,7 +76,6 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
         title: 'הצלחה',
         description: data.message || 'ההזמנה עודכנה בהצלחה',
       });
-      
       onClose();
     } catch (error) {
       toast({
@@ -82,10 +83,13 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
         description: 'שגיאה בעדכון ההזמנה',
         variant: 'destructive',
       });
+    } finally {
+      setLoadingAction(null);
     }
   };
 
   const handleAccept = async () => {
+    setLoadingAction('accepting');
     try {
       const response = await fetch('/api/orders/update', {
         method: 'PUT',
@@ -103,16 +107,11 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
         throw new Error(errorData.error || 'Failed to approve order');
       }
 
-      const { order: updatedOrder } = await response.json();
-
-      // Call the parent component's update function
       await onUpdateOrderStatus(order._id, 'approved', note);
-
       toast({
         title: 'הצלחה',
         description: 'ההזמנה אושרה בהצלחה ונשלח מייל ללקוח',
       });
-
       onClose();
     } catch (error) {
       setErrorMessage('שגיאה באישור ההזמנה. אנא נסה שוב.');
@@ -121,6 +120,8 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
         description: error.message || 'שגיאה באישור ההזמנה',
         variant: 'destructive',
       });
+    } finally {
+      setLoadingAction(null);
     }
   };
 
@@ -130,14 +131,30 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
       return;
     }
 
+    setLoadingAction('rejecting');
     try {
       await onUpdateOrderStatus(order._id, 'rejected', note);
       onClose();
     } catch (error) {
       setErrorMessage('שגיאה בדחיית ההזמנה. אנא נסה שוב.');
+    } finally {
+      setLoadingAction(null);
     }
   };
-
+  const handleDeleteOrder = async () => {
+    setLoadingAction('deleting');
+    try {
+      await onDeleteOrder(order._id);
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: 'שגיאה במחיקת ההזמנה. אנא נסה שוב.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center">
@@ -221,15 +238,17 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
                 <div className="flex justify-between items-center">
                   <button 
                     onClick={handleAccept} 
+                    disabled={loadingAction !== null}
                     className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                   >
-                    אישור הזמנה
+                     {loadingAction === 'accepting' ? 'מאשר...' : 'אישור הזמנה'}
                   </button>
                   <button 
                     onClick={handleReject} 
+                    disabled={loadingAction !== null}
                     className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                   >
-                    דחיית הזמנה
+                    {loadingAction === 'rejecting' ? 'דוחה הזמנה...' : 'דחיית הזמנה'}
                   </button>
                 </div>
               )}
@@ -239,15 +258,17 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
                   
                   <button
                     onClick={handleUpdateClick}
+                    disabled={loadingAction !== null}
                     className="px-4 py-2 bg-blue-500 text-white rounded"
                   >
-                    עדכן הזמנה
+                     {loadingAction === 'updating' ? 'מעדכן...' : 'עדכן הזמנה'}
                   </button>
                   <button
-                    onClick={() => onDeleteOrder(order._id)}
+                    onClick={() => handleDeleteOrder(order._id)}
+                    disabled={loadingAction !== null}
                     className="px-4 py-2 bg-red-500 text-white rounded"
                   >
-                    מחק הזמנה
+                    {loadingAction === 'deleting' ? 'מוחק...' : 'מחק הזמנה'}
                   </button>
                 </div>
               )}
@@ -287,6 +308,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
         onConfirm={handleUpdateConfirm}
         order={order}
         stockInfo={stockInfo}
+        loadingAction={loadingAction}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo }) {
+export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo,loadingAction }) {
   const [editedItems, setEditedItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -137,8 +137,8 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
               disabled={hasInvalidInputs}
               className="px-4 py-2 bg-customBlue text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              עדכן הזמנה
-            </button>
+                     {loadingAction === 'updating' ? 'מעדכן...' : 'עדכן הזמנה'}
+                     </button>
           </div>
         </div>
       </div>
