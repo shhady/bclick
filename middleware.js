@@ -2,15 +2,19 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 // Define public routes
-const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)',"/(.*)"]);
+const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)',"/(.*)", '/api/(.*)']);
 // Define admin routes
 const isAdminRoute = createRouteMatcher(['/admin(.*)']);
-
+const noCacheRoutes = createRouteMatcher(['/orders(.*)', '/api/orders(.*)']);
 export default clerkMiddleware(async (auth, request) => {
   if (!isPublicRoute(request)) {
     await auth.protect(); // Redirects to sign-in if not authenticated
   }
-
+  if (noCacheRoutes(request)) {
+    response.headers.set('Cache-Control', 'no-store, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+  }
   // Get authentication and session details
   const { sessionClaims } = await auth();
 
