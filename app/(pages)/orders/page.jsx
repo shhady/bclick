@@ -1,14 +1,38 @@
-import { getOrders } from '@/utils/getOrders';
-import Orders from './Orders';
+import React from 'react';
+import { currentUser } from '@clerk/nextjs/server';
+import User from '@/models/user';
+import { connectToDB } from '@/utils/database';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import Loader from '@/components/loader/Loader';
+import Order from '@/models/order';
 
-export const revalidate = 0; // Disable static page generation
+// Dynamically import the client-side component
+const Orders = dynamic(() => import('./Orders'));
 
 export default async function OrdersPage() {
-  const orders = await getOrders();
+  await connectToDB();
   
-  return (
-    <div className="container mx-auto px-4">
-      <Orders orders={orders} />
-    </div>
-  );
+  try {
+    const orders = await Order.find()
+      .populate('clientId', 'email name businessName') // Populate client details
+      .populate('supplierId', 'name businessName email')
+      .populate('items.productId')
+      .sort({ createdAt: -1 });
+
+    // Serialize the orders to prevent JSON circular references
+    const serializedOrders = JSON.parse(JSON.stringify(orders));
+
+    return (
+      <div>
+        <Suspense fallback={<Loader />}>
+          <Orders orders={serializedOrders} />
+        </Suspense>
+      </div>
+    );
+
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return <div>Error loading orders</div>;
+  }
 }
