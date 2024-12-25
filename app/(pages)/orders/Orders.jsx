@@ -5,16 +5,18 @@ import { useToast } from '@/hooks/use-toast';
 import { useUserContext } from "@/app/context/UserContext";
 import Image from 'next/image';
 import { ReorderConfirmationDialog } from '@/components/ReorderConfirmationDialog';
+import Loader from '@/components/loader/Loader';
 
 export default function Orders({ orders: initialOrders }) {
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeTab, setActiveTab] = useState('pending');
   const { globalUser, updateGlobalOrders } = useUserContext();
   const { toast } = useToast();
-
+  const [loading, setLoading] = useState(true);
   // Fetch fresh data when component mounts
   useEffect(() => {
+    setLoading(true)
     const fetchLatestOrders = async () => {
       try {
         const response = await fetch('/api/orders', {
@@ -30,12 +32,16 @@ export default function Orders({ orders: initialOrders }) {
         }
       } catch (error) {
         console.error('Error fetching latest orders:', error);
+      }finally{
+        setLoading(false)
+
       }
     };
 
     fetchLatestOrders();
   }, []);
 
+  
   // Filter orders based on user role and ID
   const filteredOrders = useMemo(() => {
     if (!orders || !globalUser) return [];
@@ -271,7 +277,7 @@ export default function Orders({ orders: initialOrders }) {
         </div>
       )}
       <h1 className="text-xl font-bold text-center mt-4">הזמנות שלי</h1>
-
+      
       <div className="flex justify-center mt-4">
         <div className="flex overflow-hidden rounded-md">
           {['pending', 'history'].map((tab, index) => (
@@ -296,15 +302,22 @@ export default function Orders({ orders: initialOrders }) {
           ))}
         </div>
       </div>
-
       <div className="mt-4">
-        <OrderTable 
-          orders={getOrdersByTab()} 
-          onShowDetails={showOrderDetails} 
-          activeTab={activeTab}
-          onReorder={handleReorder}
-          isReordering={isReordering}
-        />
+        
+  
+ {loading &&
+      <div className="text-center"><Loader/></div>
+  }
+        {  
+  Array.isArray(orders) && orders.length === 0 ? (
+    <div className="text-center text-gray-500">אין הזמנות חדשות</div>
+  )  : (
+          <OrderTable
+            orders={getOrdersByTab()}
+            onShowDetails={showOrderDetails}
+            activeTab={activeTab}
+          />
+        )}
       </div>
       <ReorderConfirmationDialog
         isOpen={showReorderDialog}
@@ -318,7 +331,7 @@ export default function Orders({ orders: initialOrders }) {
   );
 }
 
-function OrderTable({ orders, onShowDetails, activeTab, onReorder, isReordering }) {
+function OrderTable({ orders, onShowDetails, activeTab, onReorder, isReordering, loading }) {
   const { globalUser } = useUserContext();
 
   if (globalUser?.role === 'supplier') {
@@ -335,7 +348,10 @@ function OrderTable({ orders, onShowDetails, activeTab, onReorder, isReordering 
             <th className="border border-gray-300 px-4 py-2"></th>
           </tr>
         </thead>
+        
         <tbody>
+       
+
           {orders?.map((order) => (
             <tr 
               key={order?._id}
@@ -387,7 +403,9 @@ function OrderTable({ orders, onShowDetails, activeTab, onReorder, isReordering 
             <th className="border border-gray-300 px-4 py-2"></th>
           </tr>
         </thead>
+        
         <tbody>
+          
           {orders?.map((order) => (
             <tr key={order?._id}>
               <td className="border border-gray-300 px-4 py-2">

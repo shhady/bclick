@@ -1,50 +1,189 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-// Define public routes
-const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)',"/(.*)"]);
-// Define admin routes
+// In-memory rate limiting store
+const rateLimitStore = new Map();
+
+/**
+ * Rate limiting function
+ * @param {Request} request - Incoming request object
+ * @returns {boolean} - Whether the request should be blocked
+ */
+function rateLimit(request) {
+  const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000; // 15 minutes
+  const maxRequests = 100; // Limit each IP to 100 requests per window
+
+  const requestRecord = rateLimitStore.get(ip) || { count: 0, startTime: now };
+
+  // Reset the counter if the time window has passed
+  if (now - requestRecord.startTime > windowMs) {
+    rateLimitStore.set(ip, { count: 1, startTime: now });
+    return false; // Allow the request
+  }
+
+  if (requestRecord.count >= maxRequests) {
+    return true; // Block the request
+  }
+
+  // Increment the request count
+  requestRecord.count += 1;
+  rateLimitStore.set(ip, requestRecord);
+  return false; // Allow the request
+}
+
+// Define public and admin routes
+const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)']);
 const isAdminRoute = createRouteMatcher(['/admin(.*)']);
 
 export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
-    await auth.protect(); // Redirects to sign-in if not authenticated
+  // Apply rate limiting
+  if (rateLimit(request)) {
+    return new NextResponse('Too Many Requests', { status: 429 });
   }
 
-  // Get authentication and session details
+  // Add security headers
+  const response = NextResponse.next();
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+  response.headers.set(
+    'Strict-Transport-Security',
+    'max-age=31536000; includeSubDomains'
+  );
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+
+  // Add cache control for static assets
+  if (request.nextUrl.pathname.startsWith('/static/')) {
+    response.headers.set(
+      'Cache-Control',
+      'public, max-age=31536000, immutable'
+    );
+    return response;
+  }
+
+  // Allow public routes without authentication
+  if (isPublicRoute(request)) {
+    return response;
+  }
+
+  // Protect non-public routes
+  await auth.protect();
+
+  // Check admin role for admin routes
   const { sessionClaims } = await auth();
-
-  // if (!sessionClaims) {
-  //   console.log('No session claims found. Redirecting to sign-in.');
-  //   // Redirect to sign-in if the user is not authenticated
-  //   const signInUrl = new URL('/sign-in', req.url);
-  //   return NextResponse.redirect(signInUrl);
-  // }
-
-  // Debug: Log session claims to inspect metadata
-  console.log('Session Claims:', sessionClaims);
-
-  // Check for admin-specific routes
   if (isAdminRoute(request)) {
-    const role = sessionClaims.metadata?.role || 'client'; // Default to 'client' if role is missing
-    console.log('User Role:', role);
-
+    const role = sessionClaims.metadata?.role || 'client';
     if (role !== 'admin') {
-      console.log('User is not an admin. Redirecting to home.');
-      // If not an admin, redirect to the home page
       const homeUrl = new URL('/', request.url);
       return NextResponse.redirect(homeUrl);
     }
   }
 
-  // If all checks pass, allow the request to proceed
-  return NextResponse.next();
+  return response;
 });
 
 export const config = {
   matcher: [
-    // Match all routes except static assets or API routes
     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
     '/(api|trpc)(.*)',
   ],
 };
+
+
+// using Redis 
+
+
+// import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+// import { NextResponse } from 'next/server';
+
+// // In-memory rate limiting store
+// const rateLimitStore = new Map();
+
+// /**
+//  * Rate limiting function
+//  * @param {Request} request - Incoming request object
+//  * @returns {boolean} - Whether the request should be blocked
+//  */
+// function rateLimit(request) {
+//   const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+//   const now = Date.now();
+//   const windowMs = 15 * 60 * 1000; // 15 minutes
+//   const maxRequests = 100; // Limit each IP to 100 requests per window
+
+//   const requestRecord = rateLimitStore.get(ip) || { count: 0, startTime: now };
+
+//   // Reset the counter if the time window has passed
+//   if (now - requestRecord.startTime > windowMs) {
+//     rateLimitStore.set(ip, { count: 1, startTime: now });
+//     return false; // Allow the request
+//   }
+
+//   if (requestRecord.count >= maxRequests) {
+//     return true; // Block the request
+//   }
+
+//   // Increment the request count
+//   requestRecord.count += 1;
+//   rateLimitStore.set(ip, requestRecord);
+//   return false; // Allow the request
+// }
+
+// // Define public and admin routes
+// const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)']);
+// const isAdminRoute = createRouteMatcher(['/admin(.*)']);
+
+// export default clerkMiddleware(async (auth, request) => {
+//   // Apply rate limiting
+//   if (rateLimit(request)) {
+//     return new NextResponse('Too Many Requests', { status: 429 });
+//   }
+
+//   // Add security headers
+//   const response = NextResponse.next();
+//   response.headers.set('X-Frame-Options', 'DENY');
+//   response.headers.set('X-Content-Type-Options', 'nosniff');
+//   response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+//   response.headers.set(
+//     'Strict-Transport-Security',
+//     'max-age=31536000; includeSubDomains'
+//   );
+//   response.headers.set('X-XSS-Protection', '1; mode=block');
+
+//   // Add cache control for static assets
+//   if (request.nextUrl.pathname.startsWith('/static/')) {
+//     response.headers.set(
+//       'Cache-Control',
+//       'public, max-age=31536000, immutable'
+//     );
+//     return response;
+//   }
+
+//   // Allow public routes without authentication
+//   if (isPublicRoute(request)) {
+//     return response;
+//   }
+
+//   // Protect non-public routes
+//   await auth.protect();
+
+//   // Check admin role for admin routes
+//   const { sessionClaims } = await auth();
+//   if (isAdminRoute(request)) {
+//     const role = sessionClaims.metadata?.role || 'client';
+//     if (role !== 'admin') {
+//       const homeUrl = new URL('/', request.url);
+//       return NextResponse.redirect(homeUrl);
+//     }
+//   }
+
+//   return response;
+// });
+
+// export const config = {
+//   matcher: [
+//     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+//     '/(api|trpc)(.*)',
+//   ],
+// };

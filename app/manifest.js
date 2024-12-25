@@ -19,5 +19,7 @@ export default function manifest() {
           type: 'image/png',
         },
       ],
+      orientation: "portrait"
     }
   }
+  

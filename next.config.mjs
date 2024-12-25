@@ -1,30 +1,38 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    // Define domains and paths for optimized remote images
+    // Combine `remotePatterns` and `domains`
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'images.pexels.com',
-        pathname: '/**', // Allow all paths under this domain
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
-        pathname: '/**', // Allow all paths under this domain
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'img.clerk.com',
-        pathname: '/**', // Allow all paths under this domain
+        pathname: '/**',
       },
     ],
+    domains: ['res.cloudinary.com'], // Add additional domains
+    minimumCacheTTL: 60, // Use cache TTL from the second config
   },
- 
-  compress: true, // Enable gzip/brotli compression for faster page loads
-  reactStrictMode: true, // Enforce best practices with React strict mode
+
+  compress: true, // Enable compression
+  poweredByHeader: false, // Disable the `x-powered-by` header
+  generateEtags: true, // Enable ETags
+  reactStrictMode: true, // Enable strict mode
+  swcMinify: true, // Enable SWC minification
   experimental: {
-    serverActions: true, // Enable Server Actions
+    serverActions: {}, // Enable Server Actions
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production', // Remove console logs in production
   },
 };
 

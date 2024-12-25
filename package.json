@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postbuild": "next-sitemap"
   },
   "dependencies": {
     "@clerk/localizations": "^3.9.5",
@@ -16,12 +17,14 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "crypto": "^1.0.1",
+    "ioredis": "^5.4.2",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.460.0",
     "mongodb": "^6.10.0",
     "mongoose": "^8.8.2",
     "next": "15.0.3",
     "next-cloudinary": "^6.16.0",
+    "next-sitemap": "^4.2.3",
     "nodemailer": "^6.9.16",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",
