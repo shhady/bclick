@@ -3,6 +3,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { getCart, deleteCart } from '@/app/actions/cartActions';
 import { usePathname } from 'next/navigation';
+    
+import { useUserContext } from "@/app/context/UserContext";
 
 const CartContext = createContext();
 
@@ -11,12 +13,16 @@ export const CartProvider = ({ children }) => {
   const [itemCount, setItemCount] = useState(0);
   const pathName = usePathname();
   const isProfileOrOrders = pathName === '/profile' || pathName === '/orders';
+  const { globalUser, setGlobalUser, setError } = useUserContext();
 
   useEffect(() => {
     const fetchCart = async () => {
+      if(globalUser?.role === 'supplier') return;
       const pathParts = pathName.split('/');
       const clientId = pathParts[2];
       const supplierId = pathParts[pathParts.length - 1];
+     
+      // if(supplierId === 'catalog' || 'clients') return;
 
       if (isProfileOrOrders) setItemCount(null);
       if (clientId && supplierId) {
@@ -41,9 +47,13 @@ export const CartProvider = ({ children }) => {
   }, [pathName,isProfileOrOrders]);
 
   const fetchCartAgain = async () => {
+    if(globalUser?.role === 'supplier') return;
     const pathParts = pathName.split('/');
     const clientId = pathParts[2];
     const supplierId = pathParts[pathParts.length - 1];
+    console.log('================================', supplierId);
+
+    // if(supplierId === 'catalog' || 'clients') return;
 
     if (isProfileOrOrders) setItemCount(null);
     if (clientId && supplierId) {

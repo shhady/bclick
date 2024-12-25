@@ -21,7 +21,7 @@ const Navbar = () => {
   };
 
   const isProfileOrOrders = pathName === '/profile' || pathName === '/orders';
-
+  const isOrdersPage = pathName === '/orders'
   const handlePopup = (message) => {
     setPopupMessage(message);
     setTimeout(() => setPopupMessage(''), 3000); // Clear the popup message after 3 seconds
@@ -130,13 +130,13 @@ const Navbar = () => {
         <Link href="/orders" className={`flex flex-col items-center relative ${getIconColor('orders')}`}>
           <FaShoppingCart size={20} className="md:hidden" />
           <span className="text-xs md:text-base mt-1">הזמנות </span>
-
-          {/* Badge for pending orders */}
-          {globalUser?.orders?.filter((order) => order.status === 'pending').length > 0 && (
+        {isOrdersPage ? (<></>) :(<>{globalUser?.orders?.filter((order) => order.status === 'pending').length > 0 && (
             <span className="absolute top-0 left-4 md:left-7 bg-red-500 text-white rounded-full text-xs px-2">
               {globalUser?.orders?.filter((order) => order.status === 'pending').length}
             </span>
-          )}
+          )}</> )}
+          {/* Badge for pending orders */}
+         
         </Link>
         {/* Profile */}
         <Link href="/profile" className={`flex flex-col items-center ${getIconColor('profile')}`}>
