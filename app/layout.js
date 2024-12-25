@@ -2,27 +2,26 @@ import localFont from "next/font/local";
 import "./globals.css";
 import {
   ClerkProvider,
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  UserButton
-} from '@clerk/nextjs'
+} from '@clerk/nextjs';
 import { UserProvider } from '@/app/context/UserContext';
 import { CartProvider } from '@/app/context/CartContext';
-
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { heIL } from '@clerk/localizations';
 import { Rubik } from 'next/font/google';
 import Head from "next/head";
 
 const rubik = Rubik({
   subsets: ['latin'],
-  weight: ['400', '500', '700'], // Specify the weights you intend to use
-  display: 'swap', // Optional: controls font-display behavior
+  weight: ['400', '500', '700'],
+  display: 'swap',
 });
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 });
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
@@ -77,30 +76,33 @@ export const metadata = {
   },
 };
 
-
 export default function RootLayout({ children }) {
-  
   return (
-    <ClerkProvider>
-      <UserProvider>
-        <CartProvider>
-    <html lang="en" dir="rtl" className="bg-[#f8f8ff]">
-      <Head>
-      <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="shortcut icon" href="/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-<link rel="manifest" href="/site.webmanifest" />
+    <html 
+      lang="he" 
+      dir="rtl" 
+      className={`${geistSans.variable} ${geistMono.variable} bg-[#f8f8ff]`}
+    >
+        <Head>
+        <title>BClick - Manage Your Suppliers and Clients</title>
+        <meta name="description" content="BClick היא הפלטפורמה המתקדמת לניהול ספקים..." />
+        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
       </Head>
-      <body  className={`${rubik.className} bg-[#f8f8ff]`}
-> 
-
-        {children}
+      <body className={`${rubik.className} bg-[#f8f8ff]`}>
+        <ClerkProvider localization={heIL}>
+          <ErrorBoundary>
+            <UserProvider>
+              <CartProvider>
+                {children}
+              </CartProvider>
+            </UserProvider>
+          </ErrorBoundary>
+        </ClerkProvider>
       </body>
     </html>
-    </CartProvider>
-    </UserProvider>
-  </ClerkProvider>
   );
-}
-
+} 

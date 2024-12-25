@@ -193,6 +193,8 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
   };
   return (
     <div className="container mx-auto p-4">
+            {loadingAction && <div className="fixed w-full h-screen bg-black bg-opacity-25 top-0 left-0 z-50"></div>}
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-xl font-bold">מס&apos; הזמנה: {order?.orderNumber}</h1>

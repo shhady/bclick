@@ -10,7 +10,7 @@ export default function ManageCategoriesClient({ categoriesWithProductStatus ,su
   const [editCategoryName, setEditCategoryName] = useState("");
   const [openDeletePopup, setOpenDeletePopup] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-
+  const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false)
   const handleToggleStatus = async (categoryId, currentStatus) => {
     const newStatus = currentStatus === "shown" ? "hidden" : "shown";
     try {
@@ -81,7 +81,7 @@ export default function ManageCategoriesClient({ categoriesWithProductStatus ,su
 
   const handleCreateCategory = async () => {
     if (!newCategory.trim()) return;
-
+    setIsCreatingNewCategory(true)
     try {
       const response = await fetch("/api/categories/create", {
         method: "POST",
@@ -98,6 +98,9 @@ export default function ManageCategoriesClient({ categoriesWithProductStatus ,su
       }
     } catch (error) {
       console.error("Error creating category:", error);
+    } finally {
+      setIsCreatingNewCategory(false)
+
     }
   };
 
@@ -118,6 +121,7 @@ export default function ManageCategoriesClient({ categoriesWithProductStatus ,su
 
   return (
     <div className="p-6 max-w-2xl mx-auto mb-16">
+      {isCreatingNewCategory && <div className="fixed w-full h-screen bg-black bg-opacity-25 top-0 left-0 z-50"></div>}
       <h1 className="text-xl font-bold mb-4">ניהול קטגוריות</h1>
 
       <div className="mb-6">
@@ -132,7 +136,7 @@ export default function ManageCategoriesClient({ categoriesWithProductStatus ,su
           onClick={handleCreateCategory}
           className="bg-customBlue text-white px-4 py-2 rounded w-full"
         >
-          צור קטגוריה
+         {isCreatingNewCategory ? <span className="animate-pulse">יוצר קטגוריה...</span> : <>צור קטגוריה</>}
         </button>
       </div>
 

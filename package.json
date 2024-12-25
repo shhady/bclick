@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/localizations": "^3.9.5",
     "@clerk/nextjs": "^6.4.1",
     "@radix-ui/react-toast": "^1.2.2",
     "@shadcn/ui": "^0.0.4",
