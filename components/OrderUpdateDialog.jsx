@@ -56,7 +56,7 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
     });
 
     console.log('Updated items:', updatedItems);
-
+    
     const updatedOrder = {
       ...order,
       items: updatedItems,
@@ -156,12 +156,19 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
             </button>
             <button
               onClick={handleConfirm}
-              disabled={hasInvalidInputs || loadingAction === 'updating'}
+              disabled={hasInvalidInputs || loadingAction === 'updating'|| editedItems.length === 0 }
               className="px-4 py-2 bg-customBlue text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingAction === 'updating' ? 'מעדכן...' : 'עדכן הזמנה'}
+              
             </button>
+          
           </div>
+          {editedItems.length === 0 && (
+  <p className="text-center text-red-500 mt-4">
+    לא ניתן לעדכן הזמנה ללא פריטים
+  </p>
+)}
         </div>
       </div>
     </div>
