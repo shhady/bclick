@@ -21,8 +21,7 @@ export const CartProvider = ({ children }) => {
       const pathParts = pathName.split('/');
       const clientId = pathParts[2];
       const supplierId = pathParts[pathParts.length - 1];
-     
-      // if(supplierId === 'catalog' || 'clients') return;
+    
 
       if (isProfileOrOrders) setItemCount(null);
       if (clientId && supplierId) {
@@ -51,9 +50,6 @@ export const CartProvider = ({ children }) => {
     const pathParts = pathName.split('/');
     const clientId = pathParts[2];
     const supplierId = pathParts[pathParts.length - 1];
-    console.log('================================', supplierId);
-
-    // if(supplierId === 'catalog' || 'clients') return;
 
     if (isProfileOrOrders) setItemCount(null);
     if (clientId && supplierId) {
@@ -75,7 +71,6 @@ export const CartProvider = ({ children }) => {
   };
 
   const clearCart = async (clientId, supplierId) => {
-    console.log(clientId, supplierId);
     try {
       await deleteCart({ clientId, supplierId });
       setCart(null);

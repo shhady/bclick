@@ -15,7 +15,6 @@ export default function SupplierDetails({
 }) {
   const { globalUser, setGlobalUser, setError } = useUserContext();
 
-  console.log(globalUser);
   return (
     <div className= "sticky top-0 md:top-20 z-40">
       <div 

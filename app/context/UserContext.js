@@ -48,7 +48,6 @@ export function UserProvider({ children }) {
           const userData = await response.json();
           setGlobalUser(userData); // Set user in context
         } else {
-          console.log("Failed to fetch user data");
           setError("User not found");
         }
       } catch (err) {

@@ -35,7 +35,7 @@ export default async function SupplierPage({ params }) {
       status: relatedUser.status,
     }));
 
-    console.log(clients);
+   
   return (
     <>
     <Suspense fallback={<Loader/>}>

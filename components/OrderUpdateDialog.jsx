@@ -7,7 +7,6 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
 
   useEffect(() => {
     if (order) {
-      console.log('Setting initial items:', order.items);
       setEditedItems(order.items.map(item => {
         const available = stockInfo?.[item.productId._id]?.available || 0;
         const totalAvailable = available + item.quantity;
@@ -46,7 +45,6 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
 
     // Create updated items array with only changed quantities
     const updatedItems = editedItems.map(item => {
-      console.log('Processing item:', item);
       return {
         productId: item.productId._id,
         quantity: parseInt(item.quantity),
@@ -54,8 +52,6 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
         total: item.productId.price * parseInt(item.quantity)
       };
     });
-
-    console.log('Updated items:', updatedItems);
     
     const updatedOrder = {
       ...order,

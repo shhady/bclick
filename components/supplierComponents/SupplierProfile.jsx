@@ -9,7 +9,6 @@ export default function SupplierProfile() {
   const totalClients = globalUser?.relatedUsers?.length || 0; // Safely get the length of relatedUsers
   const totalProducts = globalUser?.products?.length || 0;
   const totalOrders = globalUser?.orders?.length || 0;
-  console.log(totalOrders);
   return (
     <div className="flex flex-col items-center space-y-2 p-6  md:mb-0">
         {/* Clients */}

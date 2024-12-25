@@ -10,7 +10,6 @@ const CatalogPage = dynamic(() => import('./CatalogComponent'))
 
 export default async function ProductsPage({ params }) {
   const { id } = await params; // Extract supplier ID from the route params
-    console.log(id);
   // Connect to the database
   await connectToDB();
 

@@ -33,7 +33,6 @@ export default function ClientComponent({
   };
   // const observer = useRef();
 
-  console.log(selectedCategoryId);
 
   return (
     <div className='mb-20'>

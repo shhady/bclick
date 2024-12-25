@@ -43,7 +43,6 @@ export const sendOrderStatusEmail = async (clientEmail, orderNumber, status, not
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', info.messageId);
     return info;
   } catch (error) {
     console.error('Detailed email error:', {

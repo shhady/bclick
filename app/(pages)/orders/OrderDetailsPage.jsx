@@ -52,15 +52,13 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
     setLoadingAction('updating');
     try {
       // Log the data being sent
-      console.log('UpdatedOrder:', updatedOrder);
-      console.log('Items to update:', updatedOrder.items);
+    
 
       const formattedItems = updatedOrder.items.map(item => ({
         productId: typeof item.productId === 'string' ? item.productId : item.productId._id,
         quantity: parseInt(item.quantity)
       }));
 
-      console.log('Formatted items:', formattedItems);
 
       const response = await fetch('/api/orders/update', {
         method: 'PUT',
@@ -286,7 +284,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
                     disabled={loadingAction !== null}
                     className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                   >
-                    {loadingAction === 'rejecting' ? 'דוחה הזמנה...' : 'דחיית הזמנה'}
+                    {loadingAction === 'rejecting' ? <span className='animate-pulse'> דוחה הזמנה...</span>  : 'דחיית הזמנה'}
                   </button>
                 </div>
               )}
@@ -299,14 +297,14 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
                     disabled={loadingAction !== null}
                     className="px-4 py-2 bg-blue-500 text-white rounded"
                   >
-                     {loadingAction === 'updating' ? 'מעדכן...' : 'עדכן הזמנה'}
+                     {loadingAction === 'updating' ? <span className='animate-pulse'> מעדכן...</span> : 'עדכן הזמנה'}
                   </button>
                   <button
                     onClick={() => handleDeleteOrder(order._id)}
                     disabled={loadingAction !== null}
                     className="px-4 py-2 bg-red-500 text-white rounded"
                   >
-                    {loadingAction === 'deleting' ? 'מוחק...' : 'מחק הזמנה'}
+                    {loadingAction === 'deleting' ? <span className='animate-pulse'>מוחק...</span>  : 'מחק הזמנה'}
                   </button>
                 </div>
               )}

@@ -10,30 +10,6 @@ export default function ClientProfile({user}) {
   const [suppliers, setSuppliers] = useState([]);
   const [message, setMessage] = useState('');
   const { globalUser } = useUserContext(); // Access the global user context
-console.log(user.relatedUsers);
-  // useEffect(() => {
-  //   const fetchSuppliers = async () => {
-  //     if (!globalUser || !globalUser._id) {
-  //       setMessage('Failed to fetch suppliers. Please try again later.');
-  //       return;
-  //     }
-
-  //     try {
-  //       const response = await fetch(`/api/clients/get-suppliers?clientId=${globalUser._id}`);
-  //       if (response.ok) {
-  //         const data = await response.json();
-  //         setSuppliers(data);
-  //       } else {
-  //         setMessage('Error fetching suppliers. Please try again later.');
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching suppliers:', error);
-  //       setMessage('Error fetching suppliers. Please try again later.');
-  //     }
-  //   };
-
-  //   fetchSuppliers();
-  // }, [globalUser]);
 
   return (
     <div className="flex flex-col items-center justify-center p-6">

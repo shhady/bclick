@@ -13,7 +13,7 @@ export default async function Page() {
 
   const user = await currentUser();
   const userId = user?.id;
-    console.log(user);
+   
   let userFetched = null;
   try {
     userFetched = await User.findOne({ clerkId: userId })
@@ -34,9 +34,7 @@ export default async function Page() {
             profileImage: user?.imageUrl,
             email:user?.emailAddresses[0].emailAddress,
         }
-        console.log('Fetched user from clerk:', userFetched);
     }
-    console.log('Fetched user:', userFetched);
   } catch (err) {
     console.error('Error fetching user:', err);
   }

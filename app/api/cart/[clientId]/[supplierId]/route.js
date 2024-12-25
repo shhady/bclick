@@ -10,7 +10,7 @@ export async function POST(req) {
 
     const { clientId, supplierId, items, total, tax, note } = await req.json();
 
-    const notesArray = note ? [{ message: note, date: new Date() }] : [];    console.log(note);
+    const notesArray = note ? [{ message: note, date: new Date() }] : [];    
     // Check stock availability for each product
     for (const item of items) {
       const product = await Product.findById(item.productId);

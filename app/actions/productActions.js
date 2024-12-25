@@ -7,7 +7,6 @@ export async function fetchProducts({ supplierId, categoryId, page = 1, limit = 
   try {
     await connectToDB();
 
-    console.log('Category ID:', categoryId);
 
     let products;
 

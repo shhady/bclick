@@ -4,7 +4,6 @@ import { connectToDB } from '@/utils/database';
 export async function POST(req) {
     try {
         const data = await req.json();
-        console.log(data);
 
         // Connect to the database
         await connectToDB();
@@ -16,9 +15,6 @@ export async function POST(req) {
             .lean();
 
         const nextClientNumber = lastUser?.clientNumber ? parseInt(lastUser.clientNumber) + 1 : 1;
-
-        console.log('Last User:', lastUser);
-        console.log('Next Client Number:', nextClientNumber);
 
         // Create a new user with the assigned client number
         const newUser = await User.create({

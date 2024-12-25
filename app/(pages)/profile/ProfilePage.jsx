@@ -68,7 +68,6 @@ export default function ProfilePage({ user,pendingOrdersCount,totalOrdersCount }
   }, [user, setGlobalUser]);
 
   const handleCreate = async () => {
-    console.log(formData);
     try {
       const response = await fetch('/api/users/add-user', {
         method: 'POST',
@@ -89,7 +88,6 @@ export default function ProfilePage({ user,pendingOrdersCount,totalOrdersCount }
   };
 
   const handleUpdate = async () => {
-    console.log(formData);
 
     try {
       const response = await fetch('/api/users/update-user', {

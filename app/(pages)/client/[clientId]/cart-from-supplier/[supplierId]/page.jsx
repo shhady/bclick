@@ -11,7 +11,6 @@ const CartPage = dynamic(() => import('./CartPage'));
 export default async function Page({ params }) {
   const { supplierId, clientId } = await params;
 
-  console.log('Received params:', await params);
   if (!supplierId || !clientId) {
     console.error('Missing supplierId or clientId:', { supplierId, clientId });
     redirect(`/client/${clientId}/supplier-catalog/${supplierId}`);
@@ -41,7 +40,6 @@ export default async function Page({ params }) {
       // redirect(`/client/${clientId}/supplier-catalog/${supplierId}`);
     }
 
-    console.log('Fetched cart:', cart);
   } catch (error) {
     console.error('Error fetching cart:', error);
     redirect(`/client/${clientId}/supplier-catalog/${supplierId}`);

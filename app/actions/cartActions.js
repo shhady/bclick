@@ -87,7 +87,6 @@ export async function updateCartItem({ clientId, supplierId, productId, quantity
 
   export async function getCart({ clientId, supplierId }) {
     await connectToDB();
-    console.log('Fetching cart for:', clientId, supplierId);
   
     try {
       const cart = await Cart.findOne({ clientId, supplierId })
@@ -96,10 +95,8 @@ export async function updateCartItem({ clientId, supplierId, productId, quantity
   
       if (cart) {
         const serializedCart = JSON.stringify(cart)
-        console.log('Cart found:', cart);
         return { success: true, serializedCart }; // Plain object returned
       } else {
-        console.log('Cart not found');
         return { success: false, message: 'Cart not found' };
       }
     } catch (error) {

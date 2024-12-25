@@ -18,7 +18,7 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
   const [favorites, setFavorites] = useState(initialFavorites);
   const [groupedProducts, setGroupedProducts] = useState({}); // Grouped products by category
 
-  console.log(products);
+  
   // Function to fetch products
   const fetchMoreProducts = async (reset = false) => {
     if (loading || (!hasMore && !reset)) return; // Prevent duplicate fetches or unnecessary fetches
@@ -130,7 +130,6 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
   useEffect(() => {
     const checkAndRefetch = async () => {
       if (Object.keys(groupedProducts).length === 0) {
-        console.log('No products found, refetching...');
         await fetchMoreProducts(true);
       }
     };
@@ -304,7 +303,6 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
 
   if (!product) return null;
   
-  console.log(error);
   return (
     <div
       className={`fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-end transition-opacity duration-300 ${

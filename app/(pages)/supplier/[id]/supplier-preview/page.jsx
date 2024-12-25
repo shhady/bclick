@@ -39,7 +39,7 @@ export default async function Page({ params }) {
         return [];
       }),
   ]);
-  console.log(products);
+ 
   // More robust serialization with error handling
   const serializedData = {
     supplier: supplier ? serializeSupplier(supplier) : null,

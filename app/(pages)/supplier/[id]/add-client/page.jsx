@@ -25,7 +25,6 @@ export default function AddClientPage() {
       const response = await fetch(`/api/users/find-client?query=${searchInput}`);
       if (response.ok) {
         const data = await response.json();
-        console.log(data);
         setClient(data);
         setMessage('');
       } else {

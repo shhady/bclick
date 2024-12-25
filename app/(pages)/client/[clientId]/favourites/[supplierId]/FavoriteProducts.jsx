@@ -243,8 +243,7 @@ export default function FavoriteProducts({supplier,categories,
         const [favorites, setFavorites] = useState(initialFavorites);
         const [selectedProduct, setSelectedProduct] = useState(null);
         const categoryRefs = useRef({}); // To store references for categories
-          console.log(favorites);
-    console.log(supplier);
+       
     const handleFavoriteToggle = useCallback(async (productId, isFavorite) => {
         try {
           const endpoint = isFavorite 
@@ -268,7 +267,7 @@ export default function FavoriteProducts({supplier,categories,
           console.error('Favorite toggle failed:', error);
         }
       }, [clientId, products]);
-      console.log(favorites);
+      
       const showProductDetail = (product) => {
         setSelectedProduct(product);
       };
@@ -281,7 +280,7 @@ export default function FavoriteProducts({supplier,categories,
           categoryRefs.current[categoryId].scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       };
-      console.log(favorites);
+      
   return (
     <div>
         <Suspense fallback={<Loader/>}>

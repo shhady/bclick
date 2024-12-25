@@ -25,7 +25,6 @@ export async function PUT(request) {
     try {
       // If updating quantities
       if (items) {
-        console.log('Received items:', items);
         
         // First, get all products to check stock
         const productIds = items.map(item => item.productId);
@@ -104,12 +103,10 @@ export async function PUT(request) {
 
       // If updating status
       if (status) {
-        console.log('Processing order status:', status);
         
         if (status === 'approved' || status === 'rejected') {
           for (const item of order.items) {
             const product = await Product.findById(item.productId._id);
-            console.log('Before update - Product:', product.name, 'Stock:', product.stock, 'Reserved:', product.reserved);
             
             if (!product) {
               throw new Error(`Product not found: ${item.productId._id}`);
@@ -133,7 +130,6 @@ export async function PUT(request) {
             }
 
             const updatedProduct = await Product.findById(product._id);
-            console.log('After update - Product:', updatedProduct.name, 'Stock:', updatedProduct.stock, 'Reserved:', updatedProduct.reserved);
           }
         }
 

@@ -9,7 +9,6 @@ export async function GET(req, { params }) {
       return new Response(JSON.stringify({ error: 'Clerk ID is missing.' }), { status: 400 });
     }
 
-    console.log("Received clerkId:", clerkId);
 
     // Connect to the database
     await connectToDB();
@@ -30,7 +29,6 @@ export async function GET(req, { params }) {
       return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
     }
 
-    console.log("Fetched user:", user);
 
     // Return the populated user data
     return new Response(JSON.stringify(user), { status: 200 });

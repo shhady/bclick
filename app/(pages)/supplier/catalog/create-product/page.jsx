@@ -40,11 +40,9 @@ export default function CreateProduct() {
   };
 
 
-  console.log(formData);
   useEffect(() => {
     const fetchCategories = async () => {
       if (!globalUser || !globalUser._id) {
-        console.log('globalUser is not ready:', globalUser);
         return;
       }
   

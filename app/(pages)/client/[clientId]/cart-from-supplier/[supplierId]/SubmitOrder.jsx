@@ -17,7 +17,6 @@ export default function SubmitOrder({ cart, clientId, supplierId }) {
     setShowConfirmation(true);
   };
 
-  console.log(note);
   const confirmOrder = async () => {
     setLoading(true);
     setErrorMessage('');

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-export function ReorderConfirmationDialog({ isOpen, onClose, onConfirm, order, stockInfo }) {
+export function ReorderConfirmationDialog({ isOpen, onClose, onConfirm, order, stockInfo ,isReordering}) {
   const [editedItems, setEditedItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +37,7 @@ export function ReorderConfirmationDialog({ isOpen, onClose, onConfirm, order, s
   if (!isOpen || loading) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-45 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
@@ -121,7 +121,7 @@ export function ReorderConfirmationDialog({ isOpen, onClose, onConfirm, order, s
               disabled={editedItems.some(item => item.hasError || item.quantity <= 0)}
               className="px-4 py-2 bg-customBlue text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              אשר הזמנה
+            {isReordering ? (<span className='animate-pulse'>מאשר הזמנה...</span>):(<>אשר הזמנה</>)}  
             </button>
           </div>
         </div>

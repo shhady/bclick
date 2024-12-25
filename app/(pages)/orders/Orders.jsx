@@ -312,6 +312,7 @@ export default function Orders({ orders: initialOrders }) {
         onConfirm={handleReorderConfirm}
         order={selectedReorder}
         stockInfo={stockInfo}
+        isReordering={isReordering}
       />
     </div>
   );

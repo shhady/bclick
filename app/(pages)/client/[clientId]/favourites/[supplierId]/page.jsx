@@ -67,7 +67,6 @@ export default async function Page({ params }) {
 
   };
  
-  console.log(favourites);
   return (
     <div className="mb-20">
       {/* <h1 className="text-2xl font-bold my-6">

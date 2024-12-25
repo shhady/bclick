@@ -4,10 +4,8 @@ import { Trash2 } from "lucide-react";
 export default function EditProductPopup({ product, categories, onUpdate, onDelete, onClose }) {
   const [updatedProduct, setUpdatedProduct] = React.useState({ ...product });
   const [openDeletePopup, setOpenDeletePopup] = React.useState(false)
-  console.log(updatedProduct);
   const handleChange = (field, value) => {
     setUpdatedProduct((prev) => ({ ...prev, [field]: value }));
-    console.log(updatedProduct);
   };
 
   const deletePopup = ()=>{

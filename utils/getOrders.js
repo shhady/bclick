@@ -14,7 +14,6 @@ export async function getOrders() {
       .lean()  // Convert to plain JavaScript objects
       .cache(false);  // Disable Mongoose caching
 
-    console.log('Total orders found:', orders.length);
     
     return JSON.parse(JSON.stringify(orders));
   } catch (error) {
