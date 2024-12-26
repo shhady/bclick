@@ -13,10 +13,8 @@ export default function Orders({ orders: initialOrders }) {
   const [activeTab, setActiveTab] = useState('pending');
   const { globalUser, updateGlobalOrders } = useUserContext();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
   // Fetch fresh data when component mounts
   useEffect(() => {
-    setLoading(true)
     const fetchLatestOrders = async () => {
       try {
         const response = await fetch('/api/orders', {
@@ -32,10 +30,8 @@ export default function Orders({ orders: initialOrders }) {
         }
       } catch (error) {
         console.error('Error fetching latest orders:', error);
-      }finally{
-        setLoading(false)
-
       }
+      
     };
 
     fetchLatestOrders();
@@ -305,9 +301,7 @@ export default function Orders({ orders: initialOrders }) {
       <div className="mt-4">
         
   
- {loading &&
-      <div className="text-center"><Loader/></div>
-  }
+ 
         {  
   Array.isArray(orders) && orders.length === 0 ? (
     <div className="text-center text-gray-500">אין הזמנות חדשות</div>
@@ -316,6 +310,7 @@ export default function Orders({ orders: initialOrders }) {
             orders={getOrdersByTab()}
             onShowDetails={showOrderDetails}
             activeTab={activeTab}
+            onReorder={handleReorder}
           />
         )}
       </div>
