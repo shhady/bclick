@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
 import Image from 'next/image';
 import { memo } from 'react';
@@ -7,30 +7,33 @@ export default memo(function ProductCard({ product, showProductDetail, cart }) {
   return (
     <div
       onClick={() => showProductDetail(product)}
-      className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center bg-white"
+      className="aspect-[3/4] border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col bg-white"
     >
-      <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded">
+      <div className="relative aspect-square w-full mb-4">
         <Image
           src={product?.imageUrl?.secure_url || '/no-image.jpg'}
           alt={product.name}
-          width={160}
-          height={160}
-          className="object-contain max-h-full"
-          loading="lazy"
+          fill
+          className="object-contain rounded"
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 16vw"
+          priority={false}
+          loading="lazy"
         />
       </div>
-      <h2 className="text-sm font-bold mt-2">{product.name}</h2>
-      <p className="text-gray-600 mt-1">משקל: {product?.weight}</p>
-      <p className="text-gray-600 mt-1">מחיר: ₪{product?.price}</p>
-      <div className='flex justify-center items-center gap-4'>
-        <p className="text-gray-600">
-          {cart?.items.find((item) => item.productId?._id === product?._id)
-            ? <span className='text-customBlue'>עדכן כמות</span>
-            : ''}
-        </p>
-        {product.stock - (product.reserved || 0) === 0 && 
-          <p className="text-red-500">אינו זמין במלאי</p>}
+      <div className="flex-1 flex flex-col">
+        <h2 className="text-sm font-bold line-clamp-2 min-h-[40px]">{product.name}</h2>
+        <div className="mt-auto space-y-1">
+          <p className="text-gray-600 text-sm">משקל: {product?.weight || '-'}</p>
+          <p className="text-gray-600 text-sm">מחיר: ₪{product?.price || '-'}</p>
+          <div className='flex justify-between items-center gap-2 min-h-[24px]'>
+            {cart?.items.find((item) => item.productId?._id === product?._id) && (
+              <span className='text-customBlue text-sm'>עדכן כמות</span>
+            )}
+            {product.stock - (product.reserved || 0) === 0 && (
+              <span className="text-red-500 text-sm">אינו זמין במלאי</span>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
