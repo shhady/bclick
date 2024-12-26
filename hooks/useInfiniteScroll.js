@@ -1,42 +1,42 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
-export default function useInfiniteScroll({ 
-  onLoadMore, 
-  hasMore, 
-  isLoading 
-}) {
-  const observerRef = useRef(null);
+export function useInfiniteScroll(loadMore, options = {}) {
+  const {
+    loading = false,
+    hasMore = true,
+    threshold = '100px',
+    initialFetchDone = false
+  } = options;
 
-  useEffect(() => {
-    // Only set up observer if more content can be loaded and not currently loading
-    if (!hasMore || isLoading) return;
+  const observerRef = useRef();
 
-    // Create Intersection Observer
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Trigger load more when target is fully visible
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
-          onLoadMore();
-        }
-      },
-      { 
-        threshold: 1.0, // Fully visible
-        rootMargin: '0px' 
-      }
-    );
+  const lastElementRef = useCallback(node => {
+    if (loading) return;
 
-    // Observe the target element
     if (observerRef.current) {
-      observer.observe(observerRef.current);
+      observerRef.current.disconnect();
     }
 
-    // Cleanup observer
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore && initialFetchDone) {
+        loadMore();
+      }
+    }, {
+      rootMargin: threshold
+    });
+
+    if (node) {
+      observerRef.current.observe(node);
+    }
+  }, [loading, hasMore, initialFetchDone, loadMore]);
+
+  useEffect(() => {
     return () => {
       if (observerRef.current) {
-        observer.unobserve(observerRef.current);
+        observerRef.current.disconnect();
       }
     };
-  }, [hasMore, isLoading, onLoadMore]);
+  }, []);
 
-  return { observerRef };
+  return lastElementRef;
 }

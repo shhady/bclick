@@ -2,98 +2,192 @@
 import { fetchProducts } from '@/app/actions/productActions';
 import Loader from '@/components/loader/Loader';
 import Image from 'next/image';
-import { useEffect, useState, useRef,useCallback } from 'react';
+import { useEffect, useState, useRef,useCallback, memo, useMemo } from 'react';
 import StarToggle from '../StarToggle';
 import { addToCart,getCart } from '@/app/actions/cartActions';
 import { useCartContext } from '@/app/context/CartContext';
+import dynamic from 'next/dynamic';
 
-export default function ProductsOfCategory({ cart,favorites: initialFavorites, clientId, supplierId, categoryId, limit = 10 }) {
-  const [products, setProducts] = useState([]); // Store all fetched products
-  const [page, setPage] = useState(1); // Track the current page
-  const [loading, setLoading] = useState(false); // Track loading state
-  const [hasMore, setHasMore] = useState(true); // Track if more products are available
-  const [initialFetchDone, setInitialFetchDone] = useState(false); // Track if the initial fetch is complete
-  const observerRef = useRef(); // Ref for the Intersection Observer
+const ProductSkeleton = memo(() => (
+  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
+    {Array.from({ length: 4 }).map((_, index) => (
+      <div key={index} className="border p-4 rounded-lg shadow flex flex-col items-center animate-pulse">
+        <div className="w-full h-40 bg-gray-300 rounded"></div>
+        <div className="w-3/4 h-4 bg-gray-300 rounded mt-4"></div>
+        <div className="w-1/2 h-4 bg-gray-300 rounded mt-2"></div>
+        <div className="w-1/3 h-4 bg-gray-300 rounded mt-2"></div>
+      </div>
+    ))}
+  </div>
+));
+
+const ProductCard = memo(({ product, showProductDetail, cart }) => (
+  <div
+    onClick={() => showProductDetail(product)}
+    className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center bg-white"
+  >
+    <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded">
+      <Image
+        src={product?.imageUrl?.secure_url || '/no-image.jpg'}
+        alt={product.name}
+        width={160}
+        height={160}
+        className="object-contain max-h-full"
+        loading="lazy"
+        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 16vw"
+      />
+    </div>
+    <h2 className="text-sm font-bold mt-2">{product.name}</h2>
+    <p className="text-gray-600 mt-1">משקל: {product?.weight}</p>
+    <p className="text-gray-600 mt-1">מחיר: ₪{product?.price}</p>
+    <div className='flex justify-center items-center gap-4'>
+<p className="text-gray-600">
+{cart?.items.find((item) => item.productId?._id === product?._id)
+  ? <span className='text-customBlue'>עדכן כמות</span>
+  : ''}
+</p>
+{product.stock - (product.reserved || 0) === 0 && <p className="text-red-500">אינו זמין במלאי</p>}
+</div>
+  </div>
+), (prevProps, nextProps) => {
+  return prevProps.product._id === nextProps.product._id &&
+         prevProps.cart?.items?.length === nextProps.cart?.items?.length;
+});
+
+
+
+export default function ProductsOfCategory({ cart, favorites: initialFavorites, clientId, supplierId, categoryId, limit = 10 }) {
+  const [groupedProducts, setGroupedProducts] = useState({});
+  const [loadingState, setLoadingState] = useState({
+    loading: false,
+    hasMore: true,
+    initialFetchDone: false,
+    page: 1,
+    error: null
+  });
+  const observerRef = useRef();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [favorites, setFavorites] = useState(initialFavorites);
-  const [groupedProducts, setGroupedProducts] = useState({}); // Grouped products by category
 
-  
+  // Memoize flattened products for favorites functionality
+  const allProducts = useMemo(() => 
+    Object.values(groupedProducts).flat(),
+    [groupedProducts]
+  );
+
   // Function to fetch products
-  const fetchMoreProducts = async (reset = false) => {
-    if (loading || (!hasMore && !reset)) return; // Prevent duplicate fetches or unnecessary fetches
-
-    setLoading(true); // Start loading
+  const fetchMoreProducts = useCallback(async (reset = false) => {
+    if (loadingState.loading) return;
+    
+    setLoadingState(prev => ({ 
+      ...prev, 
+      loading: true, 
+      error: null,
+      page: reset ? 1 : prev.page 
+    }));
+    
     try {
-      const nextPage = reset ? 1 : page; // Start from page 1 if reset
-      const newProducts = await fetchProducts({ supplierId, categoryId, page: nextPage, limit });
+      const response = await fetchProducts({ 
+        supplierId, 
+        categoryId, 
+        page: reset ? 1 : loadingState.page,
+        limit 
+      });
 
-      if (newProducts.length === 0) {
-        setHasMore(false); // No more products available
-      }   const grouped = newProducts.reduce((acc, product) => {
+      const { products: newProducts, pagination } = response;
+
+      if (!newProducts?.length) {
+        setLoadingState(prev => ({ 
+          ...prev, 
+          hasMore: false, 
+          loading: false,
+          initialFetchDone: true 
+        }));
+        return;
+      }
+
+      // Group products by category
+      const grouped = newProducts.reduce((acc, product) => {
         const { categoryName } = product;
         if (!acc[categoryName]) acc[categoryName] = [];
         acc[categoryName].push(product);
         return acc;
       }, {});
 
-      setGroupedProducts((prevGroups) => {
-        if (reset) {
-          return grouped;
-        } else {
-          // Merge with existing groups
-          const updatedGroups = { ...prevGroups };
-          Object.keys(grouped).forEach((category) => {
-            if (!updatedGroups[category]) updatedGroups[category] = [];
-            updatedGroups[category] = [
-              ...updatedGroups[category],
-              ...grouped[category],
-            ];
-          });
-          return updatedGroups;
-        }
+      setGroupedProducts(prevGroups => {
+        if (reset) return grouped;
+
+        // Merge with existing groups
+        const updatedGroups = { ...prevGroups };
+        Object.entries(grouped).forEach(([category, products]) => {
+          if (!updatedGroups[category]) {
+            updatedGroups[category] = products;
+          } else {
+            const existingIds = new Set(updatedGroups[category].map(p => p._id));
+            const uniqueProducts = products.filter(p => !existingIds.has(p._id));
+            updatedGroups[category] = [...updatedGroups[category], ...uniqueProducts];
+          }
+        });
+        return updatedGroups;
       });
 
-      setPage(reset ? 2 : page + 1); // Reset to page 2 or increment the current page
-    
+      setLoadingState(prev => ({
+        ...prev,
+        page: prev.page + 1,
+        loading: false,
+        initialFetchDone: true,
+        hasMore: loadingState.page < pagination.pages
+      }));
     } catch (error) {
       console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false); // Stop loading
-      setInitialFetchDone(true); // Mark initial fetch as complete
+      setLoadingState(prev => ({ 
+        ...prev, 
+        loading: false,
+        error: 'Failed to load products. Please try again.',
+        hasMore: true
+      }));
     }
-  };
+  }, [supplierId, categoryId, limit, loadingState.page]);
 
-  // Initial fetch and category change handler
+  // Reset and initial fetch when category changes
   useEffect(() => {
-    setGroupedProducts({}); // Reset grouped products when category changes
-
-    setProducts([]); // Reset products when category changes
-    setPage(1); // Reset page to 1
-    setHasMore(true); // Reset hasMore
-    setInitialFetchDone(false); // Reset initial fetch tracker
-    fetchMoreProducts(true); // Fetch the first batch of products
-  }, [supplierId, categoryId]);
+    setGroupedProducts({});
+    setLoadingState({
+      loading: false,
+      hasMore: true,
+      initialFetchDone: false,
+      page: 1,
+      error: null
+    });
+    fetchMoreProducts(true);
+  }, [categoryId]);
 
   // Intersection Observer for infinite scrolling
   useEffect(() => {
-    if (!initialFetchDone) return; // Wait for the initial fetch to complete
-  
+    if (!loadingState.initialFetchDone || loadingState.loading || !loadingState.hasMore) return;
+
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          fetchMoreProducts(); // Fetch more products when the sentinel is visible
+      entries => {
+        if (entries[0].isIntersecting) {
+          fetchMoreProducts(false);
         }
       },
-      { threshold: 1.0 } // Trigger when the sentinel is fully visible
+      { rootMargin: '100px' }
     );
-  
-    if (observerRef.current) observer.observe(observerRef.current);
-  
+
+    const currentObserver = observer;
+    const currentRef = observerRef.current;
+
+    if (currentRef) {
+      currentObserver.observe(currentRef);
+    }
+
     return () => {
-      if (observerRef.current) observer.unobserve(observerRef.current);
+      if (currentRef) {
+        currentObserver.unobserve(currentRef);
+      }
     };
-  }, [loading, hasMore, initialFetchDone]);
+  }, [loadingState.initialFetchDone, loadingState.loading, loadingState.hasMore, fetchMoreProducts]);
 
   const closeProductDetail = () => {
     setSelectedProduct(null);
@@ -114,98 +208,62 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
       if (response.ok) {
         setFavorites(current => 
           isFavorite 
-            ? [...current, products.find(p => p._id === productId)]
+            ? [...current, allProducts.find(p => p._id === productId)]
             : current.filter(p => p._id !== productId)
         );
       }
     } catch (error) {
       console.error('Favorite toggle failed:', error);
     }
-  }, [clientId, products]);
+  }, [clientId, allProducts]);
 
   const showProductDetail = (product) => {
     setSelectedProduct(product);
   };
 
-  useEffect(() => {
-    const checkAndRefetch = async () => {
-      if (Object.keys(groupedProducts).length === 0) {
-        await fetchMoreProducts(true);
-      }
-    };
-  
-    checkAndRefetch();
-  }, [groupedProducts]);
   return (
     <div>
       <div>
-      {Object.keys(groupedProducts).length > 0 ? (
-  Object.keys(groupedProducts).map((categoryName) => (
-    <div key={categoryName} className="mt-8">
-      <h2 className="text-2xl font-bold mb-4">{categoryName}</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 px-2">
-        {groupedProducts[categoryName].length > 0 ? (
-          groupedProducts[categoryName].map((product) => (
-            <div
-              key={product._id}
-              onClick={() => showProductDetail(product)}
-              className="cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center bg-white"
-            >
-              <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded">
-                <Image
-                  src={product?.imageUrl?.secure_url || '/no-image.jpg'}
-                  alt={product.name}
-                  width={160}
-                  height={160}
-                  className="object-contain max-h-full"
-                />
+        {Object.keys(groupedProducts).length > 0 ? (
+          Object.keys(groupedProducts).map((categoryName) => (
+            <div key={categoryName} className="mt-8">
+              <h2 className="text-2xl font-bold mb-4">{categoryName}</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 px-2">
+                {groupedProducts[categoryName].map((product) => (
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    showProductDetail={showProductDetail}
+                    cart={cart}
+                  />
+                ))}
               </div>
-              <h2 className="text-sm font-bold mt-2">{product.name}</h2>
-              <p className="text-gray-600 mt-1">משקל: {product?.weight}</p>
-              <p className="text-gray-600 mt-1">מחיר: ₪{product?.price}</p>
-              <div className='flex justify-center items-center gap-4'>
-<p className="text-gray-600">
-{cart?.items.find((item) => item.productId?._id === product?._id)
-  ? <span className='text-customBlue'>עדכן כמות</span>
-  : ''}
-</p>
-{product.stock - (product.reserved || 0) === 0 && <p className="text-red-500">אינו זמין במלאי</p>}
-</div>
             </div>
           ))
         ) : (
-          <p className="text-gray-600 mt-4">אין מוצרים בקטגוריה זו.</p>
+          <div className="text-center mt-4">
+            <p className="text-gray-600">טוען מוצרים...</p>
+          </div>
         )}
+
+        {loadingState.error && (
+          <div className="text-center py-4">
+            <p className="text-red-500 mb-2">{loadingState.error}</p>
+            <button 
+              onClick={() => fetchMoreProducts(false)}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              נסה שוב
+            </button>
+          </div>
+        )}
+
+        <div ref={observerRef} className="h-20 w-full">
+          {loadingState.loading && <ProductSkeleton />}
+        </div>
       </div>
-    </div>
-  ))
-) : (
-  <div className="text-center mt-4">
-    <p className="text-gray-600">טוען מוצרים...</p>
-  </div>
-)}
-      {loading && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
-    {Array.from({ length: 4 }).map((_, index) => (
-      <div
-        key={index}
-        className="border p-4 rounded-lg shadow flex flex-col items-center animate-pulse"
-      >
-        {/* Skeleton Image */}
-        <div className="w-full h-40 bg-gray-300 rounded"></div>
-        {/* Skeleton Text */}
-        <div className="w-3/4 h-4 bg-gray-300 rounded mt-4"></div>
-        <div className="w-1/2 h-4 bg-gray-300 rounded mt-2"></div>
-        <div className="w-1/3 h-4 bg-gray-300 rounded mt-2"></div>
-      </div>
-    ))}
-  </div>
-      )}
-     {hasMore && (
-    <div ref={observerRef} className="h-1 w-full"></div>
-  )}
-    </div>
-        <ProductDetailModal 
+
+      <ProductDetailModal 
         product={selectedProduct}
         isVisible={!!selectedProduct}
         onClose={closeProductDetail}
@@ -303,6 +361,7 @@ export default function ProductsOfCategory({ cart,favorites: initialFavorites, c
 
   if (!product) return null;
   
+  console.log(error);
   return (
     <div
       className={`fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-end transition-opacity duration-300 ${

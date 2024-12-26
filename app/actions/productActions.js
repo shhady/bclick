@@ -3,69 +3,90 @@
 import { connectToDB } from '@/utils/database';
 import Product from '@/models/product';
 
+// Helper function to delay execution
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 export async function fetchProducts({ supplierId, categoryId, page = 1, limit = 10 }) {
-  try {
-    await connectToDB();
+  let retries = 3; // Number of retries
+  
+  while (retries > 0) {
+    try {
+      await connectToDB();
 
-
-    let products;
-
-    if (categoryId === 'all-products') {
-      // Fetch all products for the supplier where the category status is "shown"
-      products = await Product.find({
+      let query = {
         supplierId,
-        status: { $in: ['active', 'out_of_stock'] },
-      })
+        status: { $in: ['active', 'out_of_stock'] }
+      };
+
+      if (categoryId !== 'all-products') {
+        query.categoryId = categoryId;
+      }
+
+      // First get total count
+      const total = await Product.countDocuments(query);
+
+      // Then get paginated products with smaller batch size
+      let products = await Product.find(query)
         .populate({
           path: 'categoryId',
-          match: { status: 'shown' }, // Ensure the category status is "shown"
-          select: 'name status', // Only fetch the name and status fields
+          match: { status: 'shown' },
+          select: 'name status'
         })
-        .sort({ categoryId: 1, createdAt: -1 }) // Sort by categoryId and then by createdAt (descending)
+        .sort({ categoryId: 1, createdAt: -1 })
         .skip((page - 1) * limit)
-        .limit(limit);
-    } else {
-      // Fetch products for the specific category
-      products = await Product.find({
-        supplierId,
-        categoryId,
-        status: { $in: ['active', 'out_of_stock'] },
-      })
-        .populate({
-          path: 'categoryId',
-          match: { status: 'shown' }, // Ensure the category status is "shown"
-          select: 'name', // Only fetch the name field
-        })
-        .sort({ createdAt: -1 }) // Sort by createdAt (descending)
-        .skip((page - 1) * limit)
-        .limit(limit);
+        .limit(limit)
+        .lean()
+        .batchSize(5); // Reduce batch size
+
+      // Filter and transform products
+      products = products
+        .filter(product => product.categoryId)
+        .map(product => ({
+          _id: product._id.toString(),
+          name: product.name,
+          price: product.price,
+          categoryId: product.categoryId?._id.toString(),
+          categoryName: product.categoryId?.name || 'Unknown Category',
+          supplierId: product.supplierId.toString(),
+          createdAt: product.createdAt,
+          updatedAt: product.updatedAt,
+          imageUrl: product.imageUrl || {},
+          units: product.units || '',
+          weight: product.weight || '',
+          weightUnit: product.weightUnit || '',
+          barCode: product.barCode || '',
+          status: product.status,
+          stock: product.stock,
+          description: product.description,
+          reserved: product.reserved
+        }));
+
+      return {
+        products,
+        pagination: {
+          total,
+          pages: Math.ceil(total / limit),
+          page,
+          limit
+        }
+      };
+
+    } catch (error) {
+      retries--;
+      if (retries === 0) {
+        console.error('Error fetching products:', error);
+        return {
+          products: [],
+          pagination: {
+            total: 0,
+            pages: 0,
+            page,
+            limit
+          }
+        };
+      }
+      // Wait before retrying (exponential backoff)
+      await delay(1000 * (3 - retries));
     }
-
-    // Filter out products where the category does not match the "shown" status
-    products = products.filter(product => product.categoryId);
-
-    // Map the products to include category name and ensure unique entries
-    return products.map((product) => ({
-      _id: product._id.toString(),
-      name: product.name,
-      price: product.price,
-      categoryId: product.categoryId?._id.toString() || null, // Handle cases where category might not exist
-      categoryName: product.categoryId?.name || 'Unknown Category', // Include category name
-      supplierId: product.supplierId.toString(),
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt,
-      imageUrl: product.imageUrl || {},
-      units: product.units || '',
-      weight: product.weight || '',
-      weightUnit: product.weightUnit || '',
-      barCode: product.barCode || '',
-      status: product.status,
-      stock: product.stock,
-      description:product.description,
-      reserved:product.reserved
-    }));
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    return [];
   }
 }

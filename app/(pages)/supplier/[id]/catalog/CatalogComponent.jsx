@@ -27,33 +27,7 @@ export default function CatalogPage({sProducts, sCategories}) {
   useEffect(()=>{
     setLowStockNotification(products.some((product) => product.stock === 0));
   },[products])
-//   useEffect(() => {
-//     if (!globalUser || !globalUser._id) return;
 
-//     const fetchProductsAndCategories = async () => {
-//       try {
-//         const [productsRes, categoriesRes] = await Promise.all([
-//           fetch(`/api/products/get-supplier-products?supplierId=${globalUser._id}`),
-//           fetch(`/api/categories/get-categories?supplierId=${globalUser._id}`),
-//         ]);
-
-//         if (productsRes.ok) {
-//           const productsData = await productsRes.json();
-//           setProducts(productsData);
-//           setLowStockNotification(productsData.some((product) => product.stock === 0));
-//         }
-
-//         if (categoriesRes.ok) {
-//           const categoriesData = await categoriesRes.json();
-//           setCategories(categoriesData);
-//         }
-//       } catch (error) {
-//         console.error("Error fetching data:", error);
-//       }
-//     };
-
-//     fetchProductsAndCategories();
-//   }, [globalUser]);
 
   useEffect(() => {
     const filtered = products.filter((product) => {
@@ -179,15 +153,7 @@ export default function CatalogPage({sProducts, sCategories}) {
      </Suspense>
     
       </div>
-      {/* {editingProduct && (
-        <EditProductPopup
-          product={editingProduct}
-          categories={categories}
-          onUpdate={handleUpdateProduct}
-          onDelete={handleDeleteProduct}
-          onClose={() => setEditingProduct(null)}
-        />
-      )} */}
+     
     </div>
   );
 }

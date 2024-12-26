@@ -19,89 +19,83 @@ export const revalidate = 60; // Cache for 60 seconds
 
 export default async function Page({ params }) {
   const { id, clientId } = await params;
-  await connectToDB()
-  // Parallel data fetching
-  const [supplier, categories, favourites, products, cart] = await Promise.all([
-    User.findById(id).lean().catch((err) => {
-      console.error('User fetch failed:', err);
-      return null;
-    }),
-    Category.find({ supplierId: id, status: 'shown' }).lean().catch((err) => {
-      console.error('Category fetch failed:', err);
-      return [];
-    }),
-    Favourite.findOne({ clientId })
-      .populate('productIds')
-      .lean()
-      .catch((err) => {
-        console.error('Favourites fetch failed:', err);
-        return null;
-      }),
-    Product.find({
-      supplierId: id,
-      status: { $in: ['active', 'out_of_stock'] },
+  await connectToDB();
+
+  // Optimize queries with specific field selection
+  const [supplier, categories, favourites, cart] = await Promise.all([
+    User.findById(id)
+      .select('name email phone address logo coverImage businessName city country')
+      .lean(),
+    
+    Category.find({ 
+      supplierId: id, 
+      status: 'shown' 
     })
+      .select('name status order supplierId')
+      .lean(),
+    
+    Favourite.findOne({ clientId })
+      .populate('productIds', 'name price imageUrl')
+      .lean(),
+    
+    Cart.findOne({ clientId, supplierId: id })
+      .populate('items.productId', 'name price stock reserved imageUrl')
       .lean()
-      .catch((err) => {
-        console.error('Product fetch failed:', err);
-        return [];
-      }),
-       Cart.findOne({ clientId, supplierId:id })
-      .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
-      .lean().catch((err) => {
-        console.error('Cart fetch failed:', err);
-        return [];
-      })
   ]);
-  // More robust serialization with error handling
+
+  // Remove products fetch from initial load
   const serializedData = {
-    supplier: supplier ? serializeSupplier(supplier) : null,
-    categories: categories ? categories.map(serializeCategory) : [],
-    products: products ? products.map(serializeProduct) : [],
+    supplier: serializeSupplier(supplier || {}),
+    categories: categories?.map(serializeCategory) || [],
     favorites: favourites?.productIds?.map(serializeProduct) || [],
     cart: cart ? serializeCart(cart) : null
-
   };
-    
+
   if (!supplier) {
-    console.error('Supplier not found for ID:', id);
     return <h1>Supplier Not Found</h1>;
   }
+
   return <ClientComponent {...serializedData} clientId={clientId} />;
 }
 
 // Extracted serialization functions for reusability
 function serializeSupplier(supplier) {
+  if (!supplier) return null;
+  
   return {
     ...supplier,
-    _id: supplier._id.toString(),
+    _id: supplier._id?.toString() || '',
     relatedUsers: supplier.relatedUsers?.map((relUser) => ({
       ...relUser,
-      _id: relUser._id.toString(),
-      user: relUser.user.toString(),
+      _id: relUser._id?.toString() || '',
+      user: relUser.user?.toString() || '',
     })) || [],
-    orders: supplier.orders?.map((orderId) => orderId.toString()) || [],
-    products: supplier.products?.map((productId) => productId.toString()) || [],
+    orders: supplier.orders?.map(orderId => orderId?.toString() || '') || [],
+    products: supplier.products?.map(productId => productId?.toString() || '') || [],
     createdAt: supplier.createdAt?.toISOString() || null,
     updatedAt: supplier.updatedAt?.toISOString() || null,
   };
 }
 
 function serializeCategory(category) {
+  if (!category) return null;
+  
   return {
     ...category,
-    _id: category._id.toString(),
-    supplierId: category.supplierId.toString(),
+    _id: category._id?.toString() || '',
+    supplierId: category.supplierId?.toString() || '',
   };
 }
 
 function serializeProduct(product) {
+  if (!product) return null;
+  
   return {
     ...product,
-    _id: product._id.toString(),
-    categoryId: product.categoryId?.toString() || null,
-    supplierId: product.supplierId?.toString() || null,
-    stock: product.stock, // Ensure stock field is included
+    _id: product._id?.toString() || '',
+    categoryId: product.categoryId?.toString() || '',
+    supplierId: product.supplierId?.toString() || '',
+    stock: product.stock || 0,
   };
 }
 
@@ -110,15 +104,15 @@ function serializeCart(cart) {
 
   return {
     ...cart,
-    _id: cart._id?.toString() || null,
-    supplierId: cart.supplierId?.toString() || null,
-    clientId: cart.clientId?.toString() || null,
+    _id: cart._id?.toString() || '',
+    supplierId: cart.supplierId?.toString() || '',
+    clientId: cart.clientId?.toString() || '',
     items: cart.items.map((item) => ({
       ...item,
-      _id: item._id?.toString() || null,
+      _id: item._id?.toString() || '',
       productId: {
         ...item.productId,
-        _id: item.productId?._id?.toString() || null,
+        _id: item.productId?._id?.toString() || '',
       },
     })),
     createdAt: cart.createdAt?.toISOString() || null,
