@@ -21,27 +21,24 @@ export default async function Page({ params }) {
   const { id, clientId } = await params;
   await connectToDB();
 
-  // Optimize queries with specific field selection
-  const [supplier, categories, favourites, cart] = await Promise.all([
-    User.findById(id)
-      .select('name email phone address logo coverImage businessName city country')
-      .lean(),
-    
-    Category.find({ 
-      supplierId: id, 
-      status: 'shown' 
-    })
-      .select('name status order supplierId')
-      .lean(),
-    
-    Favourite.findOne({ clientId })
-      .populate('productIds', 'name price imageUrl')
-      .lean(),
-    
-    Cart.findOne({ clientId, supplierId: id })
-      .populate('items.productId', 'name price stock reserved imageUrl')
-      .lean()
-  ]);
+  const supplier = await User.findById(id)
+  .select('name email phone address logo coverImage businessName city country')
+  .lean()
+
+  const categories = await  Category.find({ 
+    supplierId: id, 
+    status: 'shown' 
+  })
+    .select('name status order supplierId')
+    .lean()
+
+    const favourites = await Favourite.findOne({ clientId })
+    .populate('productIds', 'name price imageUrl')
+    .lean()
+
+    const cart = await Cart.findOne({ clientId, supplierId: id })
+    .populate('items.productId', 'name price stock reserved imageUrl')
+    .lean()
 
   // Remove products fetch from initial load
   const serializedData = {

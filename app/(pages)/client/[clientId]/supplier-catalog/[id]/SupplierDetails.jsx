@@ -17,6 +17,7 @@ export default function SupplierDetails({
 
   return (
     <div className= "sticky top-0 md:top-20 z-40">
+      
       <div 
         className=" bg-white z-10 shadow-md p-4 flex items-start justify-between gap-4"
       >
