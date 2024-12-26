@@ -94,7 +94,7 @@ export default function Home() {
                 </Link>
                 <UserButton
                   style={{ height: '48px', width: '48px' }}
-                  afterSignOutUrl="/"
+                  aftersignouturl="/"
                   appearance={userButtonAppearance}
                 />
               </div>

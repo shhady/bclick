@@ -9,6 +9,8 @@ import Link from 'next/link';
 import Favourite from '@/models/favourite';
 import dynamic from 'next/dynamic';
 import Cart from '@/models/cart';
+import { Suspense } from 'react';
+import Loader from '@/components/loader/Loader';
 
 
 const ClientComponent = dynamic(() => import('./ClientComponent'))
@@ -41,18 +43,30 @@ export default async function Page({ params }) {
     .lean()
 
   // Remove products fetch from initial load
-  const serializedData = {
-    supplier: serializeSupplier(supplier || {}),
-    categories: categories?.map(serializeCategory) || [],
-    favorites: favourites?.productIds?.map(serializeProduct) || [],
-    cart: cart ? serializeCart(cart) : null
-  };
+  // const serializedData = {
+  //   supplier: serializeSupplier(supplier || {}),
+  //   categories: categories?.map(serializeCategory) || [],
+  //   favorites: favourites?.productIds?.map(serializeProduct) || [],
+  //   cart: cart ? serializeCart(cart) : null
+  // };
+
+  const serializedSupplier = serializeSupplier(supplier || {})
+  const serializedCategories = categories?.map(serializeCategory) || []
+  const serializedFavorites = favourites?.productIds?.map(serializeProduct) || []
+  const serializedCart = cart? serializeCart(cart) : null;
 
   if (!supplier) {
     return <h1>Supplier Not Found</h1>;
   }
 
-  return <ClientComponent {...serializedData} clientId={clientId} />;
+  return <Suspense fallback={<Loader/>}>
+    <ClientComponent 
+    supplier={serializedSupplier}
+    favorites={serializedFavorites}
+  cart={serializedCart}
+  categories={serializedCategories}
+    clientId={clientId} />
+    </Suspense>;
 }
 
 // Extracted serialization functions for reusability
