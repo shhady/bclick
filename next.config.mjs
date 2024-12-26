@@ -27,7 +27,6 @@ const nextConfig = {
   poweredByHeader: false, // Disable the `x-powered-by` header
   generateEtags: true, // Enable ETags
   reactStrictMode: true, // Enable strict mode
-  swcMinify: true, // Enable SWC minification
   experimental: {
     serverActions: {}, // Enable Server Actions
   },
