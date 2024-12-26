@@ -3,7 +3,7 @@ import React from 'react'
 
 export default function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen">
       <div className="animate-pulse space-y-8 w-full max-w-4xl">
         {/* Header skeleton */}
         <div className="h-[200px] bg-gray-200 rounded-md w-full" />

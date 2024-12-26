@@ -8,34 +8,34 @@ import { ReorderConfirmationDialog } from '@/components/ReorderConfirmationDialo
 import Loader from '@/components/loader/Loader';
 
 export default function Orders({ orders: initialOrders }) {
-  const [orders, setOrders] = useState(null);
+  const [orders, setOrders] = useState(initialOrders);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeTab, setActiveTab] = useState('pending');
   const { globalUser, updateGlobalOrders } = useUserContext();
   const { toast } = useToast();
   // Fetch fresh data when component mounts
-  useEffect(() => {
-    const fetchLatestOrders = async () => {
-      try {
-        const response = await fetch('/api/orders', {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setOrders(data);
-        }
-      } catch (error) {
-        console.error('Error fetching latest orders:', error);
-      }
+  // useEffect(() => {
+  //   const fetchLatestOrders = async () => {
+  //     try {
+  //       const response = await fetch('/api/orders', {
+  //         cache: 'no-store',
+  //         headers: {
+  //           'Cache-Control': 'no-cache',
+  //           'Pragma': 'no-cache'
+  //         }
+  //       });
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         setOrders(data);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching latest orders:', error);
+  //     }
       
-    };
+  //   };
 
-    fetchLatestOrders();
-  }, []);
+  //   fetchLatestOrders();
+  // }, []);
 
   
   // Filter orders based on user role and ID
