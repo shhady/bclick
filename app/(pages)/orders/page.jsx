@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamicMode = 'force-dynamic'; // Rename the exported constant
 export const fetchCache = 'force-no-store';
 export const revalidate = 0;
 
@@ -6,13 +6,13 @@ import React from 'react';
 import { currentUser } from '@clerk/nextjs/server';
 import User from '@/models/user';
 import { connectToDB } from '@/utils/database';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic'; // Rename the import to `dynamicImport`
 import { Suspense } from 'react';
 import Loader from '@/components/loader/Loader';
 import Order from '@/models/order';
 
 // Dynamically import the client-side component
-const Orders = dynamic(() => import('./Orders'));
+const Orders = dynamicImport(() => import('./Orders')); // Use renamed import
 
 export default async function OrdersPage() {
   await connectToDB();
