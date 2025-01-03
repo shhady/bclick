@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { connectToDB } from '@/utils/database';
 import Order from '@/models/order';
+
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export async function GET(request) {
   // Add cache control headers
   const headers = {

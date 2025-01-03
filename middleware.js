@@ -55,14 +55,18 @@ export default clerkMiddleware(async (auth, request) => {
     return new NextResponse('Too Many Requests', { status: 429 });
   }
 
-  // Add security headers
   const response = NextResponse.next();
   addSecurityHeaders(response);
 
-  // Cache static assets
-  if (request.nextUrl.pathname.startsWith('/static/')) {
+  // Disable cache for API routes
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+  }
+  // Keep existing static asset caching
+  else if (request.nextUrl.pathname.startsWith('/static/')) {
     addCacheHeaders(response);
-    return response;
   }
 
   // Allow public routes without authentication
