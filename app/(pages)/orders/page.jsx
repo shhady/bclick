@@ -1,3 +1,7 @@
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
 import React from 'react';
 import { currentUser } from '@clerk/nextjs/server';
 import User from '@/models/user';
@@ -18,7 +22,8 @@ export default async function OrdersPage() {
       .populate('clientId', 'email name businessName') // Populate client details
       .populate('supplierId', 'name businessName email')
       .populate('items.productId')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean(); // Add lean() for better performance
 
     // Serialize the orders to prevent JSON circular references
     const serializedOrders = JSON.parse(JSON.stringify(orders));
