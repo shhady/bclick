@@ -55,7 +55,7 @@ const Navbar = () => {
           isProfileOrOrders ? 'text-gray-400 cursor-not-allowed' : getIconColor('catalog')
         }`}
       >
-        <FaTags className="text-xs md:text-base mt-1" />
+        <FaTags className="text-[20px] md:text-[28px]"/>
         <span className="text-xs md:text-base mt-1">קטלוג</span>
       </button>
 
@@ -70,7 +70,7 @@ const Navbar = () => {
           isProfileOrOrders ? 'text-gray-400 cursor-not-allowed' : getIconColor('cart')
         }`}
       >
-        <SlHandbag className="text-xs md:text-base mt-1" />
+        <SlHandbag className="text-[20px] md:text-[28px]" />
         <span className="text-xs md:text-base mt-1">עגלה</span>
 
         {/* Badge for item count */}
@@ -92,12 +92,12 @@ const Navbar = () => {
           {renderClientNav()}
           {/* Orders */}
           <Link href="/orders" className={`flex flex-col items-center ${getIconColor('orders')}`}>
-            <FaShoppingCart size={20} />
+            <FaShoppingCart className="text-[20px] md:text-[28px]" />
             <span className="text-xs md:text-base mt-1">הזמנות</span>
           </Link>
           {/* Profile */}
           <Link href="/profile" className={`flex flex-col items-center ${getIconColor('profile')}`}>
-            <FaUser size={20} />
+            <FaUser className="text-[20px] md:text-[28px]" />
             <span className="text-xs md:text-base mt-1">פרופיל</span>
           </Link>
         </>
