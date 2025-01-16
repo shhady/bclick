@@ -265,7 +265,7 @@ function OrderTable({ orders, onShowDetails, activeTab, globalUser }) {
         <thead>
           <tr className="bg-gray-200">
             <th className="border border-gray-300 px-4 py-2">שם העסק</th>
-            <th className="border border-gray-300 px-4 py-2">מס' הזמנה</th>
+            <th className="border border-gray-300 px-4 py-2">מס&apos; הזמנה</th>
             <th className="border border-gray-300 px-4 py-2">
               {activeTab === 'pending' ? 'תאריך' : 'סטטוס'}
             </th>
@@ -338,7 +338,7 @@ function OrderTable({ orders, onShowDetails, activeTab, globalUser }) {
                         <th className="border border-gray-300 px-4 py-2 w-[40%]">פריט</th>
                         <th className="border border-gray-300 px-4 py-2 w-[20%] text-center">כמות</th>
                         <th className="border border-gray-300 px-4 py-2 w-[20%] text-center">מחיר יחידה</th>
-                        <th className="border border-gray-300 px-4 py-2 w-[20%] text-center">סה"כ</th>
+                        <th className="border border-gray-300 px-4 py-2 w-[20%] text-center">סה&quot;כ</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -358,7 +358,7 @@ function OrderTable({ orders, onShowDetails, activeTab, globalUser }) {
               </tr>
               <tr className="bg-gray-100">
                 <td colSpan={3} className="border border-gray-300 px-4 py-2 text-right font-bold">
-                  סה"כ להזמנה:
+                  סה&quot;כ להזמנה:
                 </td>
                 <td className="border border-gray-300 px-4 py-2 text-center font-bold">
                   ₪{order.total.toFixed(2)}
@@ -377,7 +377,7 @@ function OrderTable({ orders, onShowDetails, activeTab, globalUser }) {
       <thead>
         <tr className="bg-gray-200">
           <th className="border border-gray-300 px-4 py-2">שם הספק</th>
-          <th className="border border-gray-300 px-4 py-2">מס' הזמנה</th>
+          <th className="border border-gray-300 px-4 py-2">מס&apos; הזמנה</th>
           <th className="border border-gray-300 px-4 py-2">תאריך</th>
           <th className="border border-gray-300 px-4 py-2"></th>
         </tr>
