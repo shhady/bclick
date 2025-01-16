@@ -44,7 +44,7 @@ export default function FilterSection({
         >
           חסר במלאי
           {lowStockNotification && (
-            <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"></span>
+            <span className="absolute top-0 right-0 w-3 h-3 bg-customRed rounded-full"></span>
           )}
         </button>
         <button

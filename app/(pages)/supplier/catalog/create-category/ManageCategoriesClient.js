@@ -150,7 +150,7 @@ export default function ManageCategoriesClient({ categoriesWithProductStatus ,su
             <button
               onClick={() => handleToggleStatus(category._id, category.status)}
               className={`px-2 py-2 rounded border w- text-sm w-1/3 ${
-                category.status === "shown" ? "bg-green-200" : "bg-gray-200"
+                category.status === "shown" ? "bg-customGreen-200" : "bg-gray-200"
               }`}
             >
               {category.status === "shown" ? "מוצג בקטלוג" : "הצג בקטלוג"}

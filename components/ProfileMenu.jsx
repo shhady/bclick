@@ -76,7 +76,7 @@ className="bg-gray-300 text-gray-700 text-sm px-4 py-1 rounded-md w-full flex ju
       <div className="relative bg-white rounded-lg shadow-lg p-6 z-10 w-80 text-center">
         <h2 className="text-lg font-semibold mb-4">בטוח רוצה להתנתק?</h2>
         <div className="flex justify-between gap-4">
-          <SignOutButton aftersignouturl="/"  className="bg-red-500 text-white px-4 py-2 rounded-md w-full">
+          <SignOutButton aftersignouturl="/"  className="bg-customRed text-white px-4 py-2 rounded-md w-full">
             התנתק
           </SignOutButton>
           <button

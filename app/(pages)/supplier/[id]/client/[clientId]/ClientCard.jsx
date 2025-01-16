@@ -93,8 +93,8 @@ export default function ClientCard({ client, supplierId }) {
         onClick={toggleStatus}
         className={` px-2 py-1 rounded-lg text-white ${
           status === 'active'
-            ? 'bg-red-500 hover:bg-red-600'
-            : 'bg-green-500 hover:bg-green-600'
+            ? 'bg-customRed hover:bg-red-600'
+            : 'bg-customGreen hover:bg-customGreen-600'
         }`}
       >
         {status === 'active' ? 'תהפוך ללא פעיל' : 'תהפוך לפעיל'}
@@ -140,7 +140,7 @@ export default function ClientCard({ client, supplierId }) {
         <div>{client.name}</div>
               <div>בטוח רוצה למחוק ? </div>
                <div className="w-full flex justify-between items-center mt-8 gap-8">
-                <button className="bg-red-500 px-4 py-2 rounded-lg text-white" onClick={handleRemove}>מחק</button>
+                <button className="bg-customRed px-4 py-2 rounded-lg text-white" onClick={handleRemove}>מחק</button>
                 <button className="bg-gray-500 px-4 py-2 rounded-lg text-white" onClick={()=>setOpenDeletePopup(false)}>ביטול</button>
                 </div>
                 </div> 

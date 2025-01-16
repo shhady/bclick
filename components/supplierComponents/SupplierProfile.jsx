@@ -41,7 +41,7 @@ export default function SupplierProfile() {
             <h2 className="text-3xl font-bold text-black">{totalProducts}</h2>
             <p className="text-gray-600">מוצרים </p>
           </div>
-          <div className="w-12 h-12 bg-green-300 rounded-full"></div>
+          <div className="w-12 h-12 bg-customGreen-300 rounded-full"></div>
         </div>
       </Link>
     </div>

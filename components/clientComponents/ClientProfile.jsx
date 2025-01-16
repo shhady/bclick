@@ -14,7 +14,7 @@ export default function ClientProfile({user}) {
   return (
     <div className="flex flex-col items-center justify-center p-6">
          {user?.relatedUsers?.length > 0 ? (
-        <div className="w-full max-w-md p-4 mb-4 bg-green-100 text-green-800 rounded-lg text-center shadow-md">
+        <div className="w-full max-w-md p-4 mb-4 bg-customGreen-100 text-green-800 rounded-lg text-center shadow-md">
           <p>
             <strong>מחפשים ספקים נוספים?</strong> פנו לספקים חדשים ובקשו מהם להוסיף אתכם
             למערכת.

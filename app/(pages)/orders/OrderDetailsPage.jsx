@@ -277,14 +277,14 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
                   <button 
                     onClick={handleAccept} 
                     disabled={loadingAction !== null}
-                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                    className="px-4 py-2 bg-customGreen text-white rounded hover:bg-customGreen-600"
                   >
                      {loadingAction === 'accepting' ? 'מאשר...' : 'אישור הזמנה'}
                   </button>
                   <button 
                     onClick={handleReject} 
                     disabled={loadingAction !== null}
-                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                    className="px-4 py-2 bg-customRed text-white rounded hover:bg-red-600"
                   >
                     {loadingAction === 'rejecting' ? <span className='animate-pulse'> דוחה הזמנה...</span>  : 'דחיית הזמנה'}
                   </button>
@@ -304,7 +304,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
                   <button
                     onClick={() => handleDeleteOrder(order._id)}
                     disabled={loadingAction !== null}
-                    className="px-4 py-2 bg-red-500 text-white rounded"
+                    className="px-4 py-2 bg-customRed text-white rounded"
                   >
                     {loadingAction === 'deleting' ? <span className='animate-pulse'>מוחק...</span>  : 'מחק הזמנה'}
                   </button>

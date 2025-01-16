@@ -28,7 +28,7 @@ export default function DeleteCategoryPopup({
             <div className="flex justify-between mt-4">
               <button
                 onClick={() => handleDeleteCategory(category._id)}
-                className="px-4 py-2 bg-red-500 text-white rounded"
+                className="px-4 py-2 bg-customRed text-white rounded"
               >
                 מחק
               </button>

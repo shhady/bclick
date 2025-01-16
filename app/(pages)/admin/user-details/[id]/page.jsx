@@ -99,7 +99,7 @@ export default function UserDetailsPage() {
           onClick={handleToggleRole}
           className={`px-4 py-2 rounded ${
             userData.role === 'client'
-              ? 'bg-green-500 text-white hover:bg-green-600'
+              ? 'bg-customGreen text-white hover:bg-customGreen-600'
               : 'bg-customBlue text-white hover:bg-blue-600'
           }`}
         >
@@ -107,7 +107,7 @@ export default function UserDetailsPage() {
         </button>
         <button
           onClick={handleDeleteUser}
-          className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600"
+          className="px-4 py-2 rounded bg-customRed text-white hover:bg-red-600"
         >
           Delete User
         </button>

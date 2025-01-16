@@ -14,6 +14,8 @@ export const theme = {
       hoveredBlue:'#347abc',
       customGray:'#d1d5db',
       customGrayText:'#4b4151',
+      customRed: '#d33939',
+      customGreen: '#31b262',
     },
   },
 };

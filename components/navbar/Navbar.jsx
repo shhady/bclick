@@ -75,7 +75,7 @@ const Navbar = () => {
 
         {/* Badge for item count */}
         {itemCount > 0 && (
-          <span className="absolute top-0 left-4 md:left-7 bg-red-500 text-white rounded-full text-xs px-2">
+          <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
             {itemCount}
           </span>
         )}
@@ -131,7 +131,7 @@ const Navbar = () => {
           <FaShoppingCart  className="text-[20px] md:text-[28px]"  />
           <span className="text-xs md:text-base mt-1">הזמנות </span>
         {isOrdersPage ? (<></>) :(<>{globalUser?.orders?.filter((order) => order.status === 'pending').length > 0 && (
-            <span className="absolute top-0 left-4 md:left-7 bg-red-500 text-white rounded-full text-xs px-2">
+            <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
               {globalUser?.orders?.filter((order) => order.status === 'pending').length}
             </span>
           )}</> )}

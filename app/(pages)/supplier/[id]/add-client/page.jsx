@@ -112,7 +112,7 @@ export default function AddClientPage() {
           ) : (
             <button
               onClick={handleAddClient}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 mt-4"
+              className="bg-customGreen text-white px-4 py-2 rounded-lg hover:bg-customGreen-600 mt-4"
             >
               הוסף לקוח
             </button>

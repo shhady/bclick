@@ -115,7 +115,7 @@ export default function EditProductPopup({ product, categories, onUpdate, onDele
         <div>{product.name}</div>
               <div>בטוח רוצה למחוק ? </div>
                <div className="w-full flex justify-between items-center mt-8 gap-8">
-                <button className="bg-red-500 px-4 py-2 rounded-lg text-white" onClick={()=>onDelete(product._id)}>מחק</button>
+                <button className="bg-customRed px-4 py-2 rounded-lg text-white" onClick={()=>onDelete(product._id)}>מחק</button>
                 <button className="bg-gray-500 px-4 py-2 rounded-lg text-white" onClick={()=>setOpenDeletePopup(false)}>ביטול</button>
                 </div>
                 </div> 

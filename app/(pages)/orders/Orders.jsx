@@ -427,7 +427,7 @@ function OrderTable({ orders, onShowDetails, activeTab, onReorder, isReordering,
                           e.preventDefault();
                           onReorder(order);
                         }}
-                        className="px-4 py-2 bg-customBlue text-white rounded hover:bg-green-600 text-sm w-full"
+                        className="px-4 py-2 bg-customBlue text-white rounded hover:bg-customGreen-600 text-sm w-full"
                       >
                         הזמן שוב
                       </button>
