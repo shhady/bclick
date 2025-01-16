@@ -8,7 +8,7 @@ import Link from 'next/link';
 import debounce from 'lodash.debounce';
 import { useCartContext } from '@/app/context/CartContext';
 import SubmitOrder from './SubmitOrder';
-
+import { Trash2 } from 'lucide-react';
 export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   const [cart, setCart] = useState({});
   const [localChanges, setLocalChanges] = useState({});
@@ -179,7 +179,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
             onClick={handleDeleteCart}
             className="text-red-500 text-lg"
           >
-            🗑️
+            <Trash2 />
           </button>
         </div>
 
@@ -293,7 +293,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
                 }}
                 className="text-red-500"
               >
-                🗑️
+                <Trash2/>
               </button>
             </div>
           </div>
