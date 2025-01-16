@@ -259,7 +259,7 @@ export default function CreateProduct() {
           type="submit"
           onClick={(e) => handleSubmit(e)}
           disabled={loading} // Disable button when loading
-          className="w-full bg-customBlue text-white p-2 rounded hover:bg-blue-600"
+          className="w-full bg-customBlue text-white p-2 rounded hover:bg-hoveredBlue"
         >
            צור מוצר
         </button>)} 

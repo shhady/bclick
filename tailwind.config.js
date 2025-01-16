@@ -11,7 +11,9 @@ export const theme = {
       background: "#ffffff", // Ensure background is white
       foreground: "#000000", // Ensure text is black
       customBlue: '#3997D3',
-
+      hoveredBlue:'#347abc',
+      customGray:'#d1d5db',
+      customGrayText:'#4b4151',
     },
   },
 };
