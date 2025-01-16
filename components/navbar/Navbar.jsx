@@ -92,12 +92,12 @@ const Navbar = () => {
           {renderClientNav()}
           {/* Orders */}
           <Link href="/orders" className={`flex flex-col items-center ${getIconColor('orders')}`}>
-            <FaShoppingCart size={20} className='md:hidden'/>
+            <FaShoppingCart size={20} />
             <span className="text-xs md:text-base mt-1">הזמנות</span>
           </Link>
           {/* Profile */}
           <Link href="/profile" className={`flex flex-col items-center ${getIconColor('profile')}`}>
-            <FaUser size={20} className='md:hidden'/>
+            <FaUser size={20} />
             <span className="text-xs md:text-base mt-1">פרופיל</span>
           </Link>
         </>
@@ -111,7 +111,7 @@ const Navbar = () => {
           href={globalUser.role === 'supplier' ? `/supplier/${globalUser._id}/catalog` : '/catalog'}
           className={`flex flex-col items-center ${getIconColor('catalog')}`}
         >
-          <FaTags size={20} className='md:hidden'/>
+          <FaTags size={28} />
           <span className="text-xs md:text-base mt-1">קטלוג</span>
         </Link>
 
@@ -121,14 +121,14 @@ const Navbar = () => {
             href={`/supplier/${globalUser._id}/clients`}
             className={`flex flex-col items-center ${getIconColor('client')}`}
           >
-            <FaList size={20} className='md:hidden'/>
+            <FaList size={28} />
             <span className="text-xs md:text-base mt-1">לקוחות</span>
           </Link>
         )}
 
         {/* Orders */}
         <Link href="/orders" className={`flex flex-col items-center relative ${getIconColor('orders')}`}>
-          <FaShoppingCart size={20} className="md:hidden" />
+          <FaShoppingCart size={28}  />
           <span className="text-xs md:text-base mt-1">הזמנות </span>
         {isOrdersPage ? (<></>) :(<>{globalUser?.orders?.filter((order) => order.status === 'pending').length > 0 && (
             <span className="absolute top-0 left-4 md:left-7 bg-red-500 text-white rounded-full text-xs px-2">
@@ -140,7 +140,7 @@ const Navbar = () => {
         </Link>
         {/* Profile */}
         <Link href="/profile" className={`flex flex-col items-center ${getIconColor('profile')}`}>
-          <FaUser size={20} className='md:hidden'/>
+          <FaUser size={28} />
           <span className="text-xs md:text-base mt-1">פרופיל</span>
         </Link>
       </>
@@ -163,7 +163,9 @@ const Navbar = () => {
             <Image src="/bclick-logo.jpg" alt="Logo" width={100} height={100} className="rounded-full" priority />
           </Link>
         </div>
-        <div className="flex justify-center items-center gap-5">{renderLinks()}</div>
+        <div className="flex flex-row-reverse justify-center items-center gap-8">
+          {renderLinks()}
+        </div>
         <div className="w-[100px] min-w-[100px]"></div>
       </div>
 

@@ -75,9 +75,9 @@ export default function ClientComponent({
 
 // Separate components for better organization
 const SupplierWarningBanner = () => (
-  <div className='fixed top-0 md:top-20 w-full left-0 bg-black text-center text-white p-6 z-50'>
+  <div className='fixed top-0 md:top-20 w-full left-0 bg-black opacity-80 text-center text-white p-6 z-50'>
     <div className='mb-2'>
-      התוכן בקטלוג שלך כפי שיופיע לאחרים
+      התוכן בקטלוג כפי שמופיע ללקוחות
     </div>
     <Link href={'/profile'} className='bg-gray-700 px-3 py-2 rounded-lg'>
       <button>צא מתצוגה</button>

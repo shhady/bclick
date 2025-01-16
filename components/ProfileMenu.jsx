@@ -40,7 +40,7 @@ export default function ProfileMenu({onEdit}) {
   };
   return (
     <div className='relative'>
-      <div className='bg-customBlue w-8 h-8 text-gray-700 flex justify-center items-center gap-1 rounded-full' onClick={()=>setOpenMenu(!openMenu)}>
+      <div className={`${openMenu ? 'bg-customBlue' : 'bg-gray-300'} w-8 h-8 text-gray-700 flex justify-center items-center gap-1 rounded-full`} onClick={()=>setOpenMenu(!openMenu)}>
         <div className='h-1 w-1 bg-white rounded-full'></div>
          <div className='h-1 w-1 bg-white rounded-full'></div>
               <div className='h-1 w-1 bg-white rounded-full'></div>

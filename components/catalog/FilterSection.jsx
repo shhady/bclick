@@ -13,7 +13,7 @@ export default function FilterSection({
   return (
     <div className="flex-col w-full items-center gap-4 mb-6">
       {/* Status Buttons */}
-      <div className="flex w-full items-center gap-2 mb-6">
+      <div className="grid grid-cols-4 w-full items-center gap-2 mb-6">
         <button
           onClick={() => handleStatusChange("active")}
           className={`px-2 py-2 rounded-md text-sm ${
@@ -60,12 +60,12 @@ export default function FilterSection({
       </div>
 
       {/* Category Filter and Create Button */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full">
         
         <select
   value={selectedCategory}
   onChange={(e) => setSelectedCategory(e.target.value)}
-  className="border rounded-md px-4 py-2 w-2/3 "
+  className="border rounded-md px-4 py-2 flex-1 "
 >          <option value="">כל המוצרים</option>
   {categories.map((category) => (
       <option key={category._id} value={category._id}>
@@ -73,7 +73,7 @@ export default function FilterSection({
       </option>
     ))}
 </select>
-        <Link href={`/supplier/catalog/create-category/${supplierId}`} className="w-1/3"> 
+        <Link href={`/supplier/catalog/create-category/${supplierId}`} > 
           <button className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-sm">
           צור קטגוריה
         </button></Link>
