@@ -250,7 +250,7 @@ export default function Orders({ orders: initialOrders }) {
       <h1 className="text-xl font-bold text-center mt-4">הזמנות שלי</h1>
       
       <div className="flex mt-4">
-        <div className="flex overflow-hidden rounded-md w-full">
+        <div className="flex overflow-hidden rounded-md w-full max-w-full">
           {['pending', 'history'].map((tab, index) => (
             <button
               key={tab}
@@ -308,54 +308,55 @@ function OrderTable({ orders, onShowDetails, activeTab, onReorder, isReordering,
     // Return original supplier table
     return (
       <table className="table-auto w-full border-collapse  border-gray-300 mt-2">
-  <thead>
-    <tr className="bg-gray-200">
-      <th className="px-4 py-2">שם העסק</th>
-      <th className="px-4 py-2">מס&lsquo; הזמנה</th>
-      <th className="px-4 py-2">
-        {activeTab === 'pending' ? 'תאריך' : 'סטטוס'}
-      </th>
-      <th className="px-4 py-2"></th>
-    </tr>
-  </thead>
+        <thead>
+          <tr className="bg-gray-200">
+            <th className="border border-gray-300 px-4 py-2">שם העסק</th>
+            <th className="border border-gray-300 px-4 py-2">מס&lsquo; הזמנה</th>
+            <th className="border border-gray-300 px-4 py-2">
+              {activeTab === 'pending' ? 'תאריך' : 'סטטוס'}
+            </th>
+            <th className="border border-gray-300 px-4 py-2"></th>
+          </tr>
+        </thead>
+        
+        <tbody>
+       
 
-  <tbody>
-    {orders?.map((order) => (
-      <tr 
-        key={order?._id}
-        className={order?.status === 'rejected' ? 'bg-red-100 border-b-1 border-customGray' : 'border-b-2 border-customGray'}
-      >
-        <td className="px-4 py-2 flex items-center justify-center">
-          {order?.clientId?.businessName}
-        </td>
-        <td className="px-4 py-2 text-center">{order?.orderNumber}</td>
-        <td className={`px-4 py-2 text-center ${
-          order?.status === "approved" ? "text-green-500" : 
-          order?.status === "rejected" ? "text-red-500" : 
-          "text-gray-700"
-        }`}>
-          {order?.status === 'pending' 
-            ? new Date(order?.createdAt).toLocaleDateString('he-IL')
-            : order?.status === "approved" 
-              ? "אושרה" 
-              : order?.status === "rejected" 
-                ? "נדחתה" 
-                : "נוכחית"
-          }
-        </td>
-        <td className="px-4 py-2 text-center">
-          <button
-            onClick={() => onShowDetails(order)}
-            className="py-2 px-8 border border-gray-300 rounded-lg hover:bg-customGray hover:text-customGrayText"
-          >
-            הצג
-          </button>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-
+          {orders?.map((order) => (
+            <tr 
+              key={order?._id}
+              className={order?.status === 'rejected' ? 'bg-red-100' : 'border-b-2 border-customGray'}
+            >
+              <td className=" border-gray-300 px-4 py-2 text-center">
+                {order?.clientId?.businessName}
+              </td>
+              <td className=" px-4 py-2 text-center">{order?.orderNumber}</td>
+              <td className={` px-4 py-2 text-center ${
+                order?.status === "approved" ? "text-green-500" : 
+                order?.status === "rejected" ? "text-red-500" : 
+                "text-gray-700"
+              }`}>
+                {order?.status === 'pending' 
+                  ? new Date(order?.createdAt).toLocaleDateString('he-IL')
+                  : order?.status === "approved" 
+                    ? "אושרה" 
+                    : order?.status === "rejected" 
+                      ? "נדחתה" 
+                      : "נוכחית"
+                }
+              </td>
+              <td  onClick={() => onShowDetails(order)} className="cursor-pointer px-4 py-2 text-center hover:bg-customGray hover:text-customGrayText">
+                <button
+                 
+                  className="py-2 md:px-8   rounded-lg hover:bg-customGray hover:text-customGrayText"
+                >
+                  הצג
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     );
   }
 

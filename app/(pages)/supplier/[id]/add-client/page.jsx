@@ -12,7 +12,7 @@ export default function AddClientPage() {
 
   // Function to check if the client already exists in relatedUsers
   const isClientExisting = (clientId) => {
-    return globalUser?.relatedUsers?.some((relatedUser) => relatedUser.user.toString() === clientId);
+    return globalUser?.relatedUsers?.some((relatedUser) => relatedUser?.user?.toString() === clientId);
   };
 
   const handleSearch = async () => {
