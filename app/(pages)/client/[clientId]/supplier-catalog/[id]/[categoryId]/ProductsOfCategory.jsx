@@ -414,14 +414,14 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
           <div className='flex justify-start gap-4 items-center'>
             <p className="text-gray-600">{product?.description}</p>
           </div>
-          <div className='flex justify-center gap-4 items-center'>
+          {/* <div className='flex justify-center gap-4 items-center'>
             <p className="text-gray-600">
               {reserved > 0 && `שמור: ${reserved}`}
             </p>
             <p className="text-gray-600">
               זמין במלאי: {availableStock} יחידות
             </p>
-          </div>
+          </div> */}
           {availableStock === 0 ? (
             <p className="text-red-500 font-bold text-center">מוצר אין זמין במלאי</p>
           ) : (

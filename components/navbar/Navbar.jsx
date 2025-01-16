@@ -55,7 +55,7 @@ const Navbar = () => {
           isProfileOrOrders ? 'text-gray-400 cursor-not-allowed' : getIconColor('catalog')
         }`}
       >
-        <FaTags size={20} className='md:hidden'/>
+        <FaTags className="text-xs md:text-base mt-1" />
         <span className="text-xs md:text-base mt-1">קטלוג</span>
       </button>
 
@@ -70,7 +70,7 @@ const Navbar = () => {
           isProfileOrOrders ? 'text-gray-400 cursor-not-allowed' : getIconColor('cart')
         }`}
       >
-        <SlHandbag size={20} className="md:hidden" />
+        <SlHandbag className="text-xs md:text-base mt-1" />
         <span className="text-xs md:text-base mt-1">עגלה</span>
 
         {/* Badge for item count */}
