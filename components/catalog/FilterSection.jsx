@@ -13,10 +13,10 @@ export default function FilterSection({
   return (
     <div className="flex-col w-full items-center gap-4 mb-6">
       {/* Status Buttons */}
-      <div className="grid grid-cols-4 w-full items-center gap-2 mb-6">
+      <div className="grid grid-cols-4 w-full items-center gap-2 max-[385px]:gap-1 mb-6">
         <button
           onClick={() => handleStatusChange("active")}
-          className={`px-2 py-2 rounded-md text-sm ${
+          className={`px-2 max-[385px]:px-1 py-2 rounded-md text-sm ${
             selectedStatus === "active"
               ? "bg-customBlue text-white"
               : "bg-gray-300 text-gray-700 hover:bg-gray-400"
@@ -26,7 +26,7 @@ export default function FilterSection({
         </button>
         <button
           onClick={() => handleStatusChange("draft")}
-          className={`px-2 py-2 rounded-md text-sm ${
+          className={`px-2 max-[385px]:px-1 py-2 rounded-md text-sm ${
             selectedStatus === "draft"
               ? "bg-customBlue text-white"
               : "bg-gray-300 text-gray-700 hover:bg-gray-400"
@@ -36,7 +36,7 @@ export default function FilterSection({
         </button>
         <button
           onClick={() => handleStatusChange("low_stock")}
-          className={`relative px-2 py-2 rounded-md text-sm ${
+          className={`relative px-2 max-[385px]:px-1 py-2 rounded-md text-sm ${
             selectedStatus === "low_stock"
               ? "bg-customBlue text-white"
               : "bg-gray-300 text-gray-700 hover:bg-gray-400"
@@ -49,7 +49,7 @@ export default function FilterSection({
         </button>
         <button
           onClick={() => handleStatusChange("hidden")}
-          className={`px-2 py-2 rounded-md text-sm ${
+          className={`px-2 max-[385px]:px-1 py-2 rounded-md text-sm ${
             selectedStatus === "hidden"
               ? "bg-customBlue text-white"
               : "bg-gray-300 text-gray-700 hover:bg-gray-400"
