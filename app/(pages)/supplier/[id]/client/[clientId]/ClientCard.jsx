@@ -87,7 +87,7 @@ export default function ClientCard({ client, supplierId }) {
         
         <div className='flex justify-between items-center my-4'>
         <h2 className='text-2xl'>כרטיס לקוח</h2>
-        <div className='flex justify-center items-center'>
+        <div className='flex justify-center items-center gap-2'>
             
         <button
         onClick={toggleStatus}
@@ -102,7 +102,7 @@ export default function ClientCard({ client, supplierId }) {
       <button
       
           onClick={()=>setOpenDeletePopup(true)}
-          className="px-4 py-2  hover:bg-gray-600 text-black rounded-lg"
+          className="px-4 py-2  hover:bg-customGray text-black rounded-lg"
         >
           <Trash2 />
         </button>
@@ -110,7 +110,7 @@ export default function ClientCard({ client, supplierId }) {
         
         
         </div>
-        <div className='shadow-2xl p-2 rounded-lg text-lg'>
+        <div className=' p-2 rounded-lg text-lg'>
         <p>
         שם לקוח: {client.name}
       </p>

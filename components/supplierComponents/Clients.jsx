@@ -38,7 +38,7 @@ export default function Clients({ clients,supplierId }) {
         <div className="sticky md:top-20 top-0 bg-[#f8f8ff] w-full md:px-3 pt-6 pb-1">
           <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">לקוחות</h2>
-       <Link href={`/supplier/${supplierId}/add-client`}> <button className="bg-customBlue text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+       <Link href={`/supplier/${supplierId}/add-client`}> <button className="bg-customBlue text-white px-4 py-2 rounded-lg hover:bg-hoveredBlue">
           הוסף לקוח +
         </button>
         </Link>
@@ -57,23 +57,23 @@ export default function Clients({ clients,supplierId }) {
       {/* Filters and Sorting */}
       <div className="flex justify-between mb-4">
         {/* Status Filter */}
-        <div className="flex w-full gap-1">
+        <div className="flex w-full">
           <button
             onClick={() => setStatusFilter('active')}
-            className={`px-4 py-2 rounded-md w-full ${
+            className={`px-4 py-2 rounded-r-md flex-1 ${
               statusFilter === 'active'
                 ? 'bg-customBlue text-white'
-                : 'bg-gray-200 text-gray-700'
+                : 'bg-customGray text-gray-700'
             }`}
           >
             פעיל
           </button>
           <button
             onClick={() => setStatusFilter('inactive')}
-            className={`px-4 py-2 rounded-md w-full ${
+            className={`px-4 py-2 rounded-l-md border-l border-white w-full flex-1 ${
               statusFilter === 'inactive'
                 ? 'bg-customBlue text-white'
-                : 'bg-gray-200 text-gray-700'
+                : 'bg-customGray text-black'
             }`}
           >
             לא פעיל
@@ -114,7 +114,7 @@ export default function Clients({ clients,supplierId }) {
             <div className="text-center"> <Link
              href={`/supplier/${supplierId}/client/${client.id}`}
              className="text-black hover:underline"
-           >  <button className="py-2 px-8 border border-gray-300 rounded-lg">
+           >  <button className="py-2 px-8 border border-gray-300 rounded-lg hover:bg-customGray hover:text-customGrayText">
          
              הצג
            

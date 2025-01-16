@@ -177,7 +177,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
           <h2 className="text-lg font-bold">הזמנה שלי</h2>
           <button
             onClick={handleDeleteCart}
-            className="text-red-500 text-lg"
+            className="text-customGrayText text-lg"
           >
             <Trash2 />
           </button>
@@ -291,7 +291,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
                   await handleDeleteItem(item.productId._id);
                   fetchCartAgain();
                 }}
-                className="text-red-500"
+                className="text-customGrayText"
               >
                 <Trash2/>
               </button>

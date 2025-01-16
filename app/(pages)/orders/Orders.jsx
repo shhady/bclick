@@ -249,15 +249,15 @@ export default function Orders({ orders: initialOrders }) {
       )}
       <h1 className="text-xl font-bold text-center mt-4">הזמנות שלי</h1>
       
-      <div className="flex justify-center mt-4">
-        <div className="flex overflow-hidden rounded-md">
+      <div className="flex mt-4">
+        <div className="flex overflow-hidden rounded-md w-full">
           {['pending', 'history'].map((tab, index) => (
             <button
               key={tab}
-              className={`px-4 py-2 ${
+              className={`px-4 py-2 flex-1 ${
                 activeTab === tab
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-300 text-black'
+                  ? 'bg-customBlue text-white'
+                  : 'bg-customGray text-black'
               } ${
                 index === 0 
                   ? 'rounded-r-md' // Right button rounded on right side
