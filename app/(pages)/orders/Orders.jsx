@@ -307,56 +307,55 @@ function OrderTable({ orders, onShowDetails, activeTab, onReorder, isReordering,
   if (globalUser?.role === 'supplier') {
     // Return original supplier table
     return (
-      <table className="table-auto w-full border-collapse border border-gray-300 mt-2">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border border-gray-300 px-4 py-2">שם העסק</th>
-            <th className="border border-gray-300 px-4 py-2">מס&lsquo; הזמנה</th>
-            <th className="border border-gray-300 px-4 py-2">
-              {activeTab === 'pending' ? 'תאריך' : 'סטטוס'}
-            </th>
-            <th className="border border-gray-300 px-4 py-2"></th>
-          </tr>
-        </thead>
-        
-        <tbody>
-       
+      <table className="table-auto w-full border-collapse  border-gray-300 mt-2">
+  <thead>
+    <tr className="bg-gray-200">
+      <th className="px-4 py-2">שם העסק</th>
+      <th className="px-4 py-2">מס&lsquo; הזמנה</th>
+      <th className="px-4 py-2">
+        {activeTab === 'pending' ? 'תאריך' : 'סטטוס'}
+      </th>
+      <th className="px-4 py-2"></th>
+    </tr>
+  </thead>
 
-          {orders?.map((order) => (
-            <tr 
-              key={order?._id}
-              className={order?.status === 'rejected' ? 'bg-red-100' : ''}
-            >
-              <td className="border border-gray-300 px-4 py-2">
-                {order?.clientId?.businessName}
-              </td>
-              <td className="border border-gray-300 px-4 py-2">{order?.orderNumber}</td>
-              <td className={`border border-gray-300 px-4 py-2 ${
-                order?.status === "approved" ? "text-green-500" : 
-                order?.status === "rejected" ? "text-red-500" : 
-                "text-gray-700"
-              }`}>
-                {order?.status === 'pending' 
-                  ? new Date(order?.createdAt).toLocaleDateString('he-IL')
-                  : order?.status === "approved" 
-                    ? "אושרה" 
-                    : order?.status === "rejected" 
-                      ? "נדחתה" 
-                      : "נוכחית"
-                }
-              </td>
-              <td className="border border-gray-300 px-4 py-2 text-center">
-                <button
-                  onClick={() => onShowDetails(order)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded"
-                >
-                  הצג
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  <tbody>
+    {orders?.map((order) => (
+      <tr 
+        key={order?._id}
+        className={order?.status === 'rejected' ? 'bg-red-100 border-b-1 border-customGray' : 'border-b-2 border-customGray'}
+      >
+        <td className="px-4 py-2 flex items-center justify-center">
+          {order?.clientId?.businessName}
+        </td>
+        <td className="px-4 py-2 text-center">{order?.orderNumber}</td>
+        <td className={`px-4 py-2 text-center ${
+          order?.status === "approved" ? "text-green-500" : 
+          order?.status === "rejected" ? "text-red-500" : 
+          "text-gray-700"
+        }`}>
+          {order?.status === 'pending' 
+            ? new Date(order?.createdAt).toLocaleDateString('he-IL')
+            : order?.status === "approved" 
+              ? "אושרה" 
+              : order?.status === "rejected" 
+                ? "נדחתה" 
+                : "נוכחית"
+          }
+        </td>
+        <td className="px-4 py-2 text-center">
+          <button
+            onClick={() => onShowDetails(order)}
+            className="py-2 px-8 border border-gray-300 rounded-lg hover:bg-customGray hover:text-customGrayText"
+          >
+            הצג
+          </button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
     );
   }
 
