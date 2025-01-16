@@ -18,24 +18,24 @@ export default async function OrdersPage() {
   await connectToDB();
   
   try {
+    // Fetch only initial batch of orders (e.g., last 10)
     const orders = await Order.find()
-      .populate('clientId', 'email name businessName') // Populate client details
+      .populate('clientId', 'email name businessName') 
       .populate('supplierId', 'name businessName email')
       .populate('items.productId')
       .sort({ createdAt: -1 })
-      .lean(); // Add lean() for better performance
+      .limit(10)  // Add limit
+      .lean();
 
-    // Serialize the orders to prevent JSON circular references
     const serializedOrders = JSON.parse(JSON.stringify(orders));
 
     return (
       <div>
         <Suspense fallback={<Loader />}>
-          <Orders orders={serializedOrders} />
+          <Orders initialOrders={serializedOrders} />
         </Suspense>
       </div>
     );
-
   } catch (error) {
     console.error('Error fetching orders:', error);
     return <div>Error loading orders</div>;

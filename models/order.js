@@ -82,5 +82,11 @@ const OrderSchema = new Schema(
   }
 );
 
+// Add indexes for frequently queried fields
+OrderSchema.index({ createdAt: -1 });
+OrderSchema.index({ supplierId: 1, createdAt: -1 });
+OrderSchema.index({ clientId: 1, createdAt: -1 });
+OrderSchema.index({ status: 1 });
+
 const Order = mongoose.models?.Order || mongoose.model('Order', OrderSchema);
 export default Order;
