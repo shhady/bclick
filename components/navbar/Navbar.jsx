@@ -111,7 +111,7 @@ const Navbar = () => {
           href={globalUser.role === 'supplier' ? `/supplier/${globalUser._id}/catalog` : '/catalog'}
           className={`flex flex-col items-center ${getIconColor('catalog')}`}
         >
-          <FaTags size={28} />
+          <FaTags  className="text-[20px] md:text-[28px]"/>
           <span className="text-xs md:text-base mt-1">קטלוג</span>
         </Link>
 
@@ -121,14 +121,14 @@ const Navbar = () => {
             href={`/supplier/${globalUser._id}/clients`}
             className={`flex flex-col items-center ${getIconColor('client')}`}
           >
-            <FaList size={28} />
+            <FaList  className="text-[20px] md:text-[28px]" />
             <span className="text-xs md:text-base mt-1">לקוחות</span>
           </Link>
         )}
 
         {/* Orders */}
         <Link href="/orders" className={`flex flex-col items-center relative ${getIconColor('orders')}`}>
-          <FaShoppingCart size={28}  />
+          <FaShoppingCart  className="text-[20px] md:text-[28px]"  />
           <span className="text-xs md:text-base mt-1">הזמנות </span>
         {isOrdersPage ? (<></>) :(<>{globalUser?.orders?.filter((order) => order.status === 'pending').length > 0 && (
             <span className="absolute top-0 left-4 md:left-7 bg-red-500 text-white rounded-full text-xs px-2">
@@ -140,7 +140,7 @@ const Navbar = () => {
         </Link>
         {/* Profile */}
         <Link href="/profile" className={`flex flex-col items-center ${getIconColor('profile')}`}>
-          <FaUser size={28} />
+          <FaUser  className="text-[20px] md:text-[28px]" />
           <span className="text-xs md:text-base mt-1">פרופיל</span>
         </Link>
       </>
