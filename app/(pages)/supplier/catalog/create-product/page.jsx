@@ -111,7 +111,7 @@ export default function CreateProduct() {
         setMessage('');
         toast({
           title: `${isDraft ? 'הטיוטה נשמרה בהצלחה' : 'המוצר נוצר בהצלחה'}`,
-          description: 'תוכל להוסיף עוד מוצרים',
+          description: '',
           variant: 'default',
         });
       } else {
@@ -186,7 +186,7 @@ export default function CreateProduct() {
           placeholder="תיאור מוצר"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          className="w-full p-2 border border-gray-300 rounded mb-4"
+          className="w-full p-2 border border-gray-300 rounded mb-4 h-[120px]"
         />
          <input
           type="text"
@@ -209,7 +209,7 @@ export default function CreateProduct() {
             className="w-1/3 p-2 border border-gray-300 rounded  h-[42px]"
           >
             <option value="גרם">גרם</option>
-            <option value="קילוגרם">קילוגרם</option>
+            <option value="קילוגרם">קילו</option>
             <option value="ליטר">ליטר</option>
             <option value='מ&quot;ל'>מ&quot;ל</option>
           </select>

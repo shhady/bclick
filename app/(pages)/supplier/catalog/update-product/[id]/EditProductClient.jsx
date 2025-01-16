@@ -559,7 +559,7 @@ export default function EditProductClient({ product, categories }) {
          >
            {updatedProduct.weightUnit ? <option value={updatedProduct.weightUnit}>{updatedProduct.weightUnit}</option> : <option>בחר</option>}
            {updatedProduct.weightUnit === 'גרם' ? "" : <option value="גרם">גרם</option>}
-           {updatedProduct.weightUnit === 'קילוגרם' ? "" : <option value="קילוגרם">קילוגרם</option>}
+           {updatedProduct.weightUnit === 'קילוגרם' ? "" : <option value="קילוגרם">קילו</option>}
            {updatedProduct.weightUnit === 'ליטר' ? "" : <option value="ליטר">ליטר</option>}
            {updatedProduct.weightUnit === 'מ"ל' ? "" :  <option value='מ&quot;ל'>מ&quot;ל</option>}
          </select>

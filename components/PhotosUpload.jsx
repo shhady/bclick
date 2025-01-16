@@ -1,9 +1,9 @@
 'use client';
-import { useState } from 'react';
-import { CldUploadButton } from 'next-cloudinary';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import crypto from 'crypto';
+
 const generateSHA1 = (data) => {
     const hash = crypto.createHash('sha1');
     hash.update(data);
@@ -16,23 +16,52 @@ const generateSignature = (publicId, apiSecret, timestamp) => {
 
 export default function PhotosUpload({ setFormData, formData }) {
   const { toast } = useToast();
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleUploadSuccess = (results) => {
-    const newImage = {
-      public_id: results.info.public_id,
-      secure_url: results.info.secure_url,
-    };
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setFormData((prev) => ({
-      ...prev,
-      imageUrl: newImage,
-    }));
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'shhady');
 
-    // toast({
-    //   title: 'Success',
-    //   description: 'Image uploaded successfully.',
-    //   variant: 'default',
-    // });
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.secure_url) {
+        const newImage = {
+          public_id: data.public_id,
+          secure_url: data.secure_url,
+        };
+
+        setFormData((prev) => ({
+          ...prev,
+          imageUrl: newImage,
+        }));
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to upload image',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleDeleteImage = async (publicId) => {
@@ -42,10 +71,8 @@ export default function PhotosUpload({ setFormData, formData }) {
     const timestamp = Math.floor(Date.now() / 1000);
     const signature = generateSHA1(generateSignature(publicId, apiSecret, timestamp));
 
-    const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`;
-
     try {
-      const response = await fetch(url, {
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,12 +90,17 @@ export default function PhotosUpload({ setFormData, formData }) {
       if (data.result === 'ok') {
         setFormData((prev) => ({
           ...prev,
-          imageUrl: '', // Remove the image URL
+          imageUrl: '',
         }));
+        
+        // Clear file input after successful delete
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
 
         toast({
-          title: 'נמחקה',
-          description: 'התמונה נמחקה בהצלחה',
+          title: 'התמונה נמחקה בהצלחה',
+          description: '' ,
           variant: 'destructive',
         });
       } else {
@@ -89,21 +121,34 @@ export default function PhotosUpload({ setFormData, formData }) {
 
   return (
     <>
-      <CldUploadButton
-        uploadPreset="shhady"
-        className="w-full p-2 max-w-screen-lg mt-4 inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#303030,45%,white,55%,#303030)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-        onSuccess={handleUploadSuccess}
-       
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleUpload}
+        accept="image/*"
+        className="hidden"
+      />
+      
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        disabled={isUploading}
+        type="button"
+        className={`w-full p-2 max-w-screen-lg mt-4 inline-flex h-12 items-center justify-center rounded-md  border-slate-800 
+          ${isUploading 
+            ? 'bg-gray-700 animate-pulse cursor-not-allowed' 
+            : 'bg-gray-300 text-gray-700'
+          } 
+          hover:bg-gray-400 px-6 font-medium  transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50`}
       >
-        העלאת תמונה
-      </CldUploadButton>
+        {isUploading ? 'מעלה תמונה...' : 'העלאת תמונה'}
+      </button>
 
       <div className="my-6"></div>
 
       {formData?.imageUrl?.secure_url && (
         <div className="relative flex justify-center items-center my-4">
           <Image
-            src={formData?.imageUrl.secure_url || '/path/one'}
+            src={formData?.imageUrl.secure_url}
             alt="Uploaded"
             width={200}
             height={200}
