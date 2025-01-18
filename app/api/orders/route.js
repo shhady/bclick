@@ -1,5 +1,6 @@
 import { connectToDB } from '@/utils/database';
 import Order from '@/models/order';
+import { NextResponse } from 'next/server';
 
 export async function GET(request) {
   try {
@@ -10,6 +11,10 @@ export async function GET(request) {
 
     await connectToDB();
 
+    // Get total count
+    const total = await Order.countDocuments();
+
+    // Get orders with full population
     const orders = await Order.find()
       .populate('clientId', 'email name businessName')
       .populate('supplierId', 'name businessName email')
@@ -19,8 +24,16 @@ export async function GET(request) {
       .limit(limit)
       .lean();
 
-    return new Response(JSON.stringify(orders), { status: 200 });
+    return NextResponse.json({
+      orders,
+      hasMore: skip + orders.length < total,
+      total
+    });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to fetch orders' }), { status: 500 });
+    console.error('Error fetching orders:', error);
+    return NextResponse.json(
+      { message: 'Failed to fetch orders' },
+      { status: 500 }
+    );
   }
 } 

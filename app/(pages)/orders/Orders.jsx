@@ -30,7 +30,7 @@ export default function Orders({ initialOrders }) {
       const response = await fetch(`/api/orders?page=${page + 1}&limit=10`);
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok && data.orders) {
         setOrders(prev => [...prev, ...data.orders]);
         setHasMore(data.hasMore);
         setPage(prev => prev + 1);

@@ -21,15 +21,14 @@ export default async function OrdersPage() {
       .populate('supplierId', 'name businessName email')
       .populate('items.productId')
       .sort({ createdAt: -1 })
-      // .limit(10)
       .lean();
 
     const serializedOrders = JSON.parse(JSON.stringify(orders));
-    console.log(serializedOrders)
+
     return (
       <div>
         <Suspense fallback={<Loader />}>
-          <Orders initialOrders={serializedOrders} />
+          <Orders initialOrders={serializedOrders || []} />
         </Suspense>
       </div>
     );
