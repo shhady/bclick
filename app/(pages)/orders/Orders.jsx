@@ -23,36 +23,64 @@ export default function Orders({ initialOrders }) {
   const { toast } = useToast();
 
   const loadMoreOrders = useCallback(async () => {
-    if (isLoading || !hasMore) return;
+    if (isLoading || !hasMore || !globalUser) return;
 
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/orders?page=${page + 1}&limit=10`);
+      console.log('Loading page:', page + 1); // Debug info
+
+      const response = await fetch(
+        `/api/orders?page=${page + 1}&limit=15&userId=${globalUser._id}&role=${globalUser.role}`
+      );
       const data = await response.json();
 
-      if (response.ok && data.orders) {
-        setOrders(prev => [...prev, ...data.orders]);
+      console.log('Received data:', data); // Debug info
+
+      if (response.ok && Array.isArray(data.orders)) {
+        // Filter out duplicates and add new orders
+        setOrders(prev => {
+          const newOrders = [...prev];
+          let addedCount = 0;
+
+          data.orders.forEach(newOrder => {
+            if (!newOrders.some(order => order._id === newOrder._id)) {
+              newOrders.push(newOrder);
+              addedCount++;
+            }
+          });
+
+          console.log('Added new orders:', addedCount); // Debug info
+          return newOrders;
+        });
+
         setHasMore(data.hasMore);
-        setPage(prev => prev + 1);
+        if (data.orders.length > 0) {
+          setPage(prev => prev + 1);
+        }
+      } else {
+        console.log('No more orders or invalid response'); // Debug info
+        setHasMore(false);
       }
     } catch (error) {
       console.error('Error loading more orders:', error);
+      setHasMore(false);
     } finally {
       setIsLoading(false);
     }
-  }, [page, isLoading, hasMore]);
+  }, [page, isLoading, hasMore, globalUser]);
 
   // Intersection Observer setup
   useEffect(() => {
     const options = {
       root: null,
-      rootMargin: "20px",
-      threshold: 1.0
+      rootMargin: "100px", // Increase margin to trigger earlier
+      threshold: 0
     };
 
-    const observer = new IntersectionObserver((entities) => {
-      const target = entities[0];
-      if (target.isIntersecting) {
+    const observer = new IntersectionObserver((entries) => {
+      const target = entries[0];
+      if (target.isIntersecting && !isLoading && hasMore) {
+        console.log('Intersection triggered, loading more...'); // Debug info
         loadMoreOrders();
       }
     }, options);
@@ -66,7 +94,7 @@ export default function Orders({ initialOrders }) {
         observer.unobserve(loader.current);
       }
     };
-  }, [loadMoreOrders]);
+  }, [loadMoreOrders, isLoading, hasMore]);
 
   const handleOrderUpdate = (updatedOrder) => {
     setOrders(prevOrders => 
@@ -194,7 +222,7 @@ export default function Orders({ initialOrders }) {
         {currentOrders.length === 0 ? (
           <div className="text-center text-gray-500">אין הזמנות</div>
         ) : (
-          <>
+          <div>
             <OrderTable
               orders={currentOrders}
               onShowDetails={setSelectedOrder}
@@ -202,12 +230,13 @@ export default function Orders({ initialOrders }) {
               globalUser={globalUser}
               onReorder={handleReorder}
             />
-            {hasMore && (
-              <div ref={loader} className="w-full text-center py-4">
-                {isLoading && <Loader />}
-              </div>
-            )}
-          </>
+            <div 
+              ref={loader} 
+              className="h-10 w-full flex items-center justify-center mt-4"
+            >
+              {isLoading ? <Loader /> : hasMore ? 'טוען עוד...' : ''}
+            </div>
+          </div>
         )}
       </div>
 
@@ -243,9 +272,9 @@ function OrderTable({ orders, onShowDetails, activeTab, globalUser, onReorder })
           </tr>
         </thead>
         <tbody>
-          {orders?.map((order) => (
+          {orders?.map((order, index) => (
             <tr 
-              key={order?._id}
+              key={`${order?._id}-${activeTab}-${order?.status}-${index}`}
               className={order?.status === 'rejected' ? 'bg-red-100' : 'border-b-2 border-customGray'}
             >
               <td className="border-gray-300 px-4 py-2 text-center">
@@ -282,8 +311,11 @@ function OrderTable({ orders, onShowDetails, activeTab, globalUser, onReorder })
   if (activeTab === 'history') {
     return (
       <div className="space-y-8">
-        {orders?.map((order) => (
-          <table key={order._id} className="table-auto w-full border-collapse border border-gray-300">
+        {orders?.map((order, index) => (
+          <table 
+            key={`${order._id}-${activeTab}-${order.status}-${index}`} 
+            className="table-auto w-full border-collapse border border-gray-300"
+          >
             <tbody>
               <tr className={`bg-gray-50 ${
                 order.status === 'rejected' ? 'bg-white' : 
@@ -373,8 +405,8 @@ function OrderTable({ orders, onShowDetails, activeTab, globalUser, onReorder })
         </tr>
       </thead>
       <tbody>
-        {orders?.map((order) => (
-          <tr key={order?._id}>
+        {orders?.map((order, index) => (
+          <tr key={`${order?._id}-${activeTab}-${index}`}>
             <td className="border border-gray-300 px-4 py-2">
               {order?.supplierId?.businessName}
             </td>
