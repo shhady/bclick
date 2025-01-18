@@ -5,7 +5,7 @@ import { Trash2 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useUserContext } from '@/app/context/UserContext';
-
+import MyClientOrders from './MyClientOrders';
 export default function ClientCard({ client, supplierId }) {
   const [status, setStatus] = useState(client.status);
   const [message, setMessage] = useState('');
@@ -135,6 +135,7 @@ export default function ClientCard({ client, supplierId }) {
         סטטוס: {status === "active" ? "פעיל" : "לא פעיל"}
       </p>
       </div>
+      <MyClientOrders />
       {openDeletePopup && <div className="z-50 fixed w-full min-h-screen flex justify-center items-center  inset-0 bg-black bg-opacity-50 ">
       <div className="bg-white p-8 rounded-xl">
         <div>{client.name}</div>

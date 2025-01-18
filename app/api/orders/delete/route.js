@@ -1,64 +1,47 @@
 import { connectToDB } from '@/utils/database';
 import Order from '@/models/order';
 import Product from '@/models/product';
-import User from '@/models/user';
+import { NextResponse } from 'next/server';
 
-export async function DELETE(req) {
+export async function DELETE(request) {
   try {
     await connectToDB();
+    const { orderId } = await request.json();
 
-    const { orderId, clientId } = await req.json();
-
-    // Validate order existence
-    const order = await Order.findById(orderId);
+    // First get the order to access its items
+    const order = await Order.findById(orderId).populate('items.productId');
     if (!order) {
-      return new Response(
-        JSON.stringify({ message: 'Order not found' }),
+      return NextResponse.json(
+        { message: "Order not found" },
         { status: 404 }
       );
     }
 
-    // Ensure the client is authorized to delete this order
-    if (order.clientId.toString() !== clientId._id) {
-      return new Response(
-        JSON.stringify({ message: 'Unauthorized: Only the client who created the order can delete it.' }),
-        { status: 403 }
+    // Update product reservations
+    const updatePromises = order.items.map(item => {
+      return Product.findByIdAndUpdate(
+        item.productId._id,
+        {
+          $inc: { reserved: -item.quantity } // Decrease reserved by the order quantity
+        },
+        { new: true }
       );
-    }
+    });
 
-    // Adjust reserved stock for each product in the order
-    for (const item of order.items) {
-      const product = await Product.findById(item.productId);
-      if (product) {
-        product.reserved -= item.quantity;
-        if (product.reserved < 0) product.reserved = 0; // Ensure reserved stock doesn't go negative
-        await product.save();
-      }
-    }
+    // Wait for all product updates to complete
+    await Promise.all(updatePromises);
 
-    // Remove order from supplier's orders array
-    await User.findByIdAndUpdate(
-      order.supplierId,
-      { $pull: { orders: orderId } }
-    );
-
-    // Remove order from client's orders array
-    await User.findByIdAndUpdate(
-      order.clientId,
-      { $pull: { orders: orderId } }
-    );
-
-    // Delete the order itself
+    // Delete the order
     await Order.findByIdAndDelete(orderId);
 
-    return new Response(
-      JSON.stringify({ message: 'Order deleted successfully' }),
+    return NextResponse.json(
+      { message: "Order deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error deleting order:', error);
-    return new Response(
-      JSON.stringify({ message: 'Internal Server Error' }),
+    console.error("Error deleting order:", error);
+    return NextResponse.json(
+      { message: "Failed to delete order" },
       { status: 500 }
     );
   }

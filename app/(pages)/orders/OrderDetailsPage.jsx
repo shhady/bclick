@@ -3,17 +3,88 @@ import React, { useState } from 'react';
 import { useUserContext } from '@/app/context/UserContext';
 import { useToast } from '@/hooks/use-toast';
 import { OrderUpdateDialog } from '@/components/OrderUpdateDialog';
+import { useRouter } from 'next/navigation';
 
-export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, onDeleteOrder, onOrderUpdate }) {
-  const { globalUser, updateGlobalUser } = useUserContext();
+export default function OrderDetailsPage({ order, onClose, onOrderUpdate, onOrderDelete }) {
+  const { globalUser } = useUserContext();
   const { toast } = useToast();
+  const router = useRouter();
   const [note, setNote] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [stockInfo, setStockInfo] = useState(null);
-  const [loadingAction, setLoadingAction] = useState(null); // New state to track the current loading action
+  const [loadingAction, setLoadingAction] = useState(null);
   const canModifyOrder = order?.status === 'pending' && globalUser?.role === 'client';
   const isSupplier = globalUser?.role === 'supplier';
+
+  const handleUpdateOrderStatus = async (orderId, status, note) => {
+    setLoadingAction(status === 'approved' ? 'accepting' : 'rejecting');
+    try {
+      const response = await fetch('/api/orders/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          status,
+          note,
+          userId: globalUser._id
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update order');
+      }
+
+      const data = await response.json();
+      onOrderUpdate(data.order);
+      toast({
+        title: 'הצלחה',
+        description: status === 'approved' ? 'ההזמנה אושרה בהצלחה' : 'ההזמנה נדחתה בהצלחה',
+      });
+      onClose();
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: error.message || 'שגיאה בעדכון ההזמנה',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    setLoadingAction('deleting');
+    try {
+      const response = await fetch('/api/orders/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete order');
+      }
+
+      onOrderDelete(orderId);
+      toast({
+        title: 'נמחק',
+        description: 'ההזמנה נמחקה בהצלחה!',
+      });
+      onClose();
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast({
+        title: 'שגיאה',
+        description: error.message || 'שגיאה במחיקת ההזמנה',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
 
   const checkStockAvailability = async (items) => {
     try {
@@ -51,14 +122,10 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
   const handleUpdateConfirm = async (updatedOrder) => {
     setLoadingAction('updating');
     try {
-      // Log the data being sent
-    
-
       const formattedItems = updatedOrder.items.map(item => ({
         productId: typeof item.productId === 'string' ? item.productId : item.productId._id,
         quantity: parseInt(item.quantity)
       }));
-
 
       const response = await fetch('/api/orders/update', {
         method: 'PUT',
@@ -78,9 +145,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
       const data = await response.json();
       setShowUpdateDialog(false);
 
-      if (onOrderUpdate) {
-        onOrderUpdate(data.order);
-      }
+      onOrderUpdate(data.order);
 
       toast({
         title: 'הצלחה',
@@ -118,7 +183,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
       //   throw new Error(errorData.error || 'Failed to approve order');
       // }
 
-      await onUpdateOrderStatus(order._id, 'approved', note);
+      await handleUpdateOrderStatus(order._id, 'approved', note);
       toast({
         title: 'הצלחה',
         description: 'ההזמנה אושרה בהצלחה ונשלח מייל ללקוח',
@@ -160,7 +225,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
       //   throw new Error(errorData.error || 'Failed to reject order');
       // }
 
-      await onUpdateOrderStatus(order._id, 'rejected', note);
+      await handleUpdateOrderStatus(order._id, 'rejected', note);
       toast({
         title: 'הצלחה',
         description: 'ההזמנה נדחתה בהצלחה',
@@ -177,20 +242,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
       setLoadingAction(null);
     }
   };
-  const handleDeleteOrder = async () => {
-    setLoadingAction('deleting');
-    try {
-      await onDeleteOrder(order._id);
-    } catch (error) {
-      toast({
-        title: 'שגיאה',
-        description: 'שגיאה במחיקת ההזמנה. אנא נסה שוב.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoadingAction(null);
-    }
-  };
+
   return (
     <div className="container mx-auto p-4">
             {loadingAction && <div className="fixed w-full h-screen bg-black bg-opacity-25 top-0 left-0 z-50"></div>}
@@ -284,7 +336,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
                   <button 
                     onClick={handleReject} 
                     disabled={loadingAction !== null}
-                    className="px-4 py-2 bg-customRed text-white rounded hover:bg-red-600"
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                   >
                     {loadingAction === 'rejecting' ? <span className='animate-pulse'> דוחה הזמנה...</span>  : 'דחיית הזמנה'}
                   </button>
@@ -304,7 +356,7 @@ export default function OrderDetailsPage({ order, onClose, onUpdateOrderStatus, 
                   <button
                     onClick={() => handleDeleteOrder(order._id)}
                     disabled={loadingAction !== null}
-                    className="px-4 py-2 bg-customRed text-white rounded"
+                    className="px-4 py-2 bg-red-500 text-white rounded"
                   >
                     {loadingAction === 'deleting' ? <span className='animate-pulse'>מוחק...</span>  : 'מחק הזמנה'}
                   </button>

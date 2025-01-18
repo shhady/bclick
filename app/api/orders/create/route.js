@@ -3,167 +3,110 @@ import Order from '@/models/order';
 import Product from '@/models/product';
 import User from '@/models/user';
 import nodemailer from 'nodemailer';
+import { NextResponse } from 'next/server';
 
 export async function POST(req) {
   try {
     await connectToDB();
 
-    const { clientId, supplierId, items, total, tax, note } = await req.json();
+    const orderData = await req.json();
+    const { clientId, supplierId, items, total } = orderData;
 
-    const notesArray = note ? [{ message: note, date: new Date() }] : [];   
     // Check stock availability for each product
     for (const item of items) {
       const product = await Product.findById(item.productId);
       if (!product || product.stock - product.reserved < item.quantity) {
-        return new Response(
-          JSON.stringify({
-            message: `מלאי לא מספיק עבור המוצר: ${product?.name || 'לא נמצא'}`,
-          }),
-          { status: 400 }
-        );
+        return NextResponse.json({
+          message: `מלאי לא מספיק עבור המוצר: ${product?.name || 'לא נמצא'}`,
+        }, { status: 400 });
       }
     }
-    const lastOrder = await Order.findOne()
-            .sort({ orderNumber: -1 }) // Sort by clientNumber descending
-            .collation({ locale: "en", numericOrdering: true }) // Ensure numeric sorting
-            .lean();
 
-        const nextOrderNumber = lastOrder?.orderNumber ? parseInt(lastOrder.orderNumber) + 1 : 1;
+    // Get next order number
+    const lastOrder = await Order.findOne()
+      .sort({ orderNumber: -1 })
+      .collation({ locale: "en", numericOrdering: true })
+      .lean();
+
+    const nextOrderNumber = lastOrder?.orderNumber ? parseInt(lastOrder.orderNumber) + 1 : 1;
+    
     // Create the order
     const newOrder = await Order.create({
-      clientId,
-      supplierId,
-      items,
-      total,
-      tax,
-      notes: notesArray, // Handle notes as an array
+      ...orderData,
       orderNumber: nextOrderNumber
     });
 
-    // After successfully creating the order, update reserved stock
-    for (const item of items) {
-      const product = await Product.findById(item.productId);
-      product.reserved += item.quantity;
-      await product.save();
-    }
-
-    // Update supplier's orders array
-    await User.findByIdAndUpdate(
-      supplierId,
-      { $push: { orders: newOrder._id } },
-      { new: true }
-    );
-
-    // Update client's orders array
-    await User.findByIdAndUpdate(
-      clientId,
-      { $push: { orders: newOrder._id } },
-      { new: true }
-    );
-
-    // Fetch supplier details to send the email
-    const supplier = await User.findById(supplierId).lean();
-    if (!supplier) {
-      return new Response(
-        JSON.stringify({ message: 'ספק לא נמצא' }),
-        { status: 404 }
-      );
-    }
-
-    // Fetch client details
-    const client = await User.findById(clientId).lean();
-    if (!client) {
-      return new Response(
-        JSON.stringify({ message: 'לקוח לא נמצא' }),
-        { status: 404 }
-      );
-    }
-
-    // Generate the product table for the email
-    const productRows = items
-      .map(
-        (item) => `
-        <tr  dir="rtl">
-          <td style="border: 1px solid #ddd; padding: 8px;">${item.barCode || 'N/A'}</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${item.name || 'N/A'}</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${item.quantity}</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">₪${item.price || '0.00'}</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">₪${(item.quantity * item.price || 0).toFixed(2)}</td>
-        </tr>
-      `
+    // Update reserved stock
+    await Promise.all(items.map(item => 
+      Product.findByIdAndUpdate(
+        item.productId,
+        { $inc: { reserved: item.quantity } },
+        { new: true }
       )
-      .join('');
+    ));
 
-    const productTable = `
-      <table style="border-collapse: collapse; width: 100%; margin-top: 20px;"  dir="rtl">
-        <thead>
-          <tr>
-            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">ברקוד</th>
-            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">שם מוצר</th>
-            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">כמות</th>
-            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">מחיר ליחידה</th>
-            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">סה&quot;כ</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${productRows}
-        </tbody>
-      </table>
-    `;
+    // Update users' orders arrays
+    await Promise.all([
+      User.findByIdAndUpdate(
+        supplierId,
+        { $push: { orders: newOrder._id } },
+        { new: true }
+      ),
+      User.findByIdAndUpdate(
+        clientId,
+        { $push: { orders: newOrder._id } },
+        { new: true }
+      )
+    ]);
 
-    // Generate sender (client) details
-    const clientDetails = `
-    
-      <h2>פרטי השולח:</h2>
-      <p>שם לקוח: ${client.name}</p>
-      <p>שם עסק: ${client.businessName || 'לא צוין'}</p>
-      <p>מספר עסק: ${client.businessNumber || 'לא צוין'}</p>
-      <p>טלפון: ${client.phone}</p>
-      <p>מספר לקוח: ${client.clientNumber}</p>
-      <p>עיר: ${client.city}</p>
-      <p>כתובת: ${client.address}</p>
-    `;
+    // Get populated order
+    const populatedOrder = await Order.findById(newOrder._id)
+      .populate('supplierId', 'businessName email')
+      .populate('clientId', 'businessName email')
+      .populate('items.productId', 'name price')
+      .lean();
 
-    // Email setup
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    // Try to send email, but don't fail if it doesn't work
+    try {
+      const [supplier, client] = await Promise.all([
+        User.findById(supplierId).lean(),
+        User.findById(clientId).lean()
+      ]);
 
-    // Email message
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: supplier.email,
-      subject: 'התקבלה הזמנה חדשה',
-      html: `
-      <div dir="rtl">
-        <h1>הזמנה חדשה התקבלה: בסה&quot;כ כולל מע&quot;מ ₪${total.toFixed(2)}</h1>
-        ${clientDetails}
-      
-        <p>הערות: ${note || 'אין הערות נוספות.'}</p>
-        ${productTable}
-        </div>
-      `,
-    };
-    
-    // Send email
-    await transporter.sendMail(mailOptions);
+      if (supplier && supplier.email) {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
 
-    return new Response(
-      JSON.stringify({
-        message: 'הזמנה נוצרה בהצלחה ונשלח מייל לספק',
-        order: newOrder,
-      }),
-      { status: 201 }
-    );
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: supplier.email,
+          subject: 'התקבלה הזמנה חדשה',
+          html: `<div dir="rtl">
+            <h1>הזמנה חדשה התקבלה מ-${client?.businessName || 'לקוח'}</h1>
+            <p>מספר הזמנה: ${nextOrderNumber}</p>
+            <p>סכום כולל: ₪${total.toFixed(2)}</p>
+          </div>`
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send email:', emailError);
+      // Continue without failing the order creation
+    }
+
+    return NextResponse.json({
+      message: "Order created successfully",
+      order: populatedOrder
+    }, { status: 201 });
+
   } catch (error) {
     console.error('Order creation failed:', error);
-    return new Response(
-      JSON.stringify({ message: 'שגיאה בעת יצירת ההזמנה' }),
-      { status: 500 }
-    );
+    return NextResponse.json({ 
+      message: 'שגיאה בעת יצירת ההזמנה'
+    }, { status: 500 });
   }
 }
