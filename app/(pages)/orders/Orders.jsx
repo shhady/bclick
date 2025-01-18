@@ -286,8 +286,8 @@ function OrderTable({ orders, onShowDetails, activeTab, globalUser, onReorder })
           <table key={order._id} className="table-auto w-full border-collapse border border-gray-300">
             <tbody>
               <tr className={`bg-gray-50 ${
-                order.status === 'rejected' ? 'bg-red-100' : 
-                order.status === 'approved' ? 'bg-green-100' : ''
+                order.status === 'rejected' ? 'bg-white' : 
+                order.status === 'approved' ? 'bg-white' : 'bg-white'
               }`}>
                 <td colSpan={4} className="border border-gray-300 px-4 py-2">
                   <div className="flex flex-col gap-2">
@@ -296,7 +296,7 @@ function OrderTable({ orders, onShowDetails, activeTab, globalUser, onReorder })
                         <span className='text-2xl'>הזמנה מס׳ {order.orderNumber}</span>
                         <div className="flex items-center gap-4">
                           <span>{new Date(order.createdAt).toLocaleDateString('he-IL')}</span>
-                          {globalUser?.role === 'client' && order.status === 'approved' && (
+                          {globalUser?.role === 'client' && (
                             <button
                               onClick={() => onReorder(order)}
                               className="px-4 py-2 bg-customBlue text-white rounded hover:bg-blue-600"
