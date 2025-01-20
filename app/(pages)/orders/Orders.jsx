@@ -22,68 +22,50 @@ export default function Orders({ initialOrders }) {
   const [stockInfo, setStockInfo] = useState(null);
   const { toast } = useToast();
 
+  useEffect(() => {
+    console.log('Initial orders:', initialOrders);
+    console.log('Current orders:', orders);
+  }, [initialOrders, orders]);
+
   const loadMoreOrders = useCallback(async () => {
     if (isLoading || !hasMore || !globalUser) return;
 
     try {
       setIsLoading(true);
-      console.log('Loading page:', page + 1); // Debug info
-
       const response = await fetch(
-        `/api/orders?page=${page + 1}&limit=15&userId=${globalUser._id}&role=${globalUser.role}`
+        `/api/generalOrders?page=${page + 1}&limit=10&clerkId=${globalUser.clerkId}`
       );
       const data = await response.json();
 
-      console.log('Received data:', data); // Debug info
-
       if (response.ok && Array.isArray(data.orders)) {
-        // Filter out duplicates and add new orders
         setOrders(prev => {
           const newOrders = [...prev];
-          let addedCount = 0;
-
           data.orders.forEach(newOrder => {
             if (!newOrders.some(order => order._id === newOrder._id)) {
               newOrders.push(newOrder);
-              addedCount++;
             }
           });
-
-          console.log('Added new orders:', addedCount); // Debug info
           return newOrders;
         });
-
         setHasMore(data.hasMore);
-        if (data.orders.length > 0) {
-          setPage(prev => prev + 1);
-        }
-      } else {
-        console.log('No more orders or invalid response'); // Debug info
-        setHasMore(false);
+        setPage(prev => prev + 1);
       }
     } catch (error) {
       console.error('Error loading more orders:', error);
-      setHasMore(false);
     } finally {
       setIsLoading(false);
     }
   }, [page, isLoading, hasMore, globalUser]);
 
-  // Intersection Observer setup
   useEffect(() => {
-    const options = {
-      root: null,
-      rootMargin: "100px", // Increase margin to trigger earlier
-      threshold: 0
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      const target = entries[0];
-      if (target.isIntersecting && !isLoading && hasMore) {
-        console.log('Intersection triggered, loading more...'); // Debug info
-        loadMoreOrders();
-      }
-    }, options);
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && !isLoading && hasMore) {
+          loadMoreOrders();
+        }
+      },
+      { threshold: 0.1 }
+    );
 
     if (loader.current) {
       observer.observe(loader.current);

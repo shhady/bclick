@@ -1,9 +1,8 @@
 import { Suspense } from 'react';
 import { connectToDB } from '@/utils/database';
-// import NewOrdersClient from './NewOrdersClient';
+import NewOrdersClient from './NewOrdersClient';
 import Loader from '@/components/loader/Loader';
 import { currentUser } from '@clerk/nextjs/server';
-import Orders from './Orders';
 
 export default async function NewOrdersPage() {
   const user = await currentUser();
@@ -12,7 +11,7 @@ export default async function NewOrdersPage() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const response = await fetch(
-      `${baseUrl}/api/generalOrders?page=1&limit=10&clerkId=${user?.id}`,
+      `${baseUrl}/api/generalOrders?page=1&limit=15&clerkId=${user?.id}`,
       { cache: 'no-store' }
     );
     
@@ -24,7 +23,7 @@ export default async function NewOrdersPage() {
     return (
       <div>
         <Suspense fallback={<Loader />}>
-          <Orders initialOrders={data.orders} />
+          <NewOrdersClient initialOrders={data.orders} />
         </Suspense>
       </div>
     );

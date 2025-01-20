@@ -1,6 +1,7 @@
 import { connectToDB } from '@/utils/database';
 import Order from '@/models/order';
 import Product from '@/models/product';
+import User from '@/models/user';
 import { NextResponse } from 'next/server';
 
 export async function DELETE(request) {
@@ -8,8 +9,12 @@ export async function DELETE(request) {
     await connectToDB();
     const { orderId } = await request.json();
 
-    // First get the order to access its items
-    const order = await Order.findById(orderId).populate('items.productId');
+    // First get the order to access its items and user IDs
+    const order = await Order.findById(orderId)
+      .populate('items.productId')
+      .populate('clientId')
+      .populate('supplierId');
+
     if (!order) {
       return NextResponse.json(
         { message: "Order not found" },
@@ -22,14 +27,26 @@ export async function DELETE(request) {
       return Product.findByIdAndUpdate(
         item.productId._id,
         {
-          $inc: { reserved: -item.quantity } // Decrease reserved by the order quantity
+          $inc: { reserved: -item.quantity }
         },
         { new: true }
       );
     });
 
-    // Wait for all product updates to complete
-    await Promise.all(updatePromises);
+    // Remove order from both users' orders arrays
+    const userUpdates = [
+      User.findByIdAndUpdate(
+        order.clientId._id,
+        { $pull: { orders: orderId } }
+      ),
+      User.findByIdAndUpdate(
+        order.supplierId._id,
+        { $pull: { orders: orderId } }
+      )
+    ];
+
+    // Wait for all updates to complete
+    await Promise.all([...updatePromises, ...userUpdates]);
 
     // Delete the order
     await Order.findByIdAndDelete(orderId);
