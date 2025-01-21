@@ -5,7 +5,10 @@ export async function GET(request, { params }) {
   try {
     await connectToDB();
     
-    const clientId = await params.id;
+    // Await the entire params object first
+    const resolvedParams = await params;
+    const clientId = resolvedParams.id;
+    
     const { searchParams } = new URL(request.url);
     const supplierId = searchParams.get('supplierId');
 
