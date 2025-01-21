@@ -8,7 +8,7 @@ import Loader from '@/components/loader/Loader';
 
 export default function MyClientOrders() {
   const params = useParams();
-  const clientId = params.clientId;
+  const { clientId, id: supplierId } = params;
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeTab, setActiveTab] = useState('pending');
@@ -35,7 +35,7 @@ export default function MyClientOrders() {
   useEffect(() => {
     const fetchClientOrders = async () => {
       try {
-        const response = await fetch(`/api/orders/client/${clientId}`);
+        const response = await fetch(`/api/orders/client/${clientId}?supplierId=${supplierId}`);
         if (response.ok) {
           const data = await response.json();
           setOrders(data);
@@ -47,10 +47,10 @@ export default function MyClientOrders() {
       }
     };
 
-    if (clientId) {
+    if (clientId && supplierId) {
       fetchClientOrders();
     }
-  }, [clientId]);
+  }, [clientId, supplierId]);
 
   const currentOrders = useMemo(() => 
     orders.filter((order) => 
@@ -72,7 +72,7 @@ export default function MyClientOrders() {
   }
 
   return (
-    <div className="mt-8">
+    <div className="my-16 ">
       <h2 className="text-xl font-bold mb-4">הזמנות הלקוח</h2>
       {isLoading ? (
         <Loader />

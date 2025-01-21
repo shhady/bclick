@@ -204,7 +204,7 @@ export default function Orders({ initialOrders }) {
         {currentOrders.length === 0 ? (
           <div className="text-center text-gray-500">אין הזמנות</div>
         ) : (
-          <div>
+          <div className="mb-12">
             <OrderTable
               orders={currentOrders}
               onShowDetails={setSelectedOrder}

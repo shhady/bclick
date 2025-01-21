@@ -10,9 +10,9 @@ export default function SupplierProfile() {
   const totalProducts = globalUser?.products?.length || 0;
   const totalOrders = globalUser?.orders?.length || 0;
   return (
-    <div className="flex flex-col items-center space-y-2 p-6  md:mb-0">
+    <div className="flex flex-col items-center justify-center gap-1 p-6">
         {/* Clients */}
-      <Link href={`/supplier/${globalUser._id}/clients`} className="flex items-center justify-between w-full max-w-md p-4 bg-white rounded-lg shadow-md">
+      <Link href={`/supplier/${globalUser._id}/clients`} className="flex items-center justify-start w-full gap-4 max-w-md p-4 bg-white shadow-sm rounded-lg border border-gray-200">
         <div className="flex justify-between items-center w-full">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-black">{totalClients}</h2>
@@ -23,7 +23,7 @@ export default function SupplierProfile() {
       </Link>
 
       {/* Orders */}
-      <Link href="/orders" className="flex items-center justify-between w-full max-w-md p-4 bg-white rounded-lg shadow-md">
+      <Link href="/orders" className="flex items-center justify-start w-full gap-4 max-w-md p-4 bg-white shadow-sm rounded-lg border border-gray-200">
         <div className="flex justify-between items-center w-full">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-black">{totalOrders}</h2>
@@ -35,13 +35,13 @@ export default function SupplierProfile() {
 
       
       {/* Products */}
-      <Link href={`/supplier/${globalUser._id}/catalog`} className="flex items-center justify-between w-full max-w-md p-4 bg-white rounded-lg shadow-md">
+      <Link href={`/supplier/${globalUser._id}/catalog`} className="flex items-center justify-start w-full gap-4 max-w-md p-4 bg-white shadow-sm rounded-lg border border-gray-200">
         <div className="flex justify-between items-center w-full">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-black">{totalProducts}</h2>
-            <p className="text-gray-600">מוצרים </p>
+            <p className="text-gray-600">סה&quot;כ מוצרים</p>
           </div>
-          <div className="w-12 h-12 bg-customGreen-300 rounded-full"></div>
+          <div className="w-12 h-12 bg-green-300 rounded-full"></div>
         </div>
       </Link>
     </div>

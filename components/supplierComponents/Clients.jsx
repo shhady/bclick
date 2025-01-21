@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 
-export default function Clients({ clients,supplierId }) {
+export default function Clients({ clients, supplierId }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState(null); // Sort by orders count
   const [statusFilter, setStatusFilter] = useState('active'); // Filter by status ('active' or 'inactive')
@@ -35,122 +35,92 @@ export default function Clients({ clients,supplierId }) {
 
   return (
     <div className="px-4 md:p-0">
-        <div className="sticky md:top-20 top-0 bg-[#f8f8ff] w-full md:px-3 pt-6 pb-1">
-          <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">לקוחות</h2>
-       <Link href={`/supplier/${supplierId}/add-client`}> <button className="bg-customBlue text-white px-4 py-2 rounded-lg hover:bg-hoveredBlue">
-          הוסף לקוח +
-        </button>
-        </Link>
-      </div>
-      {/* Search Input */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder=" חפש לפי טלפון, מספר לקוח, אימייל, שם עסק"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-md"
-        />
-      </div>
-
-      {/* Filters and Sorting */}
-      <div className="flex justify-between mb-4">
-        {/* Status Filter */}
-        <div className="flex w-full">
-          <button
-            onClick={() => setStatusFilter('active')}
-            className={`px-4 py-2 rounded-r-md flex-1 ${
-              statusFilter === 'active'
-                ? 'bg-customBlue text-white'
-                : 'bg-customGray text-gray-700'
-            }`}
-          >
-            פעיל
-          </button>
-          <button
-            onClick={() => setStatusFilter('inactive')}
-            className={`px-4 py-2 rounded-l-md border-l border-white w-full flex-1 ${
-              statusFilter === 'inactive'
-                ? 'bg-customBlue text-white'
-                : 'bg-customGray text-black'
-            }`}
-          >
-            לא פעיל
-          </button>
-          {/* <button
-            onClick={() => setStatusFilter(null)}
-            className="px-4 py-2 rounded-md bg-gray-200 text-gray-700"
-          >
-            נקה סינון
-          </button> */}
+      <div className="sticky md:top-20 top-0 bg-[#f8f8ff] w-full md:px-3 pt-6 pb-1">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">לקוחות</h2>
+          <Link href={`/supplier/${supplierId}/add-client`}>
+            <button 
+              className="bg-customBlue text-white px-4 py-2 rounded-lg hover:bg-hoveredBlue"
+              suppressHydrationWarning
+            >
+              הוסף לקוח +
+            </button>
+          </Link>
+        </div>
+        {/* Search Input */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="חפש לפי טלפון, מספר לקוח, אימייל, שם עסק"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md"
+            suppressHydrationWarning
+          />
         </div>
 
-        {/* Sort By Orders */}
-        {/* <button
-          onClick={() => setSortBy(sortBy === 'orders' ? null : 'orders')}
-          className="px-4 py-2 rounded-md bg-gray-200 text-gray-700"
-        >
-          {sortBy === 'orders' ? 'נקה מיון' : 'מיין לפי הזמנות'}
-        </button> */}
-       
-      </div>
-      <div className='grid grid-cols-4 pt-4 pb-2 border-b-2 border-gray-700  '>
-        <div className="text-start">מספר לקוח</div>
-        <div className="text-center">עסק</div>
-        <div className="text-center">מספר הזמנות</div>
-        <div className="text-center"></div>
+        {/* Filters and Sorting */}
+        <div className="flex justify-between mb-4">
+          {/* Status Filter */}
+          <div className="flex w-full">
+            <button
+              onClick={() => setStatusFilter('active')}
+              className={`px-4 py-2 rounded-r-md flex-1 ${
+                statusFilter === 'active'
+                  ? 'bg-customBlue text-white'
+                  : 'bg-customGray text-gray-700'
+              }`}
+              suppressHydrationWarning
+            >
+              פעיל
+            </button>
+            <button
+              onClick={() => setStatusFilter('inactive')}
+              className={`px-4 py-2 rounded-l-md border-l border-white w-full flex-1 ${
+                statusFilter === 'inactive'
+                  ? 'bg-customBlue text-white'
+                  : 'bg-customGray text-black'
+              }`}
+              suppressHydrationWarning
+            >
+              לא פעיל
+            </button>
+          </div>
+
+          {/* Sort By Orders */}
+          {/* <button
+            onClick={() => setSortBy(sortBy === 'orders' ? null : 'orders')}
+            className="px-4 py-2 rounded-md bg-gray-200 text-gray-700"
+          >
+            {sortBy === 'orders' ? 'נקה מיון' : 'מיין לפי הזמנות'}
+          </button> */}
+        </div>
+        <div className='grid grid-cols-4 pt-4 pb-2 border-b-2 border-gray-700  '>
+          <div className="text-start">מספר לקוח</div>
+          <div className="text-center">עסק</div>
+          <div className="text-center">מספר הזמנות</div>
+          <div className="text-center"></div>
         </div>
       </div>
       {/* Clients Table */}
       <div className="overflow-x-auto mb-24 md:mb-4">
-       
-        {filteredClients.map((client,i) => (
-
-             <div className='grid grid-cols-4 border-b-2 border-[#D9D9D9] items-center p-2 px-2 md:px-3' key={i}>
+        {filteredClients.map((client, i) => (
+          <div className='grid grid-cols-4 border-b-2 border-[#D9D9D9] items-center p-2 px-2 md:px-3' key={i}>
             <div className="text-start">{client.clientNumber}</div>
             <div className="text-center">{client.businessName}</div>
             <div className="text-center">{client.ordersCount}</div>
-            <div className="text-center"> <Link
-             href={`/supplier/${supplierId}/client/${client.id}`}
-             className="text-black hover:underline"
-           >  <button className="py-2 px-8 border border-gray-300 rounded-lg hover:bg-customGray hover:text-customGrayText">
-         
-             הצג
-           
-           {/* {client.status === 'active' ? 'פעיל' : 'לא פעיל'} */}
-         </button></Link></div>
- </div>)
-        )}
-       
-        {/* <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-3 border border-gray-300">מספר לקוח</th>
-              <th className="p-3 border border-gray-300">עסק</th>
-              <th className="p-3 border border-gray-300">מספר הזמנות</th>
-              <th className="p-3 border border-gray-300">סטטוס</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredClients.map((client) => (
-              <tr key={client.id}>
-                <td className="p-3 border border-gray-300">{client.clientNumber}</td>
-                <td className="p-3 border border-gray-300">{client.businessName}</td>
-               
-                <td className="p-3 border border-gray-300">{client.ordersCount}</td>
-                <Link
-                    href={`/supplier/client-details/${client.id}`}
-                    className="text-customBlue hover:underline"
-                  >  <td className="p-3 border border-gray-300">
-                
-                    הצג
-                  
-                </td></Link>
-              </tr>
-            ))}
-          </tbody>
-        </table> */}
+            <div className="text-center">
+              <Link href={`/supplier/${supplierId}/client/${client.id}`}>
+                <button 
+                  className="py-2 px-8 border border-gray-300 rounded-lg hover:bg-customGray hover:text-customGrayText"
+                  suppressHydrationWarning
+                >
+                  הצג
+                </button>
+              </Link>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

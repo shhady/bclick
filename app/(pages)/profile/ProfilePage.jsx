@@ -36,7 +36,7 @@ export default function ProfilePage({ user,pendingOrdersCount,totalOrdersCount }
     ];
     return requiredFields.every((field) => userData[field]);
   };
-  
+   
   useEffect(() => {
     // Initialize the user profile using the passed user prop
     if (user) {

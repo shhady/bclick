@@ -5,8 +5,12 @@ import { connectToDB } from '@/utils/database';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import Loader from '@/components/loader/Loader';
-// Dynamically import the client-side component
-const ProfilePage = dynamic(() => import('./ProfilePage'));
+// Use dynamic import with proper loading configuration
+const ProfilePage = dynamic(() => import('./ProfilePage'), {
+  loading: () => <Loader />,
+  ssr: true,
+  suspense: true
+});
 
 export default async function Page() {
   await connectToDB();
@@ -20,7 +24,7 @@ export default async function Page() {
   .lean()
   .populate({
     path: 'relatedUsers.user',
-    select: 'name email phone address role profileImage businessName', // Specify fields to include
+    select: 'name email phone address role profileImage businessName coverImage', // Specify fields to include
   })
   .populate({
     path: 'orders', // Populate orders
@@ -33,6 +37,7 @@ export default async function Page() {
             name: user?.firstName+ ' ' + user?.lastName,
             profileImage: user?.imageUrl,
             email:user?.emailAddresses[0].emailAddress,
+            coverImage: user?.coverImage,
         }
     }
   } catch (err) {

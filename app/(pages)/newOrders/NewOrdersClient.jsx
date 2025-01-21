@@ -84,7 +84,7 @@ export default function NewOrdersClient({ initialOrders }) {
               <p>ספק: {order.supplierId?.businessName}</p>
               <p>סטטוס: {order.status === 'pending' ? 'ממתין לאישור' : 
                         order.status === 'approved' ? 'אושר' : 'נדחה'}</p>
-              <p>סה"כ: ₪{order.total.toFixed(2)}</p>
+              <p>סה&ldquo;כ: ₪{order.total.toFixed(2)}</p>
             </div>
           </div>
         ))}

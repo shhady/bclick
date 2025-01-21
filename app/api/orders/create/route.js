@@ -59,43 +59,83 @@ export async function POST(req) {
       )
     ]);
 
-    // Get populated order
+    // Get populated order with full product details
     const populatedOrder = await Order.findById(newOrder._id)
       .populate('supplierId', 'businessName email')
       .populate('clientId', 'businessName email')
-      .populate('items.productId', 'name price')
+      .populate('items.productId')
       .lean();
 
-    // Try to send email, but don't fail if it doesn't work
-    try {
-      const [supplier, client] = await Promise.all([
-        User.findById(supplierId).lean(),
-        User.findById(clientId).lean()
-      ]);
+    // Get user details
+    const [supplier, client] = await Promise.all([
+      User.findById(supplierId).lean(),
+      User.findById(clientId).lean()
+    ]);
 
-      if (supplier && supplier.email) {
-        const transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-          },
-        });
+    // Generate product table rows with populated product data
+    const productRows = populatedOrder.items.map(item => `
+      <tr dir="rtl">
+        <td style="border: 1px solid #ddd; padding: 8px;">${item.productId?.barCode || 'N/A'}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${item.productId?.name || 'N/A'}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${item.quantity}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">₪${item.productId?.price?.toFixed(2) || '0.00'}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">₪${(item.quantity * (item.productId?.price || 0)).toFixed(2)}</td>
+      </tr>
+    `).join('');
 
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: supplier.email,
-          subject: 'התקבלה הזמנה חדשה',
-          html: `<div dir="rtl">
-            <h1>הזמנה חדשה התקבלה מ-${client?.businessName || 'לקוח'}</h1>
-            <p>מספר הזמנה: ${nextOrderNumber}</p>
-            <p>סכום כולל: ₪${total.toFixed(2)}</p>
-          </div>`
-        });
-      }
-    } catch (emailError) {
-      console.error('Failed to send email:', emailError);
-      // Continue without failing the order creation
+    // Generate product table
+    const productTable = `
+      <table style="border-collapse: collapse; width: 100%; margin-top: 20px;" dir="rtl">
+        <thead>
+          <tr>
+            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">ברקוד</th>
+            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">שם מוצר</th>
+            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">כמות</th>
+            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">מחיר ליחידה</th>
+            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2;">סה"כ</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${productRows}
+        </tbody>
+      </table>
+    `;
+
+    // Generate client details
+    const clientDetails = `
+      <h2>פרטי השולח:</h2>
+      <p>שם לקוח: ${client.name}</p>
+      <p>שם עסק: ${client.businessName || 'לא צוין'}</p>
+      <p>מספר עסק: ${client.businessNumber || 'לא צוין'}</p>
+      <p>טלפון: ${client.phone}</p>
+      <p>מספר לקוח: ${client.clientNumber}</p>
+      <p>עיר: ${client.city}</p>
+      <p>כתובת: ${client.address}</p>
+    `;
+
+    // Create and send email
+    if (supplier?.email) {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: supplier.email,
+        subject: 'התקבלה הזמנה חדשה',
+        html: `
+          <div dir="rtl">
+            <h1>הזמנה חדשה התקבלה: בסה"כ כולל מע"מ ₪${total.toFixed(2)}</h1>
+            ${clientDetails}
+            <p>הערות: ${orderData.note || 'אין הערות נוספות.'}</p>
+            ${productTable}
+          </div>
+        `
+      });
     }
 
     return NextResponse.json({

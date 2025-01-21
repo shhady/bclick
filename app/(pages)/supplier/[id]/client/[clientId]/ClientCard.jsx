@@ -58,28 +58,45 @@ export default function ClientCard({ client, supplierId }) {
       });
 
       if (response.ok) {
-        setMessage('Client removed successfully.');
         setOpenDeletePopup(false);
+        
+        // Update the globalUser context correctly
         setGlobalUser((prev) => {
-            if (!prev) return prev; // Ensure globalUser exists
-            const updatedRelatedUsers = prev.relatedUsers.filter(
-              (relatedUser) => relatedUser.user !== client.id
-            );
-            return { ...prev, relatedUsers: updatedRelatedUsers };
-          });
+          if (!prev) return prev;
+          
+          // Filter out the removed client using proper comparison
+          const updatedRelatedUsers = prev.relatedUsers.filter(
+            (relatedUser) => relatedUser.user._id !== client.id
+          );
+          
+          return {
+            ...prev,
+            relatedUsers: updatedRelatedUsers
+          };
+        });
+
         toast({
-            title: (`עדכון רשימת לקוחות`),
-            description: 'הלקוח נמחק מהרשימה שלך',
-            variant: 'default',
-          });
-        router.push(`/supplier/${supplierId}/clients`); // Use router.push for navigation
+          title: "עדכון רשימת לקוחות",
+          description: 'הלקוח נמחק מהרשימה שלך',
+          variant: 'default',
+        });
+        
+        router.push(`/supplier/${supplierId}/clients`);
       } else {
         const error = await response.json();
-        setMessage(error.error || 'Failed to remove client.');
+        toast({
+          title: "שגיאה",
+          description: error.error || 'שגיאה במחיקת הלקוח',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Error removing client:', error);
-      setMessage('An error occurred while removing the client.');
+      toast({
+        title: "שגיאה",
+        description: 'אירעה שגיאה במחיקת הלקוח',
+        variant: 'destructive',
+      });
     }
   };
   return (
