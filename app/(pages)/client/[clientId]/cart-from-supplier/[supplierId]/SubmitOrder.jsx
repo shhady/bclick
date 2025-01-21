@@ -88,12 +88,13 @@ export default function SubmitOrder({ cart, clientId, supplierId }) {
 
   return (
     <div>
+    <div className=' flex justify-center items-center'>
       <button
         onClick={handleSubmitOrder}
-        className="bg-customBlue text-white mt-1 w-full py-2 rounded"
+        className="bg-customBlue text-white mt-1 w-full py-2 rounded max-w-2xl"
       >
         אישור הזמנה
-      </button>
+      </button></div>
       {showConfirmation && (
         <div
           className="fixed top-0 left-0 w-full h-screen flex justify-center items-center bg-black bg-opacity-40"
