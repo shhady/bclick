@@ -35,7 +35,7 @@ export default function Clients({ clients, supplierId }) {
 
   return (
     <div className="px-4 md:p-0">
-      <div className="sticky md:top-20 top-0 bg-[#f8f8ff] w-full md:px-3 pt-6 pb-1">
+      <div className="sticky top-12 md:top-20  bg-[#f8f8ff] w-full md:px-3 pt-6 pb-1">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold">לקוחות</h2>
           <Link href={`/supplier/${supplierId}/add-client`}>

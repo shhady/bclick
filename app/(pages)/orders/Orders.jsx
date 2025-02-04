@@ -209,15 +209,19 @@ export default function Orders({ initialOrders }) {
   }
 
   return (
-    <div className="space-y-4 p-4" dir="rtl">
+    <div className="space-y-4 mb-20" dir="rtl">
+      <div className='sticky px-4 top-12 md:top-20 left-0 w-full bg-white p-4 border-b border-gray-400'>
+      <h1 className='text-2xl font-bold py-4'>הזמנות</h1>
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
+
         <input 
           type="text"
-          placeholder="חיפוש לפי יש לקחת או מספר הזמנה..."
+          placeholder="חיפוש לפי שם לקוח או מספר הזמנה..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 p-2 border rounded"
+          className="flex-1 p-2 border border-gray-400 rounded"
+
         />
         <select 
           className="p-2 border rounded"
@@ -231,6 +235,8 @@ export default function Orders({ initialOrders }) {
           <option value="rejected">בוטל</option>
         </select>
       </div>
+      </div>
+      
 
       {/* Desktop Table */}
       <div className="hidden lg:block">
@@ -324,7 +330,7 @@ export default function Orders({ initialOrders }) {
       </div>
 
       {/* Mobile Cards */}
-      <div className="lg:hidden space-y-4">
+      <div className="lg:hidden space-y-4 ">
         {filteredOrders.map(order => (
           <div key={order._id} className="bg-white p-4 rounded-lg shadow">
             <div className="flex justify-between items-start mb-4">

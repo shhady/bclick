@@ -4,6 +4,9 @@ import { useParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { FiPrinter, FiCheck, FiX, FiClock } from 'react-icons/fi';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import React from 'react';
+import { ArrowRight } from 'lucide-react';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -146,6 +149,7 @@ export default function OrderDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const printRef = useRef(null);
+  const router = useRouter()
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -244,7 +248,15 @@ export default function OrderDetailsPage() {
 
   return (
     <div className="p-4" dir="rtl">
+      
       {/* Header with Print and Status */}
+      <button
+            onClick={() => router.back()}
+            className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors duration-200 flex items-center gap-2 font-medium shadow-sm"
+          >
+            <ArrowRight />
+            חזור
+          </button>
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex justify-between items-start mb-6">
           <div>

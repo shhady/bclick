@@ -7,6 +7,7 @@ import { heIL } from '@clerk/localizations';
 import { Rubik } from 'next/font/google';
 import Head from "next/head";
 import "./globals.css";
+import BackButton  from "@/components/BackButton"; // Import the new component
 
 const rubik = Rubik({
   subsets: ['latin'],
@@ -89,6 +90,7 @@ export default function RootLayout({ children }) {
           <ErrorBoundary>
             <UserProvider>
               <CartProvider>
+                <BackButton /> {/* Renders the button unless pathname is "/profile" */}
                 {children}
               </CartProvider>
             </UserProvider>

@@ -196,14 +196,15 @@ export default function ClientCard({ client, supplierId }) {
       
       <div className="p-4 border rounded-lg my-4 bg-white">
         <div className="no-print flex justify-between items-center">
-          <button
+          {/* <button
             onClick={() => router.back()}
             className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors duration-200 flex items-center gap-2 font-medium shadow-sm"
           >
             <ArrowRight />
             חזור
-          </button>
-          
+          </button> */}
+          <div   className="px-4 py-2 "
+          ></div>
           <button
             onClick={() => window.print()}
             className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors duration-200 flex items-center gap-2 font-medium shadow-sm mr-2"
