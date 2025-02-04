@@ -110,7 +110,7 @@ const PrintContent = ({ order }) => (
             <th className="hidden sm:table-cell py-2 px-1 sm:px-2 text-center">ברקוד</th>
             <th className="py-2 px-1 sm:px-2 text-center">כמות</th>
             <th className="py-2 px-1 sm:px-2 text-center">מחיר</th>
-            <th className="py-2 px-1 sm:px-2 text-left">סה"כ</th>
+            <th className="py-2 px-1 sm:px-2 text-left">סה&quot;כ</th>
           </tr>
         </thead>
         <tbody>
@@ -134,7 +134,7 @@ const PrintContent = ({ order }) => (
     {/* Total */}
     <div className="text-left">
       <h2 className="text-xl font-bold mb-2">סיכום</h2>
-      <p className="text-2xl font-bold">סה"כ לתשלום: ₪{order.total.toFixed(2)}</p>
+      <p className="text-2xl font-bold">סה&quot;כ לתשלום: ₪{order.total.toFixed(2)}</p>
     </div>
   </div>
 );

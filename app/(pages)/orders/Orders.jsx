@@ -245,7 +245,7 @@ export default function Orders({ initialOrders }) {
                   מספר הזמנה
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  סה"כ
+                  סה&quot;כ
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   סטטוס
@@ -341,7 +341,7 @@ export default function Orders({ initialOrders }) {
             
             <div className="space-y-2">
               <p>לקוח: {order.clientId?.businessName}</p>
-              <p>סה"כ: ₪{order.total}</p>
+              <p>סה&quot;כ: ₪{order.total}</p>
             </div>
 
             <div className="mt-4 flex gap-2">
