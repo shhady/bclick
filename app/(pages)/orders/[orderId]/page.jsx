@@ -250,13 +250,13 @@ export default function OrderDetailsPage() {
     <div className="p-4" dir="rtl">
       
       {/* Header with Print and Status */}
-      <button
+      {/* <button
             onClick={() => router.back()}
             className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors duration-200 flex items-center gap-2 font-medium shadow-sm"
           >
             <ArrowRight />
             חזור
-          </button>
+          </button> */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -360,35 +360,37 @@ export default function OrderDetailsPage() {
       </div>
 
       {/* Status Update Buttons at Bottom */}
-      <div className="bg-white rounded-lg shadow-md mb-16 p-6">
-        <h2 className="text-lg font-semibold mb-4">עדכון סטטוס</h2>
-        <div className="flex gap-2">
-          {order.status === 'pending' && (
-            <>
+      {order.status !== 'approved' ? (
+        <div className="bg-white rounded-lg shadow-md mb-16 p-6">
+          <h2 className="text-lg font-semibold mb-4">עדכון סטטוס</h2>
+          <div className="flex gap-2">
+            {order.status === 'pending' && (
+              <>
+                <button
+                  onClick={() => handleStatusUpdate('processing')}
+                  className="flex-1 bg-blue-100 text-blue-600 px-4 py-2 rounded hover:bg-blue-200"
+                >
+                  התחל טיפול
+                </button>
+                <button
+                  onClick={() => handleStatusUpdate('rejected')}
+                  className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
+                >
+                  ביטול
+                </button>
+              </>
+            )}
+            {order.status === 'processing' && (
               <button
-                onClick={() => handleStatusUpdate('processing')}
-                className="flex-1 bg-blue-100 text-blue-600 px-4 py-2 rounded hover:bg-blue-200"
+                onClick={() => handleStatusUpdate('approved')}
+                className="flex-1 bg-green-100 text-green-600 px-4 py-2 rounded hover:bg-green-200"
               >
-                התחל טיפול
+                סיים טיפול
               </button>
-              <button
-                onClick={() => handleStatusUpdate('rejected')}
-                className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
-              >
-                ביטול
-              </button>
-            </>
-          )}
-          {order.status === 'processing' && (
-            <button
-              onClick={() => handleStatusUpdate('approved')}
-              className="flex-1 bg-green-100 text-green-600 px-4 py-2 rounded hover:bg-green-200"
-            >
-              סיים טיפול
-            </button>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      ):(<div className='mb-20'></div>)}
 
       {/* Print Content */}
       <div className="hidden">
