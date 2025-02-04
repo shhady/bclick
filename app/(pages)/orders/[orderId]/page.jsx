@@ -90,10 +90,11 @@ const PrintContent = ({ order }) => (
       <div className="grid grid-cols-2 gap-4">
         <div>
           <p><strong>שם העסק:</strong> {order.clientId?.businessName}</p>
-          <p><strong>טלפון:</strong> {order.clientId?.phone}</p>
+          <div ><strong>טלפון:</strong> <span dir="ltr" className='text-black text-right'>{order.clientId?.phone}</span></div>
           <p><strong>אימייל:</strong> {order.clientId?.email}</p>
         </div>
         <div>
+
           <p><strong>כתובת:</strong> {order.clientId?.address}</p>
           <p><strong>עיר:</strong> {order.clientId?.city}</p>
         </div>
@@ -107,7 +108,7 @@ const PrintContent = ({ order }) => (
         <thead>
           <tr className="border-b">
             <th className="py-2 px-1 sm:px-2 text-right">מוצר</th>
-            <th className="hidden sm:table-cell py-2 px-1 sm:px-2 text-center">ברקוד</th>
+            <th className=" py-2 px-1 sm:px-2 text-center">ברקוד</th>
             <th className="py-2 px-1 sm:px-2 text-center">כמות</th>
             <th className="py-2 px-1 sm:px-2 text-center">מחיר</th>
             <th className="py-2 px-1 sm:px-2 text-left">סה&quot;כ</th>
@@ -117,7 +118,7 @@ const PrintContent = ({ order }) => (
           {order.items.map((item) => (
             <tr key={item._id} className="border-b">
               <td className="py-2 px-1 sm:px-2">{item.productId?.name}</td>
-              <td className="hidden sm:table-cell py-2 px-1 sm:px-2 text-center">
+              <td className=" py-2 px-1 sm:px-2 text-center">
                 {item.productId?.barCode}
               </td>
               <td className="py-2 px-1 sm:px-2 text-center">{item.quantity}</td>
