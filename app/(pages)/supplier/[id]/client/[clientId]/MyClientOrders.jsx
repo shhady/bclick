@@ -14,6 +14,9 @@ export default function MyClientOrders() {
   const [activeTab, setActiveTab] = useState('pending');
   const { globalUser } = useUserContext();
   const [isLoading, setIsLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState('');
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
 
   // Add handlers for order updates
   const handleOrderUpdate = (updatedOrder) => {
@@ -60,6 +63,34 @@ export default function MyClientOrders() {
     ),
   [orders, activeTab]);
 
+  // Modify the search handler
+  const handleSearch = () => {
+    if (searchInput.trim()) {
+      setHasSearched(true); // Set search state to true when search is performed
+      const found = orders.find(order => 
+        order.orderNumber.toString() === searchInput.trim()
+      );
+      
+      if (found) {
+        setSelectedOrder(found);
+        setFilteredOrders([]); // Clear filtered orders when found
+      } else {
+        setFilteredOrders([]); // Empty array indicates no results
+      }
+    }
+  };
+
+  // Modify the input change handler
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    if (!value) {
+      // Reset search state when input is cleared
+      setHasSearched(false);
+      setFilteredOrders([]);
+    }
+  };
+
   if (selectedOrder) {
     return (
       <OrderDetailsPage
@@ -73,6 +104,30 @@ export default function MyClientOrders() {
 
   return (
     <div className="my-16 ">
+      <div className="mb-6 flex flex-col md:flex-row gap-4">
+        <div className="flex-1 flex gap-2">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="חפש לפי מספר הזמנה..."
+              value={searchInput}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-customBlue"
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch();
+                }
+              }}
+            />
+          </div>
+          <button
+            onClick={handleSearch}
+            className="px-4 py-2 bg-customBlue text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            חפש
+          </button>
+        </div>
+      </div>
       <h2 className="text-xl font-bold mb-4">הזמנות הלקוח</h2>
       {isLoading ? (
         <Loader />
@@ -105,7 +160,7 @@ export default function MyClientOrders() {
               <div className="text-center text-gray-500">אין הזמנות</div>
             ) : (
               <OrderTable
-                orders={currentOrders}
+                orders={(filteredOrders.length > 0 ? filteredOrders : currentOrders)}
                 onShowDetails={setSelectedOrder}
                 activeTab={activeTab}
                 globalUser={globalUser}
@@ -114,6 +169,11 @@ export default function MyClientOrders() {
           </div>
         </>
       )}
+      {/* {hasSearched && !selectedOrder && searchInput && (
+        <div className="text-center py-4 text-gray-500">
+          לא נמצאו הזמנות עם המספר המבוקש
+        </div>
+      )} */}
     </div>
   );
 }

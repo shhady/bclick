@@ -244,10 +244,10 @@ export default function OrderDetailsPage({ order, onClose, onOrderUpdate, onOrde
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto py-6 px-4 border-t border-gray-300">
             {loadingAction && <div className="fixed w-full h-screen bg-black bg-opacity-25 top-0 left-0 z-50"></div>}
 
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
           <h1 className="text-xl font-bold">מס&apos; הזמנה: {order?.orderNumber}</h1>
           <p className="text-gray-500 text-sm">תאריך: {new Date(order.createdAt).toLocaleDateString('he-IL')}</p>
@@ -258,7 +258,7 @@ export default function OrderDetailsPage({ order, onClose, onOrderUpdate, onOrde
             }
           </p>
         </div>
-        <button onClick={onClose} className="text-red-500 text-xl">
+        <button onClick={onClose} className="text-gray-500 text-xl">
           X
         </button>
       </div>
@@ -325,20 +325,26 @@ export default function OrderDetailsPage({ order, onClose, onOrderUpdate, onOrde
              
 
               {isSupplier && (
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center gap-4 w-full">
                   <button 
                     onClick={handleAccept} 
                     disabled={loadingAction !== null}
-                    className="px-4 py-2 bg-customGreen text-white rounded hover:bg-customGreen-600"
+                    className="w-1/3 px-4 py-2 bg-customGreen text-white rounded hover:bg-customGreen-600"
                   >
                      {loadingAction === 'accepting' ? 'מאשר...' : 'אישור הזמנה'}
                   </button>
                   <button 
                     onClick={handleReject} 
                     disabled={loadingAction !== null}
-                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                    className="w-1/3 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                   >
                     {loadingAction === 'rejecting' ? <span className='animate-pulse'> דוחה הזמנה...</span>  : 'דחיית הזמנה'}
+                  </button>
+                  <button
+                    onClick={onClose}
+                    className="w-1/3 px-4 py-2 bg-customBlue text-white rounded"
+                  >
+                    חזור לרשימה
                   </button>
                 </div>
               )}
@@ -364,12 +370,12 @@ export default function OrderDetailsPage({ order, onClose, onOrderUpdate, onOrde
               )}
             </div>
             <div className='flex justify-center items-center'>
-            <button
+            {/* <button
                 onClick={onClose}
                 className="px-4 py-2 bg-customBlue text-white rounded w-1/2  mt-4"
               >
                 חזור
-              </button>
+              </button> */}
             </div>
            
           </div>
