@@ -6,11 +6,28 @@ import Image from 'next/image';
 import Loader from '@/components/loader/Loader';
 import { useToast } from '@/hooks/use-toast';
 import {ReorderConfirmationDialog} from '@/components/ReorderConfirmationDialog';
+import { FiEye, FiCheck, FiTruck, FiX } from 'react-icons/fi';
+import Link from 'next/link';
+import OrderStatusUpdate from '@/app/components/OrderStatusUpdate';
+
+const statusColors = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  processing: 'bg-blue-100 text-blue-800',
+  approved: 'bg-green-100 text-green-800',
+  rejected: 'bg-red-100 text-red-800'
+};
+
+const statusText = {
+  pending: 'ממתין',
+  processing: 'בטיפול',
+  approved: 'הושלם',
+  rejected: 'בוטל'
+};
 
 export default function Orders({ initialOrders }) {
   const [orders, setOrders] = useState(initialOrders);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [activeTab, setActiveTab] = useState('pending');
+  const [statusFilter, setStatusFilter] = useState('all');
   const { globalUser } = useUserContext();
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -21,6 +38,7 @@ export default function Orders({ initialOrders }) {
   const [isReordering, setIsReordering] = useState(false);
   const [stockInfo, setStockInfo] = useState(null);
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     console.log('Initial orders:', initialOrders);
@@ -78,13 +96,45 @@ export default function Orders({ initialOrders }) {
     };
   }, [loadMoreOrders, isLoading, hasMore]);
 
-  const handleOrderUpdate = (updatedOrder) => {
-    setOrders(prevOrders => 
-      prevOrders.map(order => 
-        order._id === updatedOrder._id ? updatedOrder : order
-      )
-    );
-    setSelectedOrder(null);
+  const handleOrderUpdate = async (orderId, newStatus, note = '') => {
+    try {
+      const response = await fetch('/api/orders/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          status: newStatus,
+          note: note || `סטטוס הזמנה עודכן ל${
+            newStatus === 'approved' ? 'הושלם' : 
+            newStatus === 'processing' ? 'בטיפול' : 'נדחה'
+          }`
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update order');
+      }
+      
+      const data = await response.json();
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order._id === orderId ? data.order : order
+        )
+      );
+
+      toast({
+        title: 'הצלחה',
+        description: 'ההזמנה עודכנה בהצלחה',
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'שגיאה',
+        description: error.message || 'שגיאה בעדכון ההזמנה',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleOrderDelete = (orderId) => {
@@ -98,22 +148,20 @@ export default function Orders({ initialOrders }) {
     if (!orders || !globalUser) return [];
     
     return orders.filter(order => {
-      if (globalUser.role === 'supplier') {
-        return order.supplierId._id === globalUser._id;
-      } else if (globalUser.role === 'client') {
-        return order.clientId._id === globalUser._id;
-      }
-      return false;
-    });
-  }, [orders, globalUser]);
+      const userMatch = globalUser.role === 'supplier' 
+        ? order.supplierId._id === globalUser._id
+        : order.clientId._id === globalUser._id;
 
-  const currentOrders = useMemo(() => 
-    filteredOrders.filter((order) => 
-      activeTab === 'pending' 
-        ? order.status === 'pending' 
-        : ['approved', 'rejected'].includes(order.status)
-    ),
-  [filteredOrders, activeTab]);
+      const statusMatch = statusFilter === 'all' || order.status === statusFilter;
+      
+      const matchesSearch = 
+        order.orderNumber.toString().includes(searchTerm) ||
+        (order.clientId?.businessName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (order.supplierId?.businessName || '').toLowerCase().includes(searchTerm.toLowerCase());
+      
+      return userMatch && statusMatch && matchesSearch;
+    });
+  }, [orders, globalUser, statusFilter, searchTerm]);
 
   const handleReorder = useCallback(async (order) => {
     try {
@@ -141,7 +189,7 @@ export default function Orders({ initialOrders }) {
   const handleReorderSuccess = useCallback((newOrder) => {
     if (newOrder?.order) {
       setOrders(prev => [newOrder.order, ...prev]);
-      setActiveTab('pending'); // Switch to pending tab
+      setStatusFilter('pending'); // Switch to pending tab
       toast({
         title: 'הצלחה',
         description: 'ההזמנה נוצרה בהצלחה',
@@ -161,63 +209,179 @@ export default function Orders({ initialOrders }) {
   }
 
   return (
-    <div>
-      {globalUser?.role === 'supplier' && (
-        <div>
-          <Image 
-            src={globalUser?.coverImage?.secure_url} 
-            alt="profile" 
-            width={500} 
-            height={500} 
-            className='w-full max-h-[200px] object-cover'
-          />
-        </div>
-      )}
-      <h1 className="text-xl font-bold text-center mt-4">הזמנות שלי</h1>
-      
-      <div className="flex mt-4">
-        <div className="flex overflow-hidden rounded-md w-full">
-          {['pending', 'history'].map((tab, index) => (
-            <button
-              key={tab}
-              className={`px-4 py-2 flex-1 ${
-                activeTab === tab
-                  ? 'bg-customBlue text-white'
-                  : 'bg-customGray text-black'
-              } ${
-                index === 0 
-                  ? 'rounded-r-md'
-                  : 'rounded-l-md border-l border-white'
-              }`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab === 'pending' 
-                ? (globalUser?.role === 'supplier' ? 'הזמנות לאישור' : 'הזמנות נוכחיות')
-                : 'היסטוריית הזמנות'
-              }
-            </button>
-          ))}
+    <div className="space-y-4 p-4" dir="rtl">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <input 
+          type="text"
+          placeholder="חיפוש לפי יש לקחת או מספר הזמנה..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 p-2 border rounded"
+        />
+        <select 
+          className="p-2 border rounded"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="all">כל הסטטוסים</option>
+          <option value="pending">ממתין</option>
+          <option value="processing">בטיפול</option>
+          <option value="approved">הושלם</option>
+          <option value="rejected">בוטל</option>
+        </select>
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden lg:block">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  לקוח
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  מספר הזמנה
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  סה"כ
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  סטטוס
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  תאריך
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  פעולות
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredOrders.map((order) => (
+                <tr key={order._id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-900">
+                      {order.clientId?.businessName}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm font-medium text-gray-900">
+                      #{order.orderNumber}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-900">₪{order.total}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}>
+                      {statusText[order.status]}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString('he-IL')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/orders/${order._id}`}
+                        className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
+                      >
+                        צפה בהזמנה
+                      </Link>
+                      {order.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleOrderUpdate(order._id, 'processing')}
+                            className="bg-blue-100 text-blue-600 px-4 py-1 rounded hover:bg-blue-200"
+                          >
+                            התחל טיפול
+                          </button>
+                          <button
+                            onClick={() => handleOrderUpdate(order._id, 'rejected')}
+                            className="bg-red-100 text-red-600 px-4 py-1 rounded hover:bg-red-200"
+                          >
+                            ביטול
+                          </button>
+                        </>
+                      )}
+                      {order.status === 'processing' && (
+                        <button
+                          onClick={() => handleOrderUpdate(order._id, 'approved')}
+                          className="bg-green-100 text-green-600 px-4 py-1 rounded hover:bg-green-200"
+                        >
+                          סיים טיפול
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div className="mt-4">
-        {currentOrders.length === 0 ? (
-          <div className="text-center text-gray-500">אין הזמנות</div>
-        ) : (
-          <div className="mb-6">
-            <OrderTable
-              orders={currentOrders}
-              onShowDetails={setSelectedOrder}
-              activeTab={activeTab}
-              globalUser={globalUser}
-              onReorder={handleReorder}
-            />
-            <div 
-              ref={loader} 
-              className="h-10 w-full flex items-center justify-center mt-4"
-            >
-              {isLoading ? <Loader /> : hasMore ? 'טוען עוד...' : ''}
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-4">
+        {filteredOrders.map(order => (
+          <div key={order._id} className="bg-white p-4 rounded-lg shadow">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <p className="font-bold">#{order.orderNumber}</p>
+                <p className="text-sm text-gray-500">
+                  {new Date(order.createdAt).toLocaleDateString('he-IL')}
+                </p>
+              </div>
+              <span className={`px-2 py-1 rounded-full text-sm ${statusColors[order.status]}`}>
+                {statusText[order.status]}
+              </span>
             </div>
+            
+            <div className="space-y-2">
+              <p>לקוח: {order.clientId?.businessName}</p>
+              <p>סה"כ: ₪{order.total}</p>
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <Link
+                href={`/orders/${order._id}`}
+                className="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                צפה בהזמנה
+              </Link>
+              {order.status === 'pending' && (
+                <>
+                  <button
+                    onClick={() => handleOrderUpdate(order._id, 'processing')}
+                    className="bg-blue-100 text-blue-600 px-4 py-2 rounded hover:bg-blue-200"
+                  >
+                    התחל טיפול
+                  </button>
+                  <button
+                    onClick={() => handleOrderUpdate(order._id, 'rejected')}
+                    className="bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
+                  >
+                    ביטול
+                  </button>
+                </>
+              )}
+              {order.status === 'processing' && (
+                <button
+                  onClick={() => handleOrderUpdate(order._id, 'approved')}
+                  className="bg-green-100 text-green-600 px-4 py-2 rounded hover:bg-green-200"
+                >
+                  סיים טיפול
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {filteredOrders.length === 0 && (
+          <div className="text-center py-8 bg-white rounded-lg shadow">
+            <p className="text-gray-500">לא נמצאו הזמנות התואמות את החיפוש</p>
           </div>
         )}
       </div>
@@ -236,179 +400,5 @@ export default function Orders({ initialOrders }) {
         globalUser={globalUser}
       />
     </div>
-  );
-}
-
-function OrderTable({ orders, onShowDetails, activeTab, globalUser, onReorder }) {
-  if (globalUser?.role === 'supplier') {
-    return (
-      <table className="table-auto w-full border-collapse border-gray-300 mt-2">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border border-gray-300 px-4 py-2">שם העסק</th>
-            <th className="border border-gray-300 px-4 py-2">מס&apos; הזמנה</th>
-            <th className="border border-gray-300 px-4 py-2">
-              {activeTab === 'pending' ? 'תאריך' : 'סטטוס'}
-            </th>
-            <th className="border border-gray-300 px-4 py-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders?.map((order, index) => (
-            <tr 
-              key={`${order?._id}-${activeTab}-${order?.status}-${index}`}
-              className={order?.status === 'rejected' ? 'bg-red-100' : 'border-b-2 border-customGray'}
-            >
-              <td className="border-gray-300 px-4 py-2 text-center">
-                {order?.clientId?.businessName}
-              </td>
-              <td className="px-4 py-2 text-center">{order?.orderNumber}</td>
-              <td className={`px-4 py-2 text-center ${
-                order?.status === "approved" ? "text-green-500" : 
-                order?.status === "rejected" ? "text-red-500" : 
-                "text-gray-700"
-              }`}>
-                {activeTab === 'pending' 
-                  ? new Date(order?.createdAt).toLocaleDateString('he-IL')
-                  : order?.status === "approved" 
-                    ? "אושרה" 
-                    : order?.status === "rejected" 
-                      ? "נדחתה" 
-                      : "נוכחית"
-                }
-              </td>
-              <td onClick={() => onShowDetails(order)} className="cursor-pointer px-4 py-2 text-center hover:bg-customGray hover:text-customGrayText">
-                <button className="py-2 md:px-8 rounded-lg hover:bg-customGray hover:text-customGrayText">
-                  הצג
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-  }
-
-  // Client view for history orders
-  if (activeTab === 'history') {
-    return (
-      <div className="space-y-8">
-        {orders?.map((order, index) => (
-          <table 
-            key={`${order._id}-${activeTab}-${order.status}-${index}`} 
-            className="table-auto w-full border-collapse border border-gray-300"
-          >
-            <tbody>
-              <tr className={`bg-gray-50 ${
-                order.status === 'rejected' ? 'bg-white' : 
-                order.status === 'approved' ? 'bg-white' : 'bg-white'
-              }`}>
-                <td colSpan={4} className="border border-gray-300 px-4 py-2">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex flex-col">
-                      <div className="flex justify-between items-center">
-                        <span className='text-2xl'>הזמנה מס׳ {order.orderNumber}</span>
-                        <div className="flex items-center gap-4">
-                          <span>{new Date(order.createdAt).toLocaleDateString('he-IL')}</span>
-                          {globalUser?.role === 'client' && (
-                            <button
-                              onClick={() => onReorder(order)}
-                              className="px-4 py-2 bg-customBlue text-white rounded hover:bg-blue-600"
-                            >
-                              הזמן שוב
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">
-                          {order.supplierId?.businessName}
-                        </span>
-                        <span className={`font-bold ${
-                          order.status === 'approved' ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {order.status === 'approved' ? 'אושרה' : 'נדחתה'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td colSpan={4} className="p-0">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-gray-200">
-                        <th className="border border-gray-300 px-4 py-2 w-[40%]">פריט</th>
-                        <th className="border border-gray-300 px-4 py-2 w-[20%] text-center">כמות</th>
-                        <th className="border border-gray-300 px-4 py-2 w-[20%] text-center">מחיר יחידה</th>
-                        <th className="border border-gray-300 px-4 py-2 w-[20%] text-center">סה&quot;כ</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {order.items.map((item) => (
-                        <tr key={`${order._id}-${item.productId._id}`}>
-                          <td className="border border-gray-300 px-4 py-2">{item.productId.name}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-center">{item.quantity}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-center">₪{item.productId.price}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-center">
-                            ₪{(item.quantity * item.productId.price).toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-              <tr className="bg-gray-100">
-                <td colSpan={3} className="border border-gray-300 px-4 py-2 text-right font-bold">
-                  סה&quot;כ להזמנה:
-                </td>
-                <td className="border border-gray-300 px-4 py-2 text-center font-bold">
-                  ₪{order.total.toFixed(2)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        ))}
-      </div>
-    );
-  }
-
-  // Client view for pending orders
-  return (
-    <table className="table-auto w-full border-collapse border border-gray-300 mt-2">
-      <thead>
-        <tr className="bg-gray-200">
-          <th className="border border-gray-300 px-4 py-2">שם הספק</th>
-          <th className="border border-gray-300 px-4 py-2">מס&apos; הזמנה</th>
-          <th className="border border-gray-300 px-4 py-2">תאריך</th>
-          <th className="border border-gray-300 px-4 py-2"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {orders?.map((order, index) => (
-          <tr key={`${order?._id}-${activeTab}-${index}`}>
-            <td className="border border-gray-300 px-4 py-2">
-              {order?.supplierId?.businessName}
-            </td>
-            <td className="border border-gray-300 px-4 py-2">
-              {order?.orderNumber}
-            </td>
-            <td className="border border-gray-300 px-4 py-2">
-              {new Date(order?.createdAt).toLocaleDateString('he-IL')}
-            </td>
-            <td className="border border-gray-300 px-4 py-2 text-center">
-              <button
-                onClick={() => onShowDetails(order)}
-                className="px-4 py-2 bg-customBlue text-white rounded"
-              >
-                הצג
-              </button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
   );
 }

@@ -61,6 +61,9 @@ export const metadata = {
     google: 'your-google-verification-code',
   },
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({ children }) {
