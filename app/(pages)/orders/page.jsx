@@ -4,27 +4,56 @@ import { connectToDB } from '@/utils/database';
 import Loader from '@/components/loader/Loader';
 import { currentUser } from '@clerk/nextjs/server';
 import Orders from './Orders';
+import User from '@/models/user';
+import Order from '@/models/order';
 
 export default async function NewOrdersPage() {
   const user = await currentUser();
-  await connectToDB();
   
+  if (!user) {
+    return null;
+  }
+
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(
-      `${baseUrl}/api/generalOrders?page=1&limit=10&clerkId=${user?.id}`,
-      { cache: 'no-store' }
-    );
+    await connectToDB();
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // Get the user's MongoDB document
+    const dbUser = await User.findOne({ clerkId: user.id });
+    if (!dbUser) {
+      return null;
     }
-    
-    const data = await response.json();
+
+    // Direct database query with population
+    const orders = await Order.find({
+      [dbUser.role === 'supplier' ? 'supplierId' : 'clientId']: dbUser._id
+    })
+    .populate('clientId', 'businessName')
+    .populate('supplierId', 'businessName')
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .lean();
+
+    // Format orders for client consumption with proper serialization
+    const formattedOrders = orders.map(order => ({
+      _id: order._id.toString(),
+      orderNumber: order.orderNumber,
+      status: order.status,
+      total: order.total,
+      createdAt: order.createdAt.toISOString(),
+      clientId: order.clientId ? {
+        _id: order.clientId._id.toString(),
+        businessName: order.clientId.businessName
+      } : null,
+      supplierId: order.supplierId ? {
+        _id: order.supplierId._id.toString(),
+        businessName: order.supplierId.businessName
+      } : null
+    }));
+
     return (
       <div>
         <Suspense fallback={<Loader />}>
-          <Orders initialOrders={data.orders} />
+          <Orders initialOrders={formattedOrders} />
         </Suspense>
       </div>
     );
