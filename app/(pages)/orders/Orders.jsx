@@ -73,24 +73,7 @@ export default function Orders({ initialOrders }) {
   const [loadingAction, setLoadingAction] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Show loading state while user data is being fetched
-  if (userLoading) {
-    return <Loader />;
-  }
-
-  // Ensure we have user data before rendering
-  if (!globalUser) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">אנא התחבר</h2>
-          <p className="text-gray-600">עליך להתחבר כדי לצפות בהזמנות</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Memoize dialog handlers
+  // Move all useCallback hooks to the top level
   const handleCloseUpdateDialog = useCallback(() => {
     setShowUpdateDialog(false);
     setSelectedOrder(null);
@@ -140,7 +123,8 @@ export default function Orders({ initialOrders }) {
         items: formattedItems,
         status: 'pending',
         note: `הזמנה עודכנה על ידי ${globalUser.businessName}`,
-        userId: globalUser._id
+        userId: globalUser._id,
+        userRole: globalUser.role
       };
 
       const response = await fetch(`/api/orders/update`, {
@@ -179,6 +163,57 @@ export default function Orders({ initialOrders }) {
       setLoadingAction(null);
     }
   }, [selectedOrder, globalUser, toast, handleCloseUpdateDialog]);
+
+  const handleReorder = useCallback(async (order) => {
+    try {
+      const response = await fetch('/api/products/validate-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: order.items })
+      });
+      
+      if (!response.ok) throw new Error('Failed to validate stock');
+      
+      const data = await response.json();
+      setStockInfo(data.stockInfo);
+      setSelectedReorder(order);
+      setShowReorderDialog(true);
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: 'שגיאה בבדיקת המלאי',
+        variant: 'destructive',
+      });
+    }
+  }, [toast]);
+
+  const handleReorderSuccess = useCallback((newOrder) => {
+    if (newOrder?.order) {
+      setOrders(prev => [newOrder.order, ...prev]);
+      setStatusFilter('pending');
+      toast({
+        title: 'הצלחה',
+        description: 'ההזמנה נוצרה בהצלחה',
+      });
+    }
+  }, [toast]);
+
+  // Show loading state while user data is being fetched
+  if (userLoading) {
+    return <Loader />;
+  }
+
+  // Ensure we have user data before rendering
+  if (!globalUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">אנא התחבר</h2>
+          <p className="text-gray-600">עליך להתחבר כדי לצפות בהזמנות</p>
+        </div>
+      </div>
+    );
+  }
 
   // Memoize search params to prevent unnecessary re-renders
   const buildSearchParams = useCallback((pageNum = 1) => {
@@ -400,40 +435,6 @@ export default function Orders({ initialOrders }) {
       setLoadingAction(null);
     }
   };
-
-  const handleReorder = useCallback(async (order) => {
-    try {
-      const response = await fetch('/api/products/validate-stock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: order.items })
-      });
-      
-      if (!response.ok) throw new Error('Failed to validate stock');
-      
-      const data = await response.json();
-      setStockInfo(data.stockInfo);
-      setSelectedReorder(order);
-      setShowReorderDialog(true);
-    } catch (error) {
-      toast({
-        title: 'שגיאה',
-        description: 'שגיאה בבדיקת המלאי',
-        variant: 'destructive',
-      });
-    }
-  }, [toast]);
-
-  const handleReorderSuccess = useCallback((newOrder) => {
-    if (newOrder?.order) {
-      setOrders(prev => [newOrder.order, ...prev]);
-      setStatusFilter('pending'); // Switch to pending tab
-      toast({
-        title: 'הצלחה',
-        description: 'ההזמנה נוצרה בהצלחה',
-      });
-    }
-  }, []);
 
   if (selectedOrder) {
     return (

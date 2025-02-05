@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { FiPrinter, FiCheck, FiX, FiClock } from 'react-icons/fi';
@@ -164,40 +164,7 @@ export default function OrderPage() {
   const isClient = globalUser?.role === 'client' && order?.clientId._id === globalUser._id;
   const canModifyOrder = isClient && order?.status === 'pending';
 
-  useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        const response = await fetch(`/api/orders/${orderId}`);
-        if (!response.ok) throw new Error('Failed to fetch order');
-        const data = await response.json();
-        
-        // Check if user has permission to view this order
-        if (!globalUser || (
-          globalUser.role === 'supplier' && data.order.supplierId._id !== globalUser._id) || 
-          (globalUser.role === 'client' && data.order.clientId._id !== globalUser._id)
-        ) {
-          router.push('/orders');
-          return;
-        }
-        
-        setOrder(data.order);
-      } catch (error) {
-        toast({
-          title: 'שגיאה',
-          description: 'שגיאה בטעינת ההזמנה',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (orderId && globalUser) {
-      fetchOrder();
-    }
-  }, [orderId, globalUser]);
-
-  const handleUpdateOrderStatus = async (orderId, status, note) => {
+  const handleUpdateOrderStatus = useCallback(async (orderId, status, note) => {
     if (status === 'rejected' && !note.trim()) {
       setErrorMessage('חובה להוסיף הערה בעת דחיית הזמנה');
       return;
@@ -242,9 +209,9 @@ export default function OrderPage() {
     } finally {
       setLoadingAction(null);
     }
-  };
+  }, [globalUser, toast]);
 
-  const handleOrderDelete = async (orderId) => {
+  const handleOrderDelete = useCallback(async (orderId) => {
     try {
       const response = await fetch('/api/orders/delete', {
         method: 'DELETE',
@@ -266,7 +233,113 @@ export default function OrderPage() {
         variant: 'destructive',
       });
     }
-  };
+  }, [router, toast]);
+
+  const handleUpdateClick = useCallback(async () => {
+    if (!canModifyOrder) {
+      toast({
+        title: 'שגיאה',
+        description: 'אין לך הרשאה לעדכן הזמנה זו',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/orders/stock-check/${order?._id}`);
+      if (!response.ok) throw new Error('Failed to fetch stock info');
+      const data = await response.json();
+      setStockInfo(data);
+      setShowUpdateDialog(true);
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: 'שגיאה בטעינת נתוני המלאי',
+        variant: 'destructive',
+      });
+    }
+  }, [canModifyOrder, order?._id, toast]);
+
+  const handleUpdateConfirm = useCallback(async (updatedItems) => {
+    if (!canModifyOrder || !order || !globalUser) {
+      toast({
+        title: 'שגיאה',
+        description: 'אין לך הרשאה לעדכן הזמנה זו',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setLoadingAction('updating');
+    try {
+      const response = await fetch(`/api/orders/update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order._id,
+          items: updatedItems,
+          status: 'pending',
+          note: `הזמנה עודכנה על ידי ${globalUser.businessName}`,
+          userId: globalUser._id,
+          userRole: globalUser.role
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update order');
+      }
+
+      const data = await response.json();
+      setOrder(data.order);
+      setShowUpdateDialog(false);
+      toast({
+        title: 'הצלחה',
+        description: 'ההזמנה עודכנה בהצלחה',
+      });
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: error.message || 'שגיאה בעדכון ההזמנה',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  }, [canModifyOrder, order, globalUser, toast]);
+
+  useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        const response = await fetch(`/api/orders/${orderId}`);
+        if (!response.ok) throw new Error('Failed to fetch order');
+        const data = await response.json();
+        
+        // Check if user has permission to view this order
+        if (!globalUser || (
+          globalUser.role === 'supplier' && data.order.supplierId._id !== globalUser._id) || 
+          (globalUser.role === 'client' && data.order.clientId._id !== globalUser._id)
+        ) {
+          router.push('/orders');
+          return;
+        }
+        
+        setOrder(data.order);
+      } catch (error) {
+        toast({
+          title: 'שגיאה',
+          description: 'שגיאה בטעינת ההזמנה',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (orderId && globalUser) {
+      fetchOrder();
+    }
+  }, [orderId, globalUser, router, toast]);
 
   const handlePrint = () => {
     const printWindow = window.open('', '', 'width=800,height=600');
@@ -302,79 +375,35 @@ export default function OrderPage() {
     }
   };
 
-  const handleUpdateClick = async () => {
-    if (!canModifyOrder) {
-      toast({
-        title: 'שגיאה',
-        description: 'אין לך הרשאה לעדכן הזמנה זו',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/orders/stock-check/${order._id}`);
-      if (!response.ok) throw new Error('Failed to fetch stock info');
-      const data = await response.json();
-      setStockInfo(data);
-      setShowUpdateDialog(true);
-    } catch (error) {
-      toast({
-        title: 'שגיאה',
-        description: 'שגיאה בטעינת נתוני המלאי',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleUpdateConfirm = async (updatedItems) => {
-    if (!canModifyOrder) {
-      toast({
-        title: 'שגיאה',
-        description: 'אין לך הרשאה לעדכן הזמנה זו',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setLoadingAction('updating');
-    try {
-      const response = await fetch(`/api/orders/update`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId: order._id,
-          items: updatedItems,
-          status: 'pending', // Always keep status as pending for client updates
-          note: `הזמנה עודכנה על ידי ${globalUser.businessName}`,
-          userId: globalUser._id
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update order');
-      }
-
-      const data = await response.json();
-      setOrder(data.order);
-      setShowUpdateDialog(false);
-      toast({
-        title: 'הצלחה',
-        description: 'ההזמנה עודכנה בהצלחה',
-      });
-    } catch (error) {
-      toast({
-        title: 'שגיאה',
-        description: error.message || 'שגיאה בעדכון ההזמנה',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoadingAction(null);
-    }
-  };
-
-  if (isLoading) return <div className="p-4">טוען...</div>;
+  if (isLoading) return (
+    <div className="p-4">
+      <div className="animate-pulse">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <div className="h-8 bg-gray-200 rounded w-48 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-32"></div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="h-6 bg-gray-200 rounded w-20"></div>
+              <div className="h-8 bg-gray-200 rounded w-24"></div>
+            </div>
+          </div>
+          <div className="flex justify-between items-center mt-8">
+            {[...Array(4)].map((_, i) => (
+              <React.Fragment key={i}>
+                <div className="flex flex-col items-center">
+                  <div className="w-10 h-10 rounded-full bg-gray-200"></div>
+                  <div className="h-4 bg-gray-200 rounded w-16 mt-2"></div>
+                </div>
+                {i < 3 && <div className="flex-1 h-0.5 bg-gray-200 mx-2"></div>}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
   if (!order) return <div className="p-4">הזמנה לא נמצאה</div>;
 
   return (
