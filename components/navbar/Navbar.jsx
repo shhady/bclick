@@ -11,35 +11,49 @@ import { getCart } from '@/app/actions/cartActions';
 import { useCartContext } from '@/app/context/CartContext';
 
 const Navbar = () => {
-  const { globalUser } = useUserContext();
+  const { globalUser, isRefreshing } = useUserContext();
   const pathName = usePathname();
   const router = useRouter();
   const [popupMessage, setPopupMessage] = useState('');
   const { itemCount } = useCartContext();
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Use pathname changes to track navigation
+  useEffect(() => {
+    setIsTransitioning(false);
+  }, [pathName]);
+
+  // Handle navigation start
+  const handleNavigation = (path) => {
+    setIsTransitioning(true);
+    router.push(path);
+  };
+
   const getIconColor = (path) => {
     return pathName?.includes(path) ? 'text-customBlue' : 'text-gray-600';
   };
 
   const isProfileOrOrders = pathName === '/profile' || pathName === '/orders';
-  const isOrdersPage = pathName === '/orders'
+  const isOrdersPage = pathName === '/orders';
+  
   const handlePopup = (message) => {
     setPopupMessage(message);
-    setTimeout(() => setPopupMessage(''), 3000); // Clear the popup message after 3 seconds
+    setTimeout(() => setPopupMessage(''), 3000);
   };
 
   const navigateToSupplierCatalog = () => {
     const pathParts = pathName.split('/');
     const clientId = pathParts[2];
     const supplierId = pathParts[pathParts.length - 1];
-    router.push(`/client/${clientId}/supplier-catalog/${supplierId}`);
+    handleNavigation(`/client/${clientId}/supplier-catalog/${supplierId}`);
   };
+
   const navigateToSupplierCart = () => {
     const pathParts = pathName.split('/');
     const clientId = pathParts[2];
     const supplierId = pathParts[pathParts.length - 1];
-    router.push(`/client/${clientId}/cart-from-supplier/${supplierId}`);
+    handleNavigation(`/client/${clientId}/cart-from-supplier/${supplierId}`);
   };
-
 
   const renderClientNav = () => (
     <>
@@ -149,6 +163,18 @@ const Navbar = () => {
 
   return (
     <div>
+      {/* Loading indicator */}
+      {(isRefreshing || isTransitioning) && (
+        <div className="fixed top-0 left-0 w-full h-1 bg-blue-100">
+          <div className="h-full bg-customBlue animate-progress-bar" 
+               style={{ 
+                 width: '100%',
+                 transition: 'width 300ms ease-in-out',
+                 animation: 'progress 2s ease-in-out infinite'
+               }} />
+        </div>
+      )}
+
       {/* Popup Message */}
       {popupMessage && (
         <div className="fixed bottom-[100px] left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded shadow-lg z-50">

@@ -215,7 +215,8 @@ export default function OrderPage() {
             status === 'approved' ? 'הושלם' : 
             status === 'processing' ? 'בטיפול' : 'נדחה'
           }`,
-          userId: globalUser._id
+          userId: globalUser._id,
+          userRole: globalUser.role
         }),
       });
 

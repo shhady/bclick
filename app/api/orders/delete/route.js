@@ -7,9 +7,16 @@ import { NextResponse } from 'next/server';
 export async function DELETE(request) {
   try {
     await connectToDB();
-    const { orderId } = await request.json();
+    const { orderId, userRole } = await request.json();
 
-    // First get the order to access its items and user IDs
+    if (!orderId) {
+      return NextResponse.json(
+        { message: "Order ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Find the order and populate necessary fields
     const order = await Order.findById(orderId)
       .populate('items.productId')
       .populate('clientId')
@@ -22,19 +29,32 @@ export async function DELETE(request) {
       );
     }
 
-    // Update product reservations
-    const updatePromises = order.items.map(item => {
-      return Product.findByIdAndUpdate(
-        item.productId._id,
-        {
-          $inc: { reserved: -item.quantity }
-        },
-        { new: true }
+    // Only allow deletion if order is pending and user is client
+    if (order.status !== 'pending') {
+      return NextResponse.json(
+        { message: "Only pending orders can be deleted" },
+        { status: 400 }
       );
-    });
+    }
+
+    if (userRole !== 'client') {
+      return NextResponse.json(
+        { message: "Only clients can delete orders" },
+        { status: 403 }
+      );
+    }
+
+    // Revert reserved stock for each product
+    const stockUpdatePromises = order.items.map(item => 
+      Product.findByIdAndUpdate(
+        item.productId._id,
+        { $inc: { reserved: -item.quantity } },
+        { new: true }
+      )
+    );
 
     // Remove order from both users' orders arrays
-    const userUpdates = [
+    const userUpdatePromises = [
       User.findByIdAndUpdate(
         order.clientId._id,
         { $pull: { orders: orderId } }
@@ -46,7 +66,7 @@ export async function DELETE(request) {
     ];
 
     // Wait for all updates to complete
-    await Promise.all([...updatePromises, ...userUpdates]);
+    await Promise.all([...stockUpdatePromises, ...userUpdatePromises]);
 
     // Delete the order
     await Order.findByIdAndDelete(orderId);
