@@ -55,6 +55,7 @@ const MIN_SEARCH_LENGTH = 2;
 
 export default function Orders({ initialOrders }) {
   const { globalUser, isRefreshing, loading: userLoading } = useUserContext();
+  const { toast } = useToast();
   const [orders, setOrders] = useState(initialOrders || []);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -67,7 +68,6 @@ export default function Orders({ initialOrders }) {
   const [selectedReorder, setSelectedReorder] = useState(null);
   const [isReordering, setIsReordering] = useState(false);
   const [stockInfo, setStockInfo] = useState(null);
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [loadingAction, setLoadingAction] = useState(null);
@@ -198,23 +198,6 @@ export default function Orders({ initialOrders }) {
     }
   }, [toast]);
 
-  // Show loading state while user data is being fetched
-  if (userLoading) {
-    return <Loader />;
-  }
-
-  // Ensure we have user data before rendering
-  if (!globalUser) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">אנא התחבר</h2>
-          <p className="text-gray-600">עליך להתחבר כדי לצפות בהזמנות</p>
-        </div>
-      </div>
-    );
-  }
-
   // Memoize search params to prevent unnecessary re-renders
   const buildSearchParams = useCallback((pageNum = 1) => {
     const params = new URLSearchParams({
@@ -233,6 +216,37 @@ export default function Orders({ initialOrders }) {
 
     return params;
   }, [globalUser?._id, globalUser?.role, searchTerm, statusFilter]);
+
+  // Optimized loadMoreOrders function
+  const loadMoreOrders = useCallback(async () => {
+    if (isFetching || !hasMore || !globalUser || isSearching) return;
+
+    try {
+      setIsFetching(true);
+      const params = buildSearchParams(page + 1);
+      const response = await fetch(`/api/orders?${params.toString()}`);
+      const data = await response.json();
+
+      if (response.ok && Array.isArray(data.orders)) {
+        setOrders(prev => {
+          const uniqueOrders = new Map([...prev.map(order => [order._id, order])]);
+          data.orders.forEach(order => uniqueOrders.set(order._id, order));
+          return Array.from(uniqueOrders.values());
+        });
+        setHasMore(data.hasMore);
+        setPage(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error('Error loading more orders:', error);
+      toast({
+        title: 'שגיאה',
+        description: 'שגיאה בטעינת הזמנות נוספות',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsFetching(false);
+    }
+  }, [page, isFetching, hasMore, globalUser, isSearching, buildSearchParams, toast]);
 
   // Reset pagination when filters change
   useEffect(() => {
@@ -270,38 +284,7 @@ export default function Orders({ initialOrders }) {
     } else {
       setOrders(initialOrders);
     }
-  }, [statusFilter, searchTerm, globalUser, buildSearchParams, initialOrders]);
-
-  // Optimized loadMoreOrders function
-  const loadMoreOrders = useCallback(async () => {
-    if (isFetching || !hasMore || !globalUser || isSearching) return;
-
-    try {
-      setIsFetching(true);
-      const params = buildSearchParams(page + 1);
-      const response = await fetch(`/api/orders?${params.toString()}`);
-      const data = await response.json();
-
-      if (response.ok && Array.isArray(data.orders)) {
-        setOrders(prev => {
-          const uniqueOrders = new Map([...prev.map(order => [order._id, order])]);
-          data.orders.forEach(order => uniqueOrders.set(order._id, order));
-          return Array.from(uniqueOrders.values());
-        });
-        setHasMore(data.hasMore);
-        setPage(prev => prev + 1);
-      }
-    } catch (error) {
-      console.error('Error loading more orders:', error);
-      toast({
-        title: 'שגיאה',
-        description: 'שגיאה בטעינת הזמנות נוספות',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsFetching(false);
-    }
-  }, [page, isFetching, hasMore, globalUser, isSearching, buildSearchParams]);
+  }, [statusFilter, searchTerm, globalUser, buildSearchParams, initialOrders, toast]);
 
   // Intersection Observer for infinite scrolling
   useEffect(() => {
@@ -329,6 +312,23 @@ export default function Orders({ initialOrders }) {
       }
     };
   }, [loadMoreOrders, isLoading, hasMore, isSearching]);
+
+  // Show loading state while user data is being fetched
+  // if (userLoading) {
+  //   return <Loader />;
+  // }
+
+  // Ensure we have user data before rendering
+  if (!globalUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">אנא התחבר</h2>
+          <p className="text-gray-600">עליך להתחבר כדי לצפות בהזמנות</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleOrderUpdate = async (orderId, newStatus, note = '') => {
     try {
