@@ -150,6 +150,8 @@ export default function OrderDetailsPage() {
   const { toast } = useToast();
   const printRef = useRef(null);
   const router = useRouter()
+  const [note, setNote] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -173,6 +175,11 @@ export default function OrderDetailsPage() {
   }, [orderId]);
 
   const handleStatusUpdate = async (newStatus) => {
+    if (newStatus === 'rejected' && !note.trim()) {
+      setErrorMessage('חובה להוסיף הערה בעת דחיית הזמנה');
+      return;
+    }
+
     try {
       const response = await fetch('/api/orders/update', {
         method: 'PUT',
@@ -180,7 +187,7 @@ export default function OrderDetailsPage() {
         body: JSON.stringify({
           orderId: order._id,
           status: newStatus,
-          note: `סטטוס הזמנה עודכן ל${
+          note: note.trim() || `סטטוס הזמנה עודכן ל${
             newStatus === 'approved' ? 'הושלם' : 
             newStatus === 'processing' ? 'בטיפול' : 'נדחה'
           }`
@@ -191,6 +198,8 @@ export default function OrderDetailsPage() {
       
       const data = await response.json();
       setOrder(data.order);
+      setNote('');
+      setErrorMessage('');
       toast({
         title: 'הצלחה',
         description: 'ההזמנה עודכנה בהצלחה',
@@ -360,7 +369,7 @@ export default function OrderDetailsPage() {
       </div>
 
       {/* Status Update Buttons at Bottom */}
-      {order.status !== 'approved' ? (
+      {order.status !== 'approved' && order.status !== 'rejected' ? (
         <div className="bg-white rounded-lg shadow-md mb-16 p-6">
           <h2 className="text-lg font-semibold mb-4">עדכון סטטוס</h2>
           <div className="flex gap-2">
@@ -381,16 +390,53 @@ export default function OrderDetailsPage() {
               </>
             )}
             {order.status === 'processing' && (
-              <button
-                onClick={() => handleStatusUpdate('approved')}
-                className="flex-1 bg-green-100 text-green-600 px-4 py-2 rounded hover:bg-green-200"
-              >
-                סיים טיפול
-              </button>
+              <>
+                <button
+                  onClick={() => handleStatusUpdate('approved')}
+                  className="flex-1 bg-green-100 text-green-600 px-4 py-2 rounded hover:bg-green-200"
+                >
+                  סיים טיפול
+                </button>
+                <button
+                  onClick={() => handleStatusUpdate('rejected')}
+                  className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
+                >
+                  ביטול
+                </button>
+              </>
             )}
           </div>
+          {/* Only show textarea if status is pending or processing */}
+          {(order.status === 'pending' || order.status === 'processing') && (
+            <div className="mt-4">
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="הוסף הערה (חובה לדחייה)"
+                className="w-full p-2 border rounded"
+              />
+              {errorMessage && (
+                <p className="text-red-500 mt-2">{errorMessage}</p>
+              )}
+            </div>
+          )}
         </div>
-      ):(<div className='mb-20'></div>)}
+      ) : (
+        <div className="bg-white rounded-lg shadow-md mb-16 p-6">
+          <div className="flex items-center justify-center">
+            <span className={`text-lg font-semibold ${
+              order.status === 'approved' ? 'text-green-600' : 'text-red-600'
+            }`}>
+              {order.status === 'approved' ? 'סטטוס הושלם' : 'ההזמנה בוטלה'}
+            </span>
+
+          </div>
+          הערות:
+          {order.status === 'rejected' && order.notes && order.notes.length > 0 && (
+              <p className="text-red-500 mt-2">{order.notes[order.notes.length - 1].message}</p>
+            )}
+        </div>
+      )}
 
       {/* Print Content */}
       <div className="hidden">

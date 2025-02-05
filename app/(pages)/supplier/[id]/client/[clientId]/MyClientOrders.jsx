@@ -11,7 +11,7 @@ export default function MyClientOrders() {
   const { clientId, id: supplierId } = params;
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [activeTab, setActiveTab] = useState('pending');
+  const [statusFilter, setStatusFilter] = useState('all');
   const { globalUser } = useUserContext();
   const [isLoading, setIsLoading] = useState(true);
   const [searchInput, setSearchInput] = useState('');
@@ -55,13 +55,13 @@ export default function MyClientOrders() {
     }
   }, [clientId, supplierId]);
 
+  // Update the filtering logic
   const currentOrders = useMemo(() => 
-    orders.filter((order) => 
-      activeTab === 'pending' 
-        ? order.status === 'pending' 
-        : ['approved', 'rejected'].includes(order.status)
-    ),
-  [orders, activeTab]);
+    orders.filter((order) => {
+      const statusMatch = statusFilter === 'all' || order.status === statusFilter;
+      return statusMatch;
+    }),
+  [orders, statusFilter]);
 
   // Modify the search handler
   const handleSearch = () => {
@@ -96,235 +96,304 @@ export default function MyClientOrders() {
       <OrderDetailsPage
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
+        setSelectedOrder={setSelectedOrder}
         onOrderUpdate={handleOrderUpdate}
         onOrderDelete={handleOrderDelete}
       />
     );
+
   }
 
   return (
-    <div className="my-16 ">
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1 flex gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              placeholder="חפש לפי מספר הזמנה..."
-              value={searchInput}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-customBlue"
-              onChange={handleInputChange}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearch();
-                }
-              }}
-            />
-          </div>
-          <button
-            onClick={handleSearch}
-            className="px-4 py-2 bg-customBlue text-white rounded-lg hover:bg-blue-600 transition-colors"
+    <div className="my-16">
+      <div className='sticky px-4 top-12 md:top-20 left-0 w-full bg-white p-4 border-b border-gray-400'>
+        <h1 className='text-2xl font-bold py-4'>הזמנות הלקוח</h1>
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <input 
+            type="text"
+            placeholder="חפש לפי מספר הזמנה..."
+            value={searchInput}
+            className="flex-1 p-2 border border-gray-400 rounded"
+            onChange={handleInputChange}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSearch();
+              }
+            }}
+          />
+          <select 
+            className="p-2 border rounded"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
-            חפש
-          </button>
+            <option value="all">כל הסטטוסים</option>
+            <option value="pending">ממתין</option>
+            <option value="processing">בטיפול</option>
+            <option value="approved">הושלם</option>
+            <option value="rejected">בוטל</option>
+          </select>
         </div>
       </div>
-      <h2 className="text-xl font-bold mb-4">הזמנות הלקוח</h2>
+
       {isLoading ? (
         <Loader />
       ) : (
-        <>
-          <div className="flex mt-4">
-            <div className="flex overflow-hidden rounded-md w-full">
-              {['pending', 'history'].map((tab, index) => (
-                <button
-                  key={tab}
-                  className={`px-4 py-2 flex-1 ${
-                    activeTab === tab
-                      ? 'bg-customBlue text-white'
-                      : 'bg-customGray text-black'
-                  } ${
-                    index === 0 
-                      ? 'rounded-r-md'
-                      : 'rounded-l-md border-l border-white'
-                  }`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab === 'pending' ? 'הזמנות נוכחיות' : 'היסטוריית הזמנות'}
-                </button>
-              ))}
+        <div className="mt-4">
+          {currentOrders.length === 0 ? (
+            <div className="text-center py-8 bg-white rounded-lg shadow">
+              <p className="text-gray-500">לא נמצאו הזמנות</p>
             </div>
-          </div>
-
-          <div className="mt-4">
-            {currentOrders.length === 0 ? (
-              <div className="text-center text-gray-500">אין הזמנות</div>
-            ) : (
-              <OrderTable
-                orders={(filteredOrders.length > 0 ? filteredOrders : currentOrders)}
-                onShowDetails={setSelectedOrder}
-                activeTab={activeTab}
-                globalUser={globalUser}
-              />
-            )}
-          </div>
-        </>
-      )}
-      {/* {hasSearched && !selectedOrder && searchInput && (
-        <div className="text-center py-4 text-gray-500">
-          לא נמצאו הזמנות עם המספר המבוקש
+          ) : (
+            <OrderTable
+              orders={(filteredOrders.length > 0 ? filteredOrders : currentOrders)}
+              onShowDetails={setSelectedOrder}
+              globalUser={globalUser}
+            />
+          )}
         </div>
-      )} */}
+      )}
     </div>
   );
 }
 
-function OrderTable({ orders, onShowDetails, activeTab, globalUser }) {
+function OrderTable({ orders, onShowDetails, globalUser }) {
   if (globalUser?.role === 'supplier') {
     return (
-      <table className="table-auto w-full border-collapse border-gray-300 mt-2">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border border-gray-300 px-4 py-2">שם העסק</th>
-            <th className="border border-gray-300 px-4 py-2">מס&apos; הזמנה</th>
-            <th className="border border-gray-300 px-4 py-2">
-              {activeTab === 'pending' ? 'תאריך' : 'סטטוס'}
-            </th>
-            <th className="border border-gray-300 px-4 py-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders?.map((order) => (
-            <tr 
-              key={order?._id}
-              className={order?.status === 'rejected' ? 'bg-red-100' : 'border-b-2 border-customGray'}
-            >
-              <td className="border-gray-300 px-4 py-2 text-center">
-                {order?.clientId?.businessName}
-              </td>
-              <td className="px-4 py-2 text-center">{order?.orderNumber}</td>
-              <td className={`px-4 py-2 text-center ${
-                order?.status === "approved" ? "text-green-500" : 
-                order?.status === "rejected" ? "text-red-500" : 
-                "text-gray-700"
-              }`}>
-                {activeTab === 'pending' 
-                  ? new Date(order?.createdAt).toLocaleDateString('he-IL')
-                  : order?.status === "approved" 
-                    ? "אושרה" 
-                    : order?.status === "rejected" 
-                      ? "נדחתה" 
-                      : "נוכחית"
-                }
-              </td>
-              <td onClick={() => onShowDetails(order)} className="cursor-pointer px-4 py-2 text-center hover:bg-customGray hover:text-customGrayText">
-                <button className="py-2 md:px-8 rounded-lg hover:bg-customGray hover:text-customGrayText">
-                  הצג
+      <>
+        {/* Desktop Table */}
+        <div className="hidden lg:block">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    לקוח
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    מספר הזמנה
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    סה&quot;כ
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    סטטוס
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    תאריך
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    פעולות
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {orders?.map((order) => (
+                  <tr key={order?._id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-900">
+                        {order?.clientId?.businessName}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-medium text-gray-900">
+                        #{order?.orderNumber}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-900">₪{order?.total}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        order?.status === "approved" ? "bg-green-100 text-green-800" : 
+                        order?.status === "rejected" ? "bg-red-100 text-red-800" : 
+                        order?.status === "processing" ? "bg-blue-100 text-blue-800" :
+                        "bg-yellow-100 text-yellow-800"
+                      }`}>
+                        {order?.status === "approved" ? "הושלם" : 
+                         order?.status === "rejected" ? "נדחתה" : 
+                         order?.status === "processing" ? "בטיפול" :
+                         "ממתינה"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(order?.createdAt).toLocaleDateString('he-IL')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => onShowDetails(order)}
+                        className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
+                      >
+                        צפה בהזמנה
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="lg:hidden space-y-4">
+          {orders?.map(order => (
+            <div key={order._id} className="bg-white p-4 rounded-lg shadow">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="font-bold">#{order.orderNumber}</p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString('he-IL')}
+                  </p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-sm ${
+                  order.status === "approved" ? "bg-green-100 text-green-800" : 
+                  order.status === "rejected" ? "bg-red-100 text-red-800" : 
+                  order.status === "processing" ? "bg-blue-100 text-blue-800" :
+                  "bg-yellow-100 text-yellow-800"
+                }`}>
+                  {order.status === "approved" ? "הושלם" : 
+                   order.status === "rejected" ? "נדחתה" : 
+                   order.status === "processing" ? "בטיפול" :
+                   "ממתינה"}
+                </span>
+              </div>
+              
+              <div className="space-y-2">
+                <p>לקוח: {order.clientId?.businessName}</p>
+                <p>סה&quot;כ: ₪{order.total}</p>
+              </div>
+
+              <div className="mt-4">
+                <button
+                  onClick={() => onShowDetails(order)}
+                  className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
+                  צפה בהזמנה
                 </button>
-              </td>
-            </tr>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      </>
     );
   }
 
-  // Client view for history orders
-  if (activeTab === 'history') {
-    return (
-      <div className="space-y-8">
-        {orders?.map((order) => (
-          <table key={order._id} className="table-auto w-full border-collapse border border-gray-300">
-            <tbody>
-              <tr className="bg-gray-50">
-                <td colSpan={4} className="border border-gray-300 px-4 py-2">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex flex-col">
-                      <div className="flex justify-between items-center">
-                        <span className='text-2xl'>הזמנה מס׳ {order.orderNumber}</span>
-                        <span>{new Date(order.createdAt).toLocaleDateString('he-IL')}</span>
-                      </div>
-                      <span className="text-sm text-gray-600">
-                        {order.supplierId?.businessName}
-                      </span>
-                    </div>
-                  </div>
-                </td>
-              </tr>
+  // Client view
+  return (
+    <>
+      {/* Desktop Table */}
+      <div className="hidden lg:block">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <td colSpan={4} className="p-0">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-gray-200">
-                        <th className="border border-gray-300 px-4 py-2 w-[40%]">פריט</th>
-                        <th className="border border-gray-300 px-4 py-2 w-[20%] text-center">כמות</th>
-                        <th className="border border-gray-300 px-4 py-2 w-[20%] text-center">מחיר יחידה</th>
-                        <th className="border border-gray-300 px-4 py-2 w-[20%] text-center">סה&quot;כ</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {order.items.map((item) => (
-                        <tr key={`${order._id}-${item.productId._id}`}>
-                          <td className="border border-gray-300 px-4 py-2">{item.productId.name}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-center">{item.quantity}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-center">₪{item.productId.price}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-center">
-                            ₪{(item.quantity * item.productId.price).toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </td>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  לקוח
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  מספר הזמנה
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  סה&quot;כ
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  סטטוס
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  תאריך
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  פעולות
+                </th>
               </tr>
-              <tr className="bg-gray-100">
-                <td colSpan={3} className="border border-gray-300 px-4 py-2 text-right font-bold">
-                  סה&quot;כ להזמנה:
-                </td>
-                <td className="border border-gray-300 px-4 py-2 text-center font-bold">
-                  ₪{order.total.toFixed(2)}
-                </td>
-              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {orders?.map((order) => (
+                <tr key={order?._id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-900">
+                      {order?.clientId?.businessName}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm font-medium text-gray-900">
+                      #{order?.orderNumber}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-900">₪{order?.total}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      order?.status === "approved" ? "bg-green-100 text-green-800" : 
+                      order?.status === "rejected" ? "bg-red-100 text-red-800" : 
+                      order?.status === "processing" ? "bg-blue-100 text-blue-800" :
+                      "bg-yellow-100 text-yellow-800"
+                    }`}>
+                      {order?.status === "approved" ? "הושלם" : 
+                       order?.status === "rejected" ? "נדחתה" : 
+                       order?.status === "processing" ? "בטיפול" :
+                       "ממתינה"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(order?.createdAt).toLocaleDateString('he-IL')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => onShowDetails(order)}
+                      className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
+                    >
+                      צפה בהזמנה
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-        ))}
+        </div>
       </div>
-    );
-  }
 
-  // Client view for pending orders
-  return (
-    <table className="table-auto w-full border-collapse border border-gray-300 mt-2">
-      <thead>
-        <tr className="bg-gray-200">
-          <th className="border border-gray-300 px-4 py-2">שם הספק</th>
-          <th className="border border-gray-300 px-4 py-2">מס&apos; הזמנה</th>
-          <th className="border border-gray-300 px-4 py-2">תאריך</th>
-          <th className="border border-gray-300 px-4 py-2"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {orders?.map((order) => (
-          <tr key={order?._id}>
-            <td className="border border-gray-300 px-4 py-2">
-              {order?.supplierId?.businessName}
-            </td>
-            <td className="border border-gray-300 px-4 py-2">
-              {order?.orderNumber}
-            </td>
-            <td className="border border-gray-300 px-4 py-2">
-              {new Date(order?.createdAt).toLocaleDateString('he-IL')}
-            </td>
-            <td className="border border-gray-300 px-4 py-2 text-center">
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-4">
+        {orders?.map(order => (
+          <div key={order._id} className="bg-white p-4 rounded-lg shadow">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <p className="font-bold">#{order.orderNumber}</p>
+                <p className="text-sm text-gray-500">
+                  {new Date(order.createdAt).toLocaleDateString('he-IL')}
+                </p>
+              </div>
+              <span className={`px-2 py-1 rounded-full text-sm ${
+                order.status === "approved" ? "bg-green-100 text-green-800" : 
+                order.status === "rejected" ? "bg-red-100 text-red-800" : 
+                order.status === "processing" ? "bg-blue-100 text-blue-800" :
+                "bg-yellow-100 text-yellow-800"
+              }`}>
+                {order.status === "approved" ? "הושלם" : 
+                 order.status === "rejected" ? "נדחתה" : 
+                 order.status === "processing" ? "בטיפול" :
+                 "ממתינה"}
+              </span>
+            </div>
+            
+            <div className="space-y-2">
+              <p>לקוח: {order.clientId?.businessName}</p>
+              <p>סה&quot;כ: ₪{order.total}</p>
+            </div>
+
+            <div className="mt-4">
               <button
                 onClick={() => onShowDetails(order)}
-                className="px-4 py-2 bg-customBlue text-white rounded"
+                className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
               >
-                הצג
+                צפה בהזמנה
               </button>
-            </td>
-          </tr>
+            </div>
+          </div>
         ))}
-      </tbody>
-    </table>
+      </div>
+    </>
   );
 }
