@@ -167,12 +167,12 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   }
 
   return (
-    <div className="mb-32 md:mb-20">
+    <div className="mb-32 md:mb-20 ">
      {isUpdating &&  
      <div className='fixed h-screen top-0 left-0 bg-black bg-opacity-5 w-full z-50'>
         
       </div>}
-      <div className="bg-gray-200 px-6 py-4 sticky top-0 left-0 md:top-20">
+      <div className="bg-gray-200 px-6 py-4 sticky top-12 left-0 md:top-20">
         <div className="flex justify-between items-center bg-gray-200 p-2 rounded">
           <h2 className="text-lg font-bold">הזמנה שלי</h2>
           <button
@@ -199,7 +199,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-2">
         {cart?.items?.map((item) => (
           <div key={item.productId._id} className="grid grid-cols-3 p-2 bg-white rounded shadow mb-2">
             <Image

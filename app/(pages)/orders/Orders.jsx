@@ -360,7 +360,7 @@ export default function Orders({ initialOrders }) {
   }
 
   return (
-    <div className="space-y-4 mb-20" dir="rtl">
+    <div className="p-4 min-h-screen bg-gray-50">
       <div className='sticky px-4 top-12 md:top-20 left-0 w-full bg-white p-4 border-b border-gray-400'>
       <h1 className='text-2xl font-bold py-4'>הזמנות</h1>
       {/* Filters */}
@@ -391,7 +391,7 @@ export default function Orders({ initialOrders }) {
 
       {/* Desktop Table */}
       <div className="hidden lg:block">
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg shadow">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

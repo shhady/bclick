@@ -112,7 +112,7 @@ export default function AddClientPage() {
   };
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
+    <div className="p-4 max-w-2xl mx-auto sticky top-16 md:top-20">
       <h1 className="text-2xl font-semibold mb-6">חיפוש לקוח</h1>
 
       {!isSuccess && (

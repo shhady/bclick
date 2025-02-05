@@ -73,10 +73,13 @@ export default function Profile({ formData, onEdit }) {
         <div>
           <h1 className="text-1xl font-semibold">{formData.businessName || 'משתמש'}</h1>
           <p>{formData.city}</p>
-          <p>{formData.phone || 'טלפון לא הוזן'}</p>
+          
+          <p dir='ltr' className='text-right'>{formData.phone || 'טלפון לא הוזן'}</p>
         </div>
         <div className="flex flex-col items-center justify-end gap-2">
           <ProfileMenu onEdit={onEdit}/>
+
+
          
         </div>
       </div>

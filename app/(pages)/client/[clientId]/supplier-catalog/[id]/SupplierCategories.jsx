@@ -45,7 +45,7 @@ export default function SupplierCategories({
   }, [activeCategory, handleCategoryClick]);
 
   return (
-    <div className="bg-[#D9D9D9] h-[35px] lg:h-[50px] flex items-center overflow-x-auto whitespace-nowrap sticky top-[104px] md:top-[184px] z-50 shadow-xl">
+    <div className="bg-[#D9D9D9] h-[35px] lg:h-[50px] flex items-center overflow-x-auto whitespace-nowrap sticky top-[152px] md:top-[184px] z-50 shadow-xl">
       <div className="flex items-center gap-4 px-4">
         קטגוריות:
         {sortedCategories.map((category) => (
