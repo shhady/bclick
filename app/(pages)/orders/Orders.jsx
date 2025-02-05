@@ -396,7 +396,7 @@ export default function Orders({ initialOrders }) {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  לקוח
+                  {globalUser.role === 'client' ? 'ספק' : 'לקוח'}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   מספר הזמנה
@@ -420,7 +420,9 @@ export default function Orders({ initialOrders }) {
                 <tr key={order._id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-900">
-                      {order.clientId?.businessName}
+                      {globalUser.role === 'client' 
+                        ? order.supplierId?.businessName 
+                        : order.clientId?.businessName}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -513,7 +515,12 @@ export default function Orders({ initialOrders }) {
             </div>
             
             <div className="space-y-2">
-              <p>לקוח: {order.clientId?.businessName}</p>
+              <p>
+                {globalUser.role === 'client' ? 'ספק: ' : 'לקוח: '}
+                {globalUser.role === 'client' 
+                  ? order.supplierId?.businessName 
+                  : order.clientId?.businessName}
+              </p>
               <p>סה&quot;כ: ₪{order.total}</p>
             </div>
 
