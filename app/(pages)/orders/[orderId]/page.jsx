@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
+import { useUserContext } from '@/app/context/UserContext';
+import { OrderUpdateDialog } from '@/components/OrderUpdateDialog';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -143,15 +145,24 @@ const PrintContent = ({ order }) => (
   </div>
 );
 
-export default function OrderDetailsPage() {
+export default function OrderPage() {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { globalUser } = useUserContext();
   const printRef = useRef(null);
-  const router = useRouter()
+  const router = useRouter();
   const [note, setNote] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [stockInfo, setStockInfo] = useState(null);
+  const [loadingAction, setLoadingAction] = useState(null);
+
+  // Add permission checks
+  const isSupplier = globalUser?.role === 'supplier' && order?.supplierId._id === globalUser._id;
+  const isClient = globalUser?.role === 'client' && order?.clientId._id === globalUser._id;
+  const canModifyOrder = isClient && order?.status === 'pending';
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -159,6 +170,16 @@ export default function OrderDetailsPage() {
         const response = await fetch(`/api/orders/${orderId}`);
         if (!response.ok) throw new Error('Failed to fetch order');
         const data = await response.json();
+        
+        // Check if user has permission to view this order
+        if (!globalUser || (
+          globalUser.role === 'supplier' && data.order.supplierId._id !== globalUser._id) || 
+          (globalUser.role === 'client' && data.order.clientId._id !== globalUser._id)
+        ) {
+          router.push('/orders');
+          return;
+        }
+        
         setOrder(data.order);
       } catch (error) {
         toast({
@@ -171,43 +192,76 @@ export default function OrderDetailsPage() {
       }
     };
 
-    fetchOrder();
-  }, [orderId]);
+    if (orderId && globalUser) {
+      fetchOrder();
+    }
+  }, [orderId, globalUser]);
 
-  const handleStatusUpdate = async (newStatus) => {
-    if (newStatus === 'rejected' && !note.trim()) {
+  const handleUpdateOrderStatus = async (orderId, status, note) => {
+    if (status === 'rejected' && !note.trim()) {
       setErrorMessage('חובה להוסיף הערה בעת דחיית הזמנה');
       return;
     }
 
+    setLoadingAction(status === 'approved' ? 'accepting' : 'rejecting');
     try {
       const response = await fetch('/api/orders/update', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId: order._id,
-          status: newStatus,
+          orderId,
+          status,
           note: note.trim() || `סטטוס הזמנה עודכן ל${
-            newStatus === 'approved' ? 'הושלם' : 
-            newStatus === 'processing' ? 'בטיפול' : 'נדחה'
-          }`
-        })
+            status === 'approved' ? 'הושלם' : 
+            status === 'processing' ? 'בטיפול' : 'נדחה'
+          }`,
+          userId: globalUser._id
+        }),
       });
 
-      if (!response.ok) throw new Error('Failed to update order');
-      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update order');
+      }
+
       const data = await response.json();
       setOrder(data.order);
       setNote('');
       setErrorMessage('');
       toast({
         title: 'הצלחה',
-        description: 'ההזמנה עודכנה בהצלחה',
+        description: status === 'approved' ? 'ההזמנה אושרה בהצלחה' : 'ההזמנה נדחתה בהצלחה',
       });
     } catch (error) {
       toast({
         title: 'שגיאה',
-        description: 'שגיאה בעדכון ההזמנה',
+        description: error.message || 'שגיאה בעדכון ההזמנה',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleOrderDelete = async (orderId) => {
+    try {
+      const response = await fetch('/api/orders/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+
+      if (!response.ok) throw new Error('Failed to delete order');
+
+      toast({
+        title: 'הצלחה',
+        description: 'ההזמנה נמחקה בהצלחה',
+      });
+      router.push('/orders');
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: 'שגיאה במחיקת ההזמנה',
         variant: 'destructive',
       });
     }
@@ -247,25 +301,91 @@ export default function OrderDetailsPage() {
     }
   };
 
-  if (isLoading) {
-    return <div className="p-4">טוען...</div>;
-  }
+  const handleUpdateClick = async () => {
+    if (!canModifyOrder) {
+      toast({
+        title: 'שגיאה',
+        description: 'אין לך הרשאה לעדכן הזמנה זו',
+        variant: 'destructive',
+      });
+      return;
+    }
 
-  if (!order) {
-    return <div className="p-4">הזמנה לא נמצאה</div>;
-  }
+    try {
+      const response = await fetch(`/api/orders/stock-check/${order._id}`);
+      if (!response.ok) throw new Error('Failed to fetch stock info');
+      const data = await response.json();
+      setStockInfo(data);
+      setShowUpdateDialog(true);
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: 'שגיאה בטעינת נתוני המלאי',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdateConfirm = async (updatedItems) => {
+    if (!canModifyOrder) {
+      toast({
+        title: 'שגיאה',
+        description: 'אין לך הרשאה לעדכן הזמנה זו',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setLoadingAction('updating');
+    try {
+      const response = await fetch(`/api/orders/update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order._id,
+          items: updatedItems,
+          status: 'pending', // Always keep status as pending for client updates
+          note: `הזמנה עודכנה על ידי ${globalUser.businessName}`,
+          userId: globalUser._id
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update order');
+      }
+
+      const data = await response.json();
+      setOrder(data.order);
+      setShowUpdateDialog(false);
+      toast({
+        title: 'הצלחה',
+        description: 'ההזמנה עודכנה בהצלחה',
+      });
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: error.message || 'שגיאה בעדכון ההזמנה',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  if (isLoading) return <div className="p-4">טוען...</div>;
+  if (!order) return <div className="p-4">הזמנה לא נמצאה</div>;
 
   return (
     <div className="p-4" dir="rtl">
-      
+      <button 
+        className='border border-gray-300 rounded-md p-2 my-2 flex items-center gap-2 shadow-md' 
+        onClick={() => router.push('/orders')}
+      >
+        <ArrowRight/> חזור לרשימת ההזמנות
+      </button>
+
       {/* Header with Print and Status */}
-      {/* <button
-            onClick={() => router.back()}
-            className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors duration-200 flex items-center gap-2 font-medium shadow-sm"
-          >
-            <ArrowRight />
-            חזור
-          </button> */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -323,37 +443,75 @@ export default function OrderDetailsPage() {
         </div>
       </div>
 
-      {/* Customer Info */}
+      {/* Customer/Supplier Info Section */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-4">פרטי לקוח</h2>
+        <h2 className="text-lg font-semibold mb-4">
+          {isClient ? 'פרטי ספק' : 'פרטי לקוח'}
+        </h2>
         <div className="grid grid-cols-1 gap-4">
-          <div>
-            <p className="text-gray-600">שם העסק</p>
-            <p className="font-medium">{order.clientId?.businessName}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">טלפון</p>
-            <a 
-              href={`tel:${order.clientId?.phone}`}
-              className="font-medium text-right text-black"
-              dir="ltr"
-            >
-              {order.clientId?.phone}
-            </a>
-          </div>
-          <div>
-            <p className="text-gray-600">כתובת</p>
-            <p className="font-medium">{order.clientId?.address}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">אימייל</p>
-            <a 
-              href={`mailto:${order.clientId?.email}`}
-              className="font-medium text-gray-600 hover:text-gray-800 "
-            >
-              {order.clientId?.email}
-            </a>
-          </div>
+          {isClient ? (
+            // Show Supplier Details for Clients
+            <>
+              <div>
+                <p className="text-gray-600">שם העסק</p>
+                <p className="font-medium">{order.supplierId?.businessName}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">טלפון</p>
+                <a 
+                  href={`tel:${order.supplierId?.phone}`}
+                  className="font-medium text-right text-black"
+                  dir="ltr"
+                >
+                  {order.supplierId?.phone}
+                </a>
+              </div>
+              <div>
+                <p className="text-gray-600">כתובת</p>
+                <p className="font-medium">{order.supplierId?.address}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">אימייל</p>
+                <a 
+                  href={`mailto:${order.supplierId?.email}`}
+                  className="font-medium text-gray-600 hover:text-gray-800"
+                >
+                  {order.supplierId?.email}
+                </a>
+              </div>
+            </>
+          ) : (
+            // Show Customer Details for Suppliers
+            <>
+              <div>
+                <p className="text-gray-600">שם העסק</p>
+                <p className="font-medium">{order.clientId?.businessName}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">טלפון</p>
+                <a 
+                  href={`tel:${order.clientId?.phone}`}
+                  className="font-medium text-right text-black"
+                  dir="ltr"
+                >
+                  {order.clientId?.phone}
+                </a>
+              </div>
+              <div>
+                <p className="text-gray-600">כתובת</p>
+                <p className="font-medium">{order.clientId?.address}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">אימייל</p>
+                <a 
+                  href={`mailto:${order.clientId?.email}`}
+                  className="font-medium text-gray-600 hover:text-gray-800"
+                >
+                  {order.clientId?.email}
+                </a>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -368,46 +526,65 @@ export default function OrderDetailsPage() {
         <p className="text-lg font-bold">סך הכל: ₪{order.total}</p>
       </div>
 
-      {/* Status Update Buttons at Bottom */}
-      {order.status !== 'approved' && order.status !== 'rejected' ? (
+      {/* Status Update Buttons */}
+      {order.status !== 'approved' && order.status !== 'rejected' && (
         <div className="bg-white rounded-lg shadow-md mb-16 p-6">
           <h2 className="text-lg font-semibold mb-4">עדכון סטטוס</h2>
           <div className="flex gap-2">
-            {order.status === 'pending' && (
+            {isSupplier ? (
               <>
+                {order.status === 'pending' && (
+                  <>
+                    <button
+                      onClick={() => handleUpdateOrderStatus(order._id, 'processing', note)}
+                      className="flex-1 bg-blue-100 text-blue-600 px-4 py-2 rounded hover:bg-blue-200"
+                    >
+                      התחל טיפול
+                    </button>
+                    <button
+                      onClick={() => handleUpdateOrderStatus(order._id, 'rejected', note)}
+                      className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
+                    >
+                      ביטול
+                    </button>
+                  </>
+                )}
+                {order.status === 'processing' && (
+                  <>
+                    <button
+                      onClick={() => handleUpdateOrderStatus(order._id, 'approved', note)}
+                      className="flex-1 bg-green-100 text-green-600 px-4 py-2 rounded hover:bg-green-200"
+                    >
+                      סיים טיפול
+                    </button>
+                    <button
+                      onClick={() => handleUpdateOrderStatus(order._id, 'rejected', note)}
+                      className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
+                    >
+                      ביטול
+                    </button>
+                  </>
+                )}
+              </>
+            ) : canModifyOrder && (
+              <div className="flex gap-2 w-full">
                 <button
-                  onClick={() => handleStatusUpdate('processing')}
+                  onClick={handleUpdateClick}
                   className="flex-1 bg-blue-100 text-blue-600 px-4 py-2 rounded hover:bg-blue-200"
                 >
-                  התחל טיפול
+                  עדכן הזמנה
                 </button>
                 <button
-                  onClick={() => handleStatusUpdate('rejected')}
+                  onClick={() => handleOrderDelete(order._id)}
                   className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
                 >
-                  ביטול
+                  מחק הזמנה
                 </button>
-              </>
-            )}
-            {order.status === 'processing' && (
-              <>
-                <button
-                  onClick={() => handleStatusUpdate('approved')}
-                  className="flex-1 bg-green-100 text-green-600 px-4 py-2 rounded hover:bg-green-200"
-                >
-                  סיים טיפול
-                </button>
-                <button
-                  onClick={() => handleStatusUpdate('rejected')}
-                  className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
-                >
-                  ביטול
-                </button>
-              </>
+              </div>
             )}
           </div>
-          {/* Only show textarea if status is pending or processing */}
-          {(order.status === 'pending' || order.status === 'processing') && (
+          {/* Show textarea only for supplier when needed */}
+          {isSupplier && (order.status === 'pending' || order.status === 'processing') && (
             <div className="mt-4">
               <textarea
                 value={note}
@@ -421,20 +598,28 @@ export default function OrderDetailsPage() {
             </div>
           )}
         </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md mb-16 p-6">
-          <div className="flex items-center justify-center">
-            <span className={`text-lg font-semibold ${
-              order.status === 'approved' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {order.status === 'approved' ? 'סטטוס הושלם' : 'ההזמנה בוטלה'}
-            </span>
+      )}
 
+      {/* Notes History */}
+      {order.notes && order.notes.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4">היסטוריית הערות</h2>
+          <div className="space-y-3">
+            {order.notes.map((note, index) => (
+              <div key={index} className="border-r-2 border-gray-200 pr-4">
+                <div className="text-sm text-gray-600">
+                  {new Date(note.date).toLocaleDateString('he-IL', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+                <div className="text-gray-800 mt-1">{note.message}</div>
+              </div>
+            ))}
           </div>
-          הערות:
-          {order.status === 'rejected' && order.notes && order.notes.length > 0 && (
-              <p className="text-red-500 mt-2">{order.notes[order.notes.length - 1].message}</p>
-            )}
         </div>
       )}
 
@@ -444,6 +629,15 @@ export default function OrderDetailsPage() {
           <PrintContent order={order} />
         </div>
       </div>
+
+      <OrderUpdateDialog
+        isOpen={showUpdateDialog}
+        onClose={() => setShowUpdateDialog(false)}
+        onConfirm={handleUpdateConfirm}
+        order={order}
+        stockInfo={stockInfo}
+        loadingAction={loadingAction}
+      />
     </div>
   );
 } 

@@ -23,8 +23,6 @@ export default function OrderDetails({
   onClose, 
   onOrderUpdate, 
   onOrderDelete,
-  isSupplier,
-  canModifyOrder,
   globalUser,
   handlePrint,
   printRef
@@ -35,6 +33,11 @@ export default function OrderDetails({
   const [stockInfo, setStockInfo] = useState(null);
   const [loadingAction, setLoadingAction] = useState(null);
   const { toast } = useToast();
+
+  // Add permission checks
+  const isSupplier = globalUser?.role === 'supplier' && order.supplierId._id === globalUser._id;
+  const isClient = globalUser?.role === 'client' && order.clientId._id === globalUser._id;
+  const canModifyOrder = isClient && order.status === 'pending';
 
   const handleUpdateOrderStatus = async (orderId, status, note) => {
     if (status === 'rejected' && !note.trim()) {
@@ -205,31 +208,73 @@ export default function OrderDetails({
       )}
 
       {/* Status Update Buttons */}
-      {order.status !== 'approved' && order.status !== 'rejected' ? (
+      {order.status !== 'approved' && order.status !== 'rejected' && (
         <div className="bg-white rounded-lg shadow-md mb-16 p-6">
-          <div className="flex flex-col items-center justify-center">
-            <span className={`text-lg font-semibold ${
-              order.status === 'approved' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {order.status === 'approved' ? 'סטטוס הושלם' : 'ההזמנה בוטלה'}
-            </span>
-            {order.status === 'rejected' && order.notes && order.notes.length > 0 && (
-              <p className="text-red-500 mt-2">{order.notes[order.notes.length - 1].message}</p>
+          <h2 className="text-lg font-semibold mb-4">עדכון סטטוס</h2>
+          <div className="flex gap-2">
+            {isSupplier && order.status === 'pending' && (
+              <>
+                <button
+                  onClick={() => handleUpdateOrderStatus(order._id, 'processing', note)}
+                  className="flex-1 bg-blue-100 text-blue-600 px-4 py-2 rounded hover:bg-blue-200"
+                >
+                  התחל טיפול
+                </button>
+                <button
+                  onClick={handleReject}
+                  className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
+                >
+                  ביטול
+                </button>
+              </>
+            )}
+            {isSupplier && order.status === 'processing' && (
+              <>
+                <button
+                  onClick={handleAccept}
+                  className="flex-1 bg-green-100 text-green-600 px-4 py-2 rounded hover:bg-green-200"
+                >
+                  סיים טיפול
+                </button>
+                <button
+                  onClick={handleReject}
+                  className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
+                >
+                  ביטול
+                </button>
+              </>
+            )}
+            {canModifyOrder && (
+              <div className="flex gap-2 w-full">
+                <button
+                  onClick={handleUpdateClick}
+                  className="flex-1 bg-blue-100 text-blue-600 px-4 py-2 rounded hover:bg-blue-200"
+                >
+                  עדכן הזמנה
+                </button>
+                <button
+                  onClick={() => onOrderDelete(order._id)}
+                  className="flex-1 bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
+                >
+                  מחק הזמנה
+                </button>
+              </div>
             )}
           </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md mb-16 p-6">
-          <div className="flex flex-col items-center justify-center">
-            <span className={`text-lg font-semibold ${
-              order.status === 'approved' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {order.status === 'approved' ? 'סטטוס הושלם' : 'ההזמנה בוטלה'}
-            </span>
-            {order.status === 'rejected' && order.notes && order.notes.length > 0 && (
-              <p className="text-red-500 mt-2">{order.notes[order.notes.length - 1].message}</p>
-            )}
-          </div>
+          {/* Show textarea only for supplier when needed */}
+          {isSupplier && (order.status === 'pending' || order.status === 'processing') && (
+            <div className="mt-4">
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="הוסף הערה (חובה לדחייה)"
+                className="w-full p-2 border rounded"
+              />
+              {errorMessage && (
+                <p className="text-red-500 mt-2">{errorMessage}</p>
+              )}
+            </div>
+          )}
         </div>
       )}
 

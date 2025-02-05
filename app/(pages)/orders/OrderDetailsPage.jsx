@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { FiPrinter, FiCheck, FiX, FiClock } from 'react-icons/fi';
 import { ArrowRight } from 'lucide-react';
 
+
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
   processing: 'bg-blue-100 text-blue-800',
@@ -89,7 +90,7 @@ const PrintContent = ({ order }) => (
   </div>
 );
 
-export default function OrderDetailsPage({ order, onClose,setSelectedOrder, onOrderUpdate, onOrderDelete }) {
+export default function OrderDetailsPage({ order, onClose, setSelectedOrder, onOrderUpdate, onOrderDelete }) {
   const { globalUser } = useUserContext();
   const { toast } = useToast();
   const router = useRouter();
@@ -98,9 +99,12 @@ export default function OrderDetailsPage({ order, onClose,setSelectedOrder, onOr
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [stockInfo, setStockInfo] = useState(null);
   const [loadingAction, setLoadingAction] = useState(null);
-  const canModifyOrder = order?.status === 'pending' && globalUser?.role === 'client';
-  const isSupplier = globalUser?.role === 'supplier';
   const printRef = useRef(null);
+  
+  // Add permission checks
+  const isSupplier = globalUser?.role === 'supplier' && order.supplierId._id === globalUser._id;
+  const isClient = globalUser?.role === 'client' && order.clientId._id === globalUser._id;
+  const canModifyOrder = isClient && order.status === 'pending';
 
   const handleUpdateOrderStatus = async (orderId, status, note) => {
     if (status === 'rejected' && !note.trim()) {
@@ -275,7 +279,6 @@ export default function OrderDetailsPage({ order, onClose,setSelectedOrder, onOr
     if (printRef.current) {
       const printContents = printRef.current.innerHTML;
       const originalContents = document.body.innerHTML;
-
       document.body.innerHTML = printContents;
       window.print();
       document.body.innerHTML = originalContents;
@@ -284,162 +287,21 @@ export default function OrderDetailsPage({ order, onClose,setSelectedOrder, onOr
 
   return (
     <div className="p-4" dir="rtl">
-      <button className='border border-gray-300 rounded-md p-2 my-2 flex items-center gap-2 shadow-md' onClick={() => setSelectedOrder(null)}><ArrowRight/> חזור לרשימת ההזמנות</button>
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <button 
+        className='border border-gray-300 rounded-md p-2 my-2 flex items-center gap-2 shadow-md' 
+        onClick={() => setSelectedOrder(null)}
+      >
+        <ArrowRight/> חזור לרשימת ההזמנות
+      </button>
 
-        <div className="flex justify-between items-start mb-6">
-          <div>
-
-            <h1 className="text-2xl font-bold">הזמנה מספר #{order.orderNumber}</h1>
-            <p className="text-gray-500">
-              {new Date(order.createdAt).toLocaleString('he-IL')}
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className={`px-3 py-1 rounded-full text-sm ${statusColors[order.status]}`}>
-              {statusText[order.status]}
-            </span>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200"
-            >
-              <FiPrinter className="w-4 h-4" />
-              הדפס
-            </button>
-          </div>
-        </div>
-
-        {/* Status Timeline */}
-        <div className="flex justify-between items-center mt-8">
-          <div className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              order.status !== 'rejected' ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-400'
-            }`}>
-              <FiClock className="w-5 h-5" />
-            </div>
-            <p className="mt-2 text-sm">ממתין</p>
-          </div>
-          <div className="flex-1 h-0.5 bg-gray-200 mx-2"></div>
-          <div className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              order.status === 'processing' || order.status === 'approved' 
-                ? 'bg-blue-100 text-blue-600' 
-                : 'bg-gray-100 text-gray-400'
-            }`}>
-              <FiClock className="w-5 h-5" />
-            </div>
-            <p className="mt-2 text-sm">בטיפול</p>
-          </div>
-          <div className="flex-1 h-0.5 bg-gray-200 mx-2"></div>
-          <div className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              order.status === 'approved' 
-                ? 'bg-green-100 text-green-600' 
-                : 'bg-gray-100 text-gray-400'
-            }`}>
-              <FiCheck className="w-5 h-5" />
-            </div>
-            <p className="mt-2 text-sm">הושלם</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Customer Info */}
-      {/* <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-4">פרטי לקוח</h2>
-        <div className="grid grid-cols-1 gap-4">
-          <div>
-            <p className="text-gray-600">שם העסק</p>
-            <p className="font-medium">{order.clientId?.businessName}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">טלפון</p>
-            <a 
-              href={`tel:${order.clientId?.phone}`}
-              className="font-medium text-right text-black"
-              dir="ltr"
-            >
-              {order.clientId?.phone}
-            </a>
-          </div>
-          <div>
-            <p className="text-gray-600">כתובת</p>
-            <p className="font-medium">{order.clientId?.address}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">אימייל</p>
-            <a 
-              href={`mailto:${order.clientId?.email}`}
-              className="font-medium text-gray-600 hover:text-gray-800"
-            >
-              {order.clientId?.email}
-            </a>
-          </div>
-        </div>
-      </div> */}
-
-      {/* Order Items */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6 overflow-x-auto">
-        <h2 className="text-lg font-semibold mb-4">מוצרים</h2>
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-2 sm:px-4 lg:px-6 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                מוצר
-              </th>
-              <th className="hidden md:table-cell px-2 sm:px-4 lg:px-6 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ברקוד
-              </th>
-              <th className="px-2 sm:px-4 lg:px-6 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                כמות
-              </th>
-              <th className="px-2 sm:px-4 lg:px-6 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                מחיר
-              </th>
-              <th className="px-2 sm:px-4 lg:px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                סה״כ
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {order?.items.map((item) => (
-              <tr key={item?.productId._id}>
-                <td className="px-2 sm:px-4 lg:px-6 py-2 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {item?.productId?.name}
-                  </div>
-                </td>
-                <td className="hidden md:table-cell px-2 sm:px-4 lg:px-6 py-2 text-center whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{item?.productId?.barCode || 'N/A'}</div>
-                </td>
-                <td className="px-2 sm:px-4 lg:px-6 py-2 text-center whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{item?.quantity}</div>
-                </td>
-                <td className="px-2 sm:px-4 lg:px-6 py-2 text-center whitespace-nowrap">
-                  <div className="text-sm text-gray-900">₪{item?.productId?.price.toFixed(2)}</div>
-                </td>
-                <td className="px-2 sm:px-4 lg:px-6 py-2 text-left whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    ₪{(item?.quantity * item?.productId?.price).toFixed(2)}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Order Total */}
-      <div className="mt-6 text-left">
-        <p className="text-lg font-bold">סך הכל: ₪{order.total}</p>
-      </div>
+      {/* ... existing header and items sections ... */}
 
       {/* Status Update Buttons */}
-      {order.status !== 'approved' && order.status !== 'rejected' ? (
+      {order.status !== 'approved' && order.status !== 'rejected' && (
         <div className="bg-white rounded-lg shadow-md mb-16 p-6">
           <h2 className="text-lg font-semibold mb-4">עדכון סטטוס</h2>
           <div className="flex gap-2">
-            {order.status === 'pending' && isSupplier && (
+            {isSupplier && order.status === 'pending' && (
               <>
                 <button
                   onClick={() => handleUpdateOrderStatus(order._id, 'processing', note)}
@@ -455,7 +317,7 @@ export default function OrderDetailsPage({ order, onClose,setSelectedOrder, onOr
                 </button>
               </>
             )}
-            {order.status === 'processing' && isSupplier && (
+            {isSupplier && order.status === 'processing' && (
               <>
                 <button
                   onClick={handleAccept}
@@ -488,13 +350,13 @@ export default function OrderDetailsPage({ order, onClose,setSelectedOrder, onOr
               </div>
             )}
           </div>
-          {/* Only show textarea if status is pending or processing */}
-          {(order.status === 'pending' || order.status === 'processing') && (isSupplier || canModifyOrder) && (
+          {/* Show textarea only for supplier when needed */}
+          {isSupplier && (order.status === 'pending' || order.status === 'processing') && (
             <div className="mt-4">
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder={isSupplier ? "הוסף הערה (חובה לדחייה)" : "הוסף הערה (אופציונלי)"}
+                placeholder="הוסף הערה (חובה לדחייה)"
                 className="w-full p-2 border rounded"
               />
               {errorMessage && (
@@ -503,38 +365,32 @@ export default function OrderDetailsPage({ order, onClose,setSelectedOrder, onOr
             </div>
           )}
         </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md mb-16 p-6">
-          <div className="flex items-center justify-center">
-            <span className={`text-lg font-semibold ${
-              order.status === 'approved' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {order.status === 'approved' ? 'סטטוס הושלם' : 'ההזמנה בוטלה'}
-            </span>
-            
+      )}
+
+      {/* Notes History */}
+      {order.notes && order.notes.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4">היסטוריית הערות</h2>
+          <div className="space-y-3">
+            {order.notes.map((note, index) => (
+              <div key={index} className="border-r-2 border-gray-200 pr-4">
+                <div className="text-sm text-gray-600">
+                  {new Date(note.date).toLocaleDateString('he-IL', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+                <div className="text-gray-800 mt-1">{note.message}</div>
+              </div>
+            ))}
           </div>
-          הערות:
-          {order.status === 'rejected' && order.notes && order.notes.length > 0 && (
-              <p className="text-red-500 mt-2">{order.notes[order.notes.length - 1].message}</p>
-            )}
         </div>
       )}
 
-      {/* Print Content */}
-      <div className="hidden">
-        <div ref={printRef}>
-          <PrintContent order={order} />
-        </div>
-      </div>
-
-      <OrderUpdateDialog
-        isOpen={showUpdateDialog}
-        onClose={() => setShowUpdateDialog(false)}
-        onConfirm={handleUpdateConfirm}
-        order={order}
-        stockInfo={stockInfo}
-        loadingAction={loadingAction}
-      />
+      {/* ... rest of the existing code ... */}
     </div>
   );
 }

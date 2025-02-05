@@ -9,6 +9,7 @@ import {ReorderConfirmationDialog} from '@/components/ReorderConfirmationDialog'
 import { FiEye, FiCheck, FiTruck, FiX } from 'react-icons/fi';
 import Link from 'next/link';
 import OrderStatusUpdate from '@/app/components/OrderStatusUpdate';
+import { OrderUpdateDialog } from '@/components/OrderUpdateDialog';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -39,6 +40,8 @@ export default function Orders({ initialOrders }) {
   const [stockInfo, setStockInfo] = useState(null);
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [loadingAction, setLoadingAction] = useState(null);
 
   useEffect(() => {
     console.log('Initial orders:', initialOrders);
@@ -98,6 +101,15 @@ export default function Orders({ initialOrders }) {
 
   const handleOrderUpdate = async (orderId, newStatus, note = '') => {
     try {
+      // Optimistically update the UI
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order._id === orderId 
+            ? { ...order, status: newStatus }
+            : order
+        )
+      );
+
       const response = await fetch('/api/orders/update', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -113,13 +125,23 @@ export default function Orders({ initialOrders }) {
 
       if (!response.ok) {
         const error = await response.json();
+        // Revert the optimistic update if the request fails
+        setOrders(prevOrders => 
+          prevOrders.map(order => 
+            order._id === orderId 
+              ? { ...order, status: order.status }
+              : order
+          )
+        );
         throw new Error(error.error || 'Failed to update order');
       }
       
-      const data = await response.json();
+      const { order: updatedOrder } = await response.json();
+
+      // Update with the server response
       setOrders(prevOrders => 
         prevOrders.map(order => 
-          order._id === orderId ? data.order : order
+          order._id === orderId ? updatedOrder : order
         )
       );
 
@@ -137,31 +159,68 @@ export default function Orders({ initialOrders }) {
     }
   };
 
-  const handleOrderDelete = (orderId) => {
-    setOrders(prevOrders => 
-      prevOrders.filter(order => order._id !== orderId)
-    );
-    setSelectedOrder(null);
+  const handleDeleteOrder = async (orderId) => {
+    setLoadingAction('deleting');
+    try {
+      // Optimistically update UI
+      setOrders(prevOrders => prevOrders.filter(order => order._id !== orderId));
+
+      const response = await fetch('/api/orders/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        // Revert the optimistic update if the request fails
+        const response2 = await fetch(`/api/orders/${orderId}`);
+        const { order } = await response2.json();
+        setOrders(prevOrders => [...prevOrders, order].sort((a, b) => 
+          new Date(b.createdAt) - new Date(a.createdAt)
+        ));
+        throw new Error(error.message || 'Failed to delete order');
+      }
+
+      toast({
+        title: 'נמחק',
+        description: 'ההזמנה נמחקה בהצלחה!',
+      });
+      
+      setSelectedOrder(null);
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast({
+        title: 'שגיאה',
+        description: error.message || 'שגיאה במחיקת ההזמנה',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
-  const filteredOrders = useMemo(() => {
-    if (!orders || !globalUser) return [];
+  // Filter orders based on user role
+  const userOrders = useMemo(() => {
+    if (!globalUser) return [];
     
-    return orders.filter(order => {
-      const userMatch = globalUser.role === 'supplier' 
-        ? order.supplierId._id === globalUser._id
-        : order.clientId._id === globalUser._id;
+    return orders.filter(order => 
+      globalUser.role === 'supplier' 
+        ? order.supplierId._id === globalUser._id 
+        : order.clientId._id === globalUser._id
+    );
+  }, [orders, globalUser]);
 
+  // Update the filteredOrders logic
+  const filteredOrders = useMemo(() => {
+    return userOrders.filter((order) => {
       const statusMatch = statusFilter === 'all' || order.status === statusFilter;
-      
-      const matchesSearch = 
+      const searchMatch = !searchTerm || 
         order.orderNumber.toString().includes(searchTerm) ||
-        (order.clientId?.businessName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (order.supplierId?.businessName || '').toLowerCase().includes(searchTerm.toLowerCase());
-      
-      return userMatch && statusMatch && matchesSearch;
+        order.clientId?.businessName.toLowerCase().includes(searchTerm.toLowerCase());
+      return statusMatch && searchMatch;
     });
-  }, [orders, globalUser, statusFilter, searchTerm]);
+  }, [userOrders, statusFilter, searchTerm]);
 
   const handleReorder = useCallback(async (order) => {
     try {
@@ -197,13 +256,105 @@ export default function Orders({ initialOrders }) {
     }
   }, []);
 
+  const handleUpdateClick = async (order) => {
+    if (order.status !== 'pending') {
+      toast({
+        title: 'שגיאה',
+        description: 'ניתן לעדכן רק הזמנות בסטטוס ממתין',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/orders/stock-check/${order._id}`);
+      if (!response.ok) throw new Error('Failed to fetch stock info');
+      const data = await response.json();
+      setStockInfo(data);
+      setSelectedOrder(order);
+      setShowUpdateDialog(true);
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: 'שגיאה בטעינת נתוני המלאי',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdateConfirm = async (updatedItems) => {
+    setLoadingAction('updating');
+    try {
+      console.log('Original updatedItems:', updatedItems);
+
+      // Make sure we properly format the items with all required fields
+      const formattedItems = updatedItems.map(item => ({
+        productId: item.productId?._id || item.productId,
+        quantity: parseInt(item.quantity),
+        price: parseFloat(item.productId?.price || item.price),
+        total: parseFloat(item.productId?.price || item.price) * parseInt(item.quantity)
+      }));
+
+      console.log('Formatted Items:', formattedItems);
+
+      const requestBody = {
+        orderId: selectedOrder._id,
+        items: formattedItems,
+        status: 'pending',
+        note: `הזמנה עודכנה על ידי ${globalUser.businessName}`,
+        userId: globalUser._id
+      };
+
+      console.log('Request Body:', requestBody);
+
+      const response = await fetch(`/api/orders/update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
+
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Failed to update order');
+      }
+
+      const { order: updatedOrder } = responseData;
+      
+      // Update the orders state with the new order
+      setOrders(prevOrders => {
+        const newOrders = prevOrders.map(order => 
+          order._id === updatedOrder._id ? updatedOrder : order
+        );
+        return newOrders;
+      });
+      
+      setShowUpdateDialog(false);
+      setSelectedOrder(null);
+      toast({
+        title: 'הצלחה',
+        description: 'ההזמנה עודכנה בהצלחה',
+      });
+    } catch (error) {
+      console.error('Update Error:', error);
+      toast({
+        title: 'שגיאה',
+        description: error.message || 'שגיאה בעדכון ההזמנה',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
   if (selectedOrder) {
     return (
       <OrderDetailsPage
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
         onOrderUpdate={handleOrderUpdate}
-        onOrderDelete={handleOrderDelete}
+        onOrderDelete={handleDeleteOrder}
       />
     );
   }
@@ -296,7 +447,7 @@ export default function Orders({ initialOrders }) {
                       >
                         צפה בהזמנה
                       </Link>
-                      {order.status === 'pending' && (
+                      {globalUser.role === 'supplier' && order.status === 'pending' && (
                         <>
                           <button
                             onClick={() => handleOrderUpdate(order._id, 'processing')}
@@ -312,13 +463,29 @@ export default function Orders({ initialOrders }) {
                           </button>
                         </>
                       )}
-                      {order.status === 'processing' && (
+                      {globalUser.role === 'supplier' && order.status === 'processing' && (
                         <button
                           onClick={() => handleOrderUpdate(order._id, 'approved')}
                           className="bg-green-100 text-green-600 px-4 py-1 rounded hover:bg-green-200"
                         >
                           סיים טיפול
                         </button>
+                      )}
+                      {globalUser.role === 'client' && order.status === 'pending' && (
+                        <>
+                          {/* <button
+                            onClick={() => handleUpdateClick(order)}
+                            className="bg-blue-100 text-blue-600 px-4 py-1 rounded hover:bg-blue-200"
+                          >
+                            עדכן הזמנה
+                          </button> */}
+                          <button
+                            onClick={() => handleDeleteOrder(order._id)}
+                            className="bg-red-100 text-red-600 px-4 py-1 rounded hover:bg-red-200"
+                          >
+                            מחק הזמנה
+                          </button>
+                        </>
                       )}
                     </div>
                   </td>
@@ -357,7 +524,7 @@ export default function Orders({ initialOrders }) {
               >
                 צפה בהזמנה
               </Link>
-              {order.status === 'pending' && (
+              {globalUser.role === 'supplier' && order.status === 'pending' && (
                 <>
                   <button
                     onClick={() => handleOrderUpdate(order._id, 'processing')}
@@ -373,13 +540,29 @@ export default function Orders({ initialOrders }) {
                   </button>
                 </>
               )}
-              {order.status === 'processing' && (
+              {globalUser.role === 'supplier' && order.status === 'processing' && (
                 <button
                   onClick={() => handleOrderUpdate(order._id, 'approved')}
                   className="bg-green-100 text-green-600 px-4 py-2 rounded hover:bg-green-200"
                 >
                   סיים טיפול
                 </button>
+              )}
+              {globalUser.role === 'client' && order.status === 'pending' && (
+                <>
+                  {/* <button
+                    onClick={() => handleUpdateClick(order)}
+                    className="bg-blue-100 text-blue-600 px-4 py-2 rounded hover:bg-blue-200"
+                  >
+                    עדכן הזמנה
+                  </button> */}
+                  <button
+                    onClick={() => handleDeleteOrder(order._id)}
+                    className="bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200"
+                  >
+                    מחק הזמנה
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -404,6 +587,18 @@ export default function Orders({ initialOrders }) {
         setIsReordering={setIsReordering}
         onSuccess={handleReorderSuccess}
         globalUser={globalUser}
+      />
+
+      <OrderUpdateDialog
+        isOpen={showUpdateDialog}
+        onClose={() => {
+          setShowUpdateDialog(false);
+          setSelectedOrder(null);
+        }}
+        onConfirm={handleUpdateConfirm}
+        order={selectedOrder}
+        stockInfo={stockInfo}
+        loadingAction={loadingAction}
       />
     </div>
   );

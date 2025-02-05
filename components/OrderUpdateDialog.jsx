@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo,loadingAction }) {
   const [editedItems, setEditedItems] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  console.log(order)
   useEffect(() => {
     if (order) {
       setEditedItems(order.items.map(item => {
@@ -43,23 +43,17 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
     // Validate all quantities
     if (hasInvalidInputs) return;
 
-    // Create updated items array with only changed quantities
-    const updatedItems = editedItems.map(item => {
-      return {
+    // Only include items that weren't deleted and have valid quantities
+    const updatedItems = editedItems
+      .filter(item => item.quantity > 0)
+      .map(item => ({
         productId: item.productId._id,
         quantity: parseInt(item.quantity),
         price: item.productId.price,
         total: item.productId.price * parseInt(item.quantity)
-      };
-    });
-    
-    const updatedOrder = {
-      ...order,
-      items: updatedItems,
-      total: updatedItems.reduce((sum, item) => sum + item.total, 0)
-    };
+      }));
 
-    onConfirm(updatedOrder);
+    onConfirm(updatedItems);
   };
 
   if (!isOpen || loading) return null;

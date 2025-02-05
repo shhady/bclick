@@ -4,77 +4,109 @@ import Product from '@/models/product';
 import { sendOrderUpdateEmail, sendOrderStatusEmail } from '@/utils/emails';
 import { NextResponse } from 'next/server';
 
-export async function PUT(request) {
+export async function PUT(req) {
   try {
     await connectToDB();
-    const { orderId, status, note } = await request.json();
+    const body = await req.json();
+    console.log('Received request body:', body);
+    const { orderId, items, status, note, userId } = body;
 
-    if (!orderId) {
-      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
-    }
-
-    const order = await Order.findById(orderId)
-      .populate('items.productId')
-      .populate('supplierId')
-      .populate('clientId');
-
-    if (!order) {
+    // Find the original order
+    const originalOrder = await Order.findById(orderId).populate('items.productId');
+    if (!originalOrder) {
+      console.log('Order not found:', orderId);
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Update order status
-    order.status = status;
+    // If updating items, handle stock updates
+    if (Array.isArray(items) && items.length > 0) {
+      console.log('Processing items update');
+      
+      // First, restore the original reserved quantities
+      for (const originalItem of originalOrder.items) {
+        console.log('Restoring quantity for product:', originalItem.productId._id);
+        await Product.findByIdAndUpdate(originalItem.productId._id, {
+          $inc: { reserved: -originalItem.quantity }
+        });
+      }
 
-    // Add note if provided
-    if (note) {
-      order.notes.push({
-        message: note,
-        date: new Date()
-      });
-    }
-
-    // Handle product stock updates based on status
-    if (status === 'approved') {
-      for (const item of order.items) {
-        const product = await Product.findById(item.productId);
+      // Then, validate and reserve the new quantities
+      for (const newItem of items) {
+        const product = await Product.findById(newItem.productId);
         if (!product) {
-          throw new Error(`Product not found: ${item.productId}`);
+          throw new Error(`Product not found: ${newItem.productId}`);
         }
 
-        // Update product stock
-        await Product.findByIdAndUpdate(product._id, {
-          $inc: { 
-            stock: -item.quantity,
-            reserved: -item.quantity
+        // Calculate available stock (current stock minus reserved plus original quantity if it's the same product)
+        const originalItem = originalOrder.items.find(
+          item => item.productId._id.toString() === newItem.productId.toString()
+        );
+        const originalQuantity = originalItem ? originalItem.quantity : 0;
+        const availableStock = product.stock - (product.reserved || 0) + originalQuantity;
+
+        if (availableStock < newItem.quantity) {
+          throw new Error(`Not enough stock for product: ${product.name}`);
+        }
+
+        // Update reserved quantity
+        await Product.findByIdAndUpdate(newItem.productId, {
+          $inc: { reserved: newItem.quantity }
+        });
+      }
+
+      // Calculate new total
+      const total = items.reduce((sum, item) => sum + item.total, 0);
+
+      // Update the order
+      const updatedOrder = await Order.findByIdAndUpdate(
+        orderId,
+        {
+          items,
+          total,
+          status,
+          $push: {
+            notes: {
+              message: note,
+              date: new Date(),
+              userId
+            }
           }
-        });
+        },
+        { 
+          new: true,
+          runValidators: true 
+        }
+      ).populate(['clientId', 'supplierId', 'items.productId']);
+
+      if (!updatedOrder) {
+        throw new Error('Failed to update order');
       }
-    } else if (status === 'rejected') {
-      // Return reserved quantities back to stock
-      for (const item of order.items) {
-        await Product.findByIdAndUpdate(item.productId, {
-          $inc: { reserved: -item.quantity }
-        });
-      }
+
+      return NextResponse.json({ order: updatedOrder });
     }
 
-    await order.save();
+    // If only updating status
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      {
+        status,
+        $push: {
+          notes: {
+            message: note,
+            date: new Date(),
+            userId
+          }
+        }
+      },
+      { new: true }
+    ).populate(['clientId', 'supplierId', 'items.productId']);
 
-    // Return populated order
-    const updatedOrder = await Order.findById(orderId)
-      .populate('items.productId')
-      .populate('supplierId')
-      .populate('clientId');
-
-    return NextResponse.json({ 
-      message: `Order ${status} successfully`,
-      order: updatedOrder
-    });
-
+    return NextResponse.json({ order: updatedOrder });
   } catch (error) {
     console.error('Error updating order:', error);
-    return NextResponse.json({ 
-      error: error.message || 'Failed to update order'
-    }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || 'Failed to update order' },
+      { status: 500 }
+    );
   }
 }

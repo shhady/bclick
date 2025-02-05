@@ -1,7 +1,7 @@
 'use client';
-import React, { useState, useMemo, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import OrderDetailsPage from '../../../../orders/OrderDetailsPage';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import OrderDetails from '@/components/orders/OrderDetails';
 import { useToast } from '@/hooks/use-toast';
 import { useUserContext } from "@/app/context/UserContext";
 import Loader from '@/components/loader/Loader';
@@ -17,6 +17,8 @@ export default function MyClientOrders() {
   const [searchInput, setSearchInput] = useState('');
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const printRef = useRef(null);
+  const router = useRouter();
 
   // Add handlers for order updates
   const handleOrderUpdate = (updatedOrder) => {
@@ -35,9 +37,25 @@ export default function MyClientOrders() {
     setSelectedOrder(null);
   };
 
+  const handlePrint = () => {
+    if (printRef.current) {
+      const printContents = printRef.current.innerHTML;
+      const originalContents = document.body.innerHTML;
+      document.body.innerHTML = printContents;
+      window.print();
+      document.body.innerHTML = originalContents;
+    }
+  };
+
   useEffect(() => {
     const fetchClientOrders = async () => {
       try {
+        // Verify supplier permission
+        if (globalUser?.role !== 'supplier' || globalUser?._id !== supplierId) {
+          router.push('/orders');
+          return;
+        }
+
         const response = await fetch(`/api/orders/client/${clientId}?supplierId=${supplierId}`);
         if (response.ok) {
           const data = await response.json();
@@ -50,10 +68,10 @@ export default function MyClientOrders() {
       }
     };
 
-    if (clientId && supplierId) {
+    if (clientId && supplierId && globalUser) {
       fetchClientOrders();
     }
-  }, [clientId, supplierId]);
+  }, [clientId, supplierId, globalUser]);
 
   // Update the filtering logic
   const currentOrders = useMemo(() => 
@@ -66,42 +84,33 @@ export default function MyClientOrders() {
   // Modify the search handler
   const handleSearch = () => {
     if (searchInput.trim()) {
-      setHasSearched(true); // Set search state to true when search is performed
+      setHasSearched(true);
       const found = orders.find(order => 
         order.orderNumber.toString() === searchInput.trim()
       );
       
       if (found) {
         setSelectedOrder(found);
-        setFilteredOrders([]); // Clear filtered orders when found
+        setFilteredOrders([]);
       } else {
-        setFilteredOrders([]); // Empty array indicates no results
+        setFilteredOrders([]);
       }
-    }
-  };
-
-  // Modify the input change handler
-  const handleInputChange = (e) => {
-    const value = e.target.value;
-    setSearchInput(value);
-    if (!value) {
-      // Reset search state when input is cleared
-      setHasSearched(false);
-      setFilteredOrders([]);
     }
   };
 
   if (selectedOrder) {
     return (
-      <OrderDetailsPage
+      <OrderDetails
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
-        setSelectedOrder={setSelectedOrder}
         onOrderUpdate={handleOrderUpdate}
         onOrderDelete={handleOrderDelete}
+        globalUser={globalUser}
+        handlePrint={handlePrint}
+        printRef={printRef}
+        setSelectedOrder={setSelectedOrder}
       />
     );
-
   }
 
   return (
@@ -115,7 +124,13 @@ export default function MyClientOrders() {
             placeholder="חפש לפי מספר הזמנה..."
             value={searchInput}
             className="flex-1 p-2 border border-gray-400 rounded"
-            onChange={handleInputChange}
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+              if (!e.target.value) {
+                setHasSearched(false);
+                setFilteredOrders([]);
+              }
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 handleSearch();
