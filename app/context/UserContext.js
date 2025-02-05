@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 
 const UserContext = createContext();
@@ -11,42 +11,46 @@ export function UserProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Update the status of a related user in globalUser
-  const updateRelatedUserStatus = (userId, newStatus) => {
+  // Memoize update functions to prevent unnecessary re-renders
+  const updateRelatedUserStatus = useCallback((userId, newStatus) => {
     setGlobalUser((prev) => {
-      if (!prev) return prev; // Ensure globalUser exists
+      if (!prev) return prev;
       const updatedRelatedUsers = prev.relatedUsers.map((rel) =>
         rel.user === userId ? { ...rel, status: newStatus } : rel
       );
       return { ...prev, relatedUsers: updatedRelatedUsers };
     });
-  };
+  }, []);
 
-  const updateGlobalUser = (updatedData) => {
+  const updateGlobalUser = useCallback((updatedData) => {
     setGlobalUser((prev) => ({
-      ...prev, // Preserve existing data
-      ...updatedData, // Merge new updates
+      ...prev,
+      ...updatedData,
     }));
-  };
-  const updateGlobalOrders = (updatedOrder) => {
+  }, []);
+
+  const updateGlobalOrders = useCallback((updatedOrder) => {
     setGlobalUser((prev) => {
-      if (!prev) return prev; // Ensure globalUser exists
+      if (!prev) return prev;
       const updatedOrders = prev.orders.map((order) =>
         order._id === updatedOrder._id ? updatedOrder : order
       );
       return { ...prev, orders: updatedOrders };
     });
-  };
+  }, []);
   
   useEffect(() => {
     const fetchUser = async () => {
-      if (!isLoaded || !user) return; // Wait for Clerk to load user data
+      if (!isLoaded || !user) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const response = await fetch(`/api/users/get-user/${user.id}`);
         if (response.ok) {
           const userData = await response.json();
-          setGlobalUser(userData); // Set user in context
+          setGlobalUser(userData);
         } else {
           setError("User not found");
         }
@@ -61,24 +65,29 @@ export function UserProvider({ children }) {
     fetchUser();
   }, [isLoaded, user]);
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    globalUser,
+    setGlobalUser,
+    updateGlobalUser,
+    updateGlobalOrders,
+    updateRelatedUserStatus,
+    loading,
+    error,
+    setError,
+  }), [globalUser, loading, error, updateGlobalUser, updateGlobalOrders, updateRelatedUserStatus]);
+
   return (
-    <UserContext.Provider
-      value={{
-        globalUser,
-        setGlobalUser,
-        updateGlobalUser,
-        updateGlobalOrders,
-        updateRelatedUserStatus, // Expose the helper for updating related user status
-        loading,
-        error,
-        setError,
-      }}
-    >
+    <UserContext.Provider value={contextValue}>
       {children}
     </UserContext.Provider>
   );
 }
 
 export function useUserContext() {
-  return useContext(UserContext);
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUserContext must be used within a UserProvider');
+  }
+  return context;
 }

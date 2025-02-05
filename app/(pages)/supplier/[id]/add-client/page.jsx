@@ -31,10 +31,19 @@ export default function AddClientPage() {
     }
 
     try {
-      const response = await fetch(`/api/users/find-client?query=${searchInput}`);
+      const response = await fetch(`/api/users/search?query=${searchInput}&role=client&excludeId=${globalUser._id}`);
       if (response.ok) {
         const data = await response.json();
-        setClient(data);
+        if (data.users && data.users.length > 0) {
+          setClient(data.users[0]); // Take the first match
+        } else {
+          toast({
+            title: "שגיאה",
+            description: "לקוח לא נמצא",
+            variant: "destructive",
+          });
+          setClient(null);
+        }
       } else {
         const error = await response.json();
         toast({
@@ -168,11 +177,9 @@ export default function AddClientPage() {
       )}
 
       {isSuccess && (
-        <div className="p-6 border rounded-lg shadow-lg bg-white">
-          <h2 className="text-xl font-semibold text-green-600 mb-4">
-            הלקוח נוסף בהצלחה!
-          </h2>
-          <div className="flex gap-4 mt-6">
+        <div className="text-center">
+          <p className="text-green-600 mb-4">הלקוח נוסף בהצלחה!</p>
+          <div className="space-x-4">
             <button
               onClick={navigateToClientCard}
               className="bg-customBlue text-white px-6 py-2 rounded-lg hover:bg-blue-600"
@@ -183,7 +190,7 @@ export default function AddClientPage() {
               onClick={resetForm}
               className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
             >
-              הוסף לקוח נוסף
+              חפש לקוח נוסף
             </button>
           </div>
         </div>

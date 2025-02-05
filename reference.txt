@@ -1,0 +1,268 @@
+import mongoose from 'mongoose';
+import './order';
+import './product'
+const Schema = mongoose.Schema;
+
+const userSchema = new Schema(
+  {
+    // Clerk ID for syncing with Clerk authentication
+    clerkId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+
+    // User role: Admin, Supplier, or Client
+    role: {
+      type: String,
+      enum: ['admin', 'supplier', 'client'],
+      required: true,
+    },
+    clientNumber: {
+      type: Number,
+      unique: true,
+      required: true,
+    },
+    // Common fields
+    name: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    address: {
+      type: String,
+      required: true,
+    },
+    profileImage:{
+      type: String, required: false
+    },
+    coverImage:{
+      type: Object, required: false
+    },
+    // Business details for suppliers and clients
+  
+      businessName: { type: String, required: false },
+      businessNumber: { type: String, required: false },
+    
+
+    // Area and location
+    country: {
+      type: String,
+      required: true,
+    },
+    area: {
+      type: String,
+      default: 'all-areas',
+      required: true,
+    },
+    city: {
+      type: String,
+      required: true, 
+    },
+    // Related users (clients or suppliers)
+    relatedUsers: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User', // References other users
+        },
+        status: {
+          type: String,
+          default: 'active',
+        },
+      },
+    ],
+
+    // Orders associated with this user
+    orders: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order', // References orders
+      },
+    ],
+
+    // Supplier-specific: Products managed by the supplier
+    products: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product', // References products
+      },
+    ],
+  },
+  { timestamps: true } // Add createdAt and updatedAt fields
+);
+
+const User = mongoose.models?.User || mongoose.model('User', userSchema);
+
+export default User;
+
+import mongoose from 'mongoose';
+import './category'
+import './user'
+const ProductSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  description: { type: String },
+  categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+  supplierId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Links to the supplier
+  stock: { type: Number, required: true, default: 0 },
+  price: { type: Number, required: true },
+  imageUrl: { type: Object },
+  units : { type: String },
+  weight: { type: String },
+  weightUnit:{ type: String},
+  barCode : { type: String },
+  status: { type: String, enum: ['active', 'draft', 'out_of_stock', 'hidden'], default: 'active' },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const Product = mongoose.models?.Product || mongoose.model('Product', ProductSchema);
+export default Product;
+
+import mongoose from 'mongoose';
+import './user'
+import './product'
+const Schema = mongoose.Schema;
+
+const OrderItemSchema = new Schema({
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true,
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+  total: {
+    type: Number,
+    required: true,
+  },
+});
+
+const OrderSchema = new Schema(
+  {
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    supplierId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+    items: {
+      type: [OrderItemSchema],
+      required: true,
+      validate: {
+        validator: (items) => items.length > 0,
+        message: 'Order must contain at least one item.',
+      },
+    },
+    total: {
+      type: Number,
+      required: true,
+    },
+    tax: {
+      type: Number,
+      required: true,
+      default: 0.18, // Fixed 18% tax rate
+    },
+    orderNumber:{
+        type: Number,
+        required: true}
+        ,
+    status: {
+      type: String,
+      enum: ['pending', 'processing', 'approved', 'rejected'],
+      default: 'pending',
+    },
+    notes: [
+        {
+          message: { type: String, required: true },
+          date: { type: Date, default: Date.now },
+        },
+      ],
+      performanceTracking: {
+        approvedDate: Date,
+        rejectedDate: Date,
+      },
+    },
+  {
+    timestamps: true, // Automatically manage createdAt and updatedAt fields
+  }
+);
+
+// Add indexes for frequently queried fields
+OrderSchema.index({ createdAt: -1 });
+OrderSchema.index({ supplierId: 1, createdAt: -1 });
+OrderSchema.index({ clientId: 1, createdAt: -1 });
+OrderSchema.index({ status: 1 });
+
+const Order = mongoose.models?.Order || mongoose.model('Order', OrderSchema);
+export default Order;
+
+
+import mongoose from 'mongoose';
+import './user'
+import './product'
+const FavouriteSchema = new mongoose.Schema(
+  {
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    productIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true }],
+  },
+  { timestamps: true }
+);
+
+FavouriteSchema.index({ clientId: 1 }, { unique: true });
+
+const Favourite = mongoose.models.Favourite || mongoose.model('Favourite', FavouriteSchema);
+export default Favourite;
+
+import mongoose from 'mongoose';
+
+const CounterSchema = new mongoose.Schema({
+  sequenceName: { type: String, required: true, unique: true }, // Ensure sequenceName exists in schema
+  value: { type: Number, default: 0 }, // Track the last used value
+});
+
+const Counter = mongoose.models.Counter || mongoose.model('Counter', CounterSchema);
+export default Counter;
+
+import mongoose from 'mongoose';
+import './user'
+import './product'
+const CartSchema = new mongoose.Schema({
+  clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  supplierId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  items: [
+    {
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+      quantity: { type: Number, required: true, min: 1 },
+    },
+  ],
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+const Cart = mongoose.models?.Cart || mongoose.model('Cart', CartSchema);
+export default Cart;
+
+

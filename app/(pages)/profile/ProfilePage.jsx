@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import CreateModal from '@/components/create-update-user/CreateModal';
 import UpdateModal from '@/components/create-update-user/UpdateModal';
 // import Profile from '@/components/Profile';
@@ -8,16 +8,29 @@ import Loader from '@/components/loader/Loader';
 // import SupplierProfile from '@/components/supplierComponents/SupplierProfile';
 // import ClientProfile from '@/components/clientComponents/ClientProfile';
 import { useUserContext } from "@/app/context/UserContext";
+import { useUser } from '@clerk/nextjs';
 import dynamic from 'next/dynamic';
 
+const Profile = dynamic(() => import('@/components/Profile'), {
+  loading: () => <Loader />,
+  ssr: false
+})
+const AdminProfile = dynamic(() => import('@/components/adminComponents/AdminProfile'), {
+  loading: () => <Loader />,
+  ssr: false
+})
+const SupplierProfile = dynamic(() => import('@/components/supplierComponents/SupplierProfile'), {
+  loading: () => <Loader />,
+  ssr: false
+})
+const ClientProfile = dynamic(() => import('@/components/clientComponents/ClientProfile'), {
+  loading: () => <Loader />,
+  ssr: false
+})
 
-const Profile = dynamic(() => import('@/components/Profile'))
-const AdminProfile = dynamic(() => import('@/components/adminComponents/AdminProfile'))
-const SupplierProfile = dynamic(() => import('@/components/supplierComponents/SupplierProfile'))
-const ClientProfile = dynamic(() => import('@/components/clientComponents/ClientProfile'))
-
-export default function ProfilePage({ user,pendingOrdersCount,totalOrdersCount }) {
-  const { globalUser, setGlobalUser, updateGlobalUser } = useUserContext();
+export default function ProfilePage({ user, pendingOrdersCount, totalOrdersCount }) {
+  const { globalUser, setGlobalUser } = useUserContext();
+  const { user: clerkUser } = useUser();
 
   const [formData, setFormData] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -46,14 +59,14 @@ export default function ProfilePage({ user,pendingOrdersCount,totalOrdersCount }
       const isComplete = checkProfileCompletion(user);
       setIsProfileComplete(isComplete);
       setIsCreateModalOpen(!isComplete);
-    } else {
-      // Create a new user object with missing fields
+    } else if (clerkUser) {
+      // Create a new user object with Clerk data
       const newUser = {
-        clerkId: '',
-        name: '',
-        email: '',
-        role: 'client',
-        profileImage: '',
+        clerkId: clerkUser.id,
+        name: clerkUser.fullName || '',
+        email: clerkUser.emailAddresses[0]?.emailAddress || '',
+        role: 'client', // Default role is client
+        profileImage: clerkUser.imageUrl || '',
         phone: '',
         address: '',
         country: '',
@@ -65,7 +78,7 @@ export default function ProfilePage({ user,pendingOrdersCount,totalOrdersCount }
       setFormData(newUser);
       setIsCreateModalOpen(true);
     }
-  }, [user, setGlobalUser]);
+  }, [user, clerkUser, setGlobalUser]);
 
   const handleCreate = async () => {
     try {
@@ -81,9 +94,14 @@ export default function ProfilePage({ user,pendingOrdersCount,totalOrdersCount }
         setFormData(result);
         setIsCreateModalOpen(false);
         setIsProfileComplete(true);
+      } else {
+        const error = await response.json();
+        console.error('Error creating/updating user profile:', error);
+        // You might want to show this error to the user
       }
     } catch (error) {
-      console.error('Error creating user profile:', error);
+      console.error('Error creating/updating user profile:', error);
+      // You might want to show this error to the user
     }
   };
 

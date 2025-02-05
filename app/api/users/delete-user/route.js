@@ -5,14 +5,15 @@ export async function DELETE(request) {
   await connectToDB();
 
   try {
-    const url = new URL(request.url);
-    const id = url.searchParams.get('id'); // Get the user ID from query params
+    const data = await request.json();
+    const { id, clerkId } = data;
 
-    if (!id) {
-      return new Response(JSON.stringify({ error: 'User ID is required' }), { status: 400 });
+    if (!id && !clerkId) {
+      return new Response(JSON.stringify({ error: 'Either User ID or Clerk ID is required' }), { status: 400 });
     }
 
-    const deletedUser = await User.findByIdAndDelete(id);
+    const query = id ? { _id: id } : { clerkId };
+    const deletedUser = await User.findOneAndDelete(query);
 
     if (!deletedUser) {
       return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
