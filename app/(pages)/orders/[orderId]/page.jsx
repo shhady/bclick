@@ -452,12 +452,12 @@ export default function OrderPage() {
         <h2 className="text-lg font-semibold mb-4">
           {isClient ? 'פרטי ספק' : 'פרטי לקוח'}
         </h2>
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {isClient ? (
             // Show Supplier Details for Clients
             <>
               <div>
-                <p className="text-gray-600">שם העסק</p>
+                <p className="text-gray-600">שם הספק</p>
                 <p className="font-medium">{order.supplierId?.businessName}</p>
               </div>
               <div>
@@ -604,6 +604,15 @@ export default function OrderPage() {
         </div>
       )}
 
+      {(order.status === 'approved' || order.status === 'rejected') && (
+        <div className={`bg-white rounded-lg shadow-md p-6 mb-6 ${
+          order.status === 'approved' ? 'text-green-600' : 'text-red-600'
+        }`}>
+          <h2 className="text-lg font-semibold">
+            {order.status === 'approved' ? 'ההזמנה הושלמה' : 'ההזמנה בוטלה'}
+          </h2>
+        </div>
+      )}
       {/* Notes History */}
       {order.notes && order.notes.length > 0 && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useUserContext } from "@/app/context/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/catalog/Header";
@@ -10,8 +10,25 @@ import EditProductPopup from "@/components/catalog/EditProductPopup";
 import dynamic from 'next/dynamic';
 import { Suspense } from "react";
 import Loader from "@/components/loader/Loader";
+import Link from "next/link";
 
 const ProductList = dynamic(() => import('@/components/catalog/ProductList'))
+
+// Add ProductSkeleton for better loading states
+const ProductSkeleton = () => (
+  <div className="animate-pulse space-y-4">
+    {[...Array(5)].map((_, i) => (
+      <div key={i} className="grid grid-cols-6 gap-4 p-4 bg-white rounded-lg">
+        <div className="col-span-2 md:col-span-1 h-16 bg-gray-200 rounded"></div>
+        <div className="col-span-2 md:col-span-1 h-4 bg-gray-200 rounded"></div>
+        <div className="hidden md:block h-4 bg-gray-200 rounded"></div>
+        <div className="hidden md:block h-4 bg-gray-200 rounded"></div>
+        <div className="h-4 bg-gray-200 rounded"></div>
+        <div className="h-4 bg-gray-200 rounded"></div>
+      </div>
+    ))}
+  </div>
+);
 
 export default function CatalogPage({sProducts, sCategories}) {
   const { globalUser } = useUserContext();
@@ -22,41 +39,76 @@ export default function CatalogPage({sProducts, sCategories}) {
   const [selectedStatus, setSelectedStatus] = useState("active");
   const [lowStockNotification, setLowStockNotification] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { toast } = useToast();
 
-  useEffect(()=>{
-    setLowStockNotification(products.some((product) => product.stock === 0));
-  },[products])
-
-
+  // Memoize the low stock check
   useEffect(() => {
-    const filtered = products.filter((product) => {
-      const matchesStatus = selectedStatus === "low_stock" ? product.stock === 0 : product.status === selectedStatus;
-      const matchesCategory = selectedCategory ? product.categoryId === selectedCategory : true;
+    setLowStockNotification(products.some((product) => product.stock === 0));
+  }, [products]);
+
+  // Optimize filtering with useMemo
+  const filteredProductsMemo = useMemo(() => {
+    return products.filter((product) => {
+      const matchesStatus = selectedStatus === "low_stock" 
+        ? product.stock === 0 
+        : product.status === selectedStatus;
+      const matchesCategory = selectedCategory 
+        ? product.categoryId === selectedCategory 
+        : true;
       return matchesStatus && matchesCategory;
     });
-    setFilteredProducts(filtered);
   }, [products, selectedCategory, selectedStatus]);
 
-  const handleStatusChange = (status) => {
-    if (status === "low_stock") setLowStockNotification(false);
-    setSelectedStatus(status);
-    setSelectedCategory('')
-  };
+  useEffect(() => {
+    setFilteredProducts(filteredProductsMemo);
+  }, [filteredProductsMemo]);
 
+  // Optimize scroll handling with useCallback
+  const handleScroll = useCallback(() => {
+    const scrolled = window.scrollY > 0;
+    setIsScrolled(scrolled);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
+  const handleStatusChange = useCallback((status) => {
+    if (status === "low_stock") setLowStockNotification(false);
+    
+    // First update the states
+    setSelectedStatus(status);
+    setSelectedCategory('');
+    
+    // Use requestAnimationFrame to ensure DOM updates before scrolling
+    requestAnimationFrame(() => {
+      // Force scroll position to top immediately
+      window.scrollTo(0, 0);
+      
+      // Then set the new scroll position without animation
+      document.documentElement.style.scrollBehavior = 'auto';
+      window.scrollTo({
+        top: 0,
+        behavior: 'auto'
+      });
+      
+      // Reset scroll behavior after the scroll
+      setTimeout(() => {
+        document.documentElement.style.scrollBehavior = '';
+      }, 0);
+    });
+  }, []);
+
+  // Optimize product updates with optimistic updates
   const handleUpdateProduct = async (updatedProduct) => {
-  
-    // Determine the status based on stock and user input
-    if (updatedProduct.status === "hidden") {
-      // Respect the user's explicit choice for "hidden" status
-      updatedProduct.status = "hidden";
-    } else if (updatedProduct.stock === 0) {
-      // If stock is 0, override and set status to "out_of_stock"
-      updatedProduct.status = "out_of_stock";
-    } else if (updatedProduct.status === "out_of_stock" && updatedProduct.stock > 0) {
-      // If stock becomes positive and status was "out_of_stock", set it to "active"
-      updatedProduct.status = "active";
-    }
+    // Optimistic update
+    setProducts(prev =>
+      prev.map(product => 
+        product._id === updatedProduct._id ? updatedProduct : product
+      )
+    );
   
     try {
       const response = await fetch("/api/products/edit-supplier-products", {
@@ -71,15 +123,20 @@ export default function CatalogPage({sProducts, sCategories}) {
   
       if (response.ok) {
         const updatedData = await response.json();
-        setProducts((prev) =>
-          prev.map((product) => (product._id === updatedData.product._id ? updatedData.product : product))
-        );
         setEditingProduct(null);
         toast({
           title: "Success",
           description: "Product updated successfully.",
         });
       } else {
+        // Revert on error
+        setProducts(prev =>
+          prev.map(product => 
+            product._id === updatedProduct._id 
+              ? products.find(p => p._id === updatedProduct._id) 
+              : product
+          )
+        );
         throw new Error("Failed to update product.");
       }
     } catch (error) {
@@ -125,8 +182,20 @@ export default function CatalogPage({sProducts, sCategories}) {
         <div className="w-full max-w-5xl mx-auto">
 
         
-        <div className="sticky md:top-20 top-0 bg-[#f8f8ff] w-full px-1 pt-6 pb-1">
-        <Header />
+        <div 
+          className={`sticky md:top-20 top-12 z-10 transition-all duration-200 ease-in-out
+            ${isScrolled ? 'bg-white shadow-md' : 'bg-[#f8f8ff]'} 
+            w-full px-1 pt-6 pb-1`}
+        >
+       <div className="flex justify-between items-center mb-6 sticky top-12 z-10">
+      <h1 className="text-2xl font-bold">קטלוג</h1>
+      <Link href="/supplier/catalog/create-product">
+
+        <button className="bg-customBlue text-white px-4 py-2 rounded-md hover:bg-hoveredBlue">
+          הוסף מוצר +
+        </button>
+      </Link>
+    </div>
       <FilterSection
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
@@ -145,7 +214,7 @@ export default function CatalogPage({sProducts, sCategories}) {
                     <div className="text-center font-semibold">מחיר</div>
                   </div>
         </div>
-     <Suspense fallback={<Loader/>}>
+     <Suspense fallback={<ProductSkeleton />}>
      <ProductList
         products={filteredProducts}
         onEdit={(product) => setEditingProduct(product)}

@@ -5,57 +5,93 @@ import Order from '@/models/order';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import Loader from '@/components/loader/Loader';
+import mongoose from 'mongoose';
 
 const Clients = dynamic(() => import('@/components/supplierComponents/Clients'))
 
 export default async function SupplierPage({ params }) {
   const { id } = await params;
-  await connectToDB();
-
-  const supplier = await User.findById(id).populate('relatedUsers.user').lean();
-
-  if (!supplier) {
-    return <div><h1>Supplier Not Found</h1></div>;
+  
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    return <div>Invalid supplier ID</div>;
   }
 
-  // Get filtered orders count for each client
-  const clientsWithFilteredOrders = await Promise.all(
-    supplier.relatedUsers
-      .filter((relatedUser) => relatedUser.user)
-      .map(async (relatedUser) => {
-        // Count all orders regardless of status
-        const ordersCount = await Order.countDocuments({
-          supplierId: id,
-          clientId: relatedUser.user._id,
-          // Add $or to include all possible statuses
-          $or: [
-            { status: 'pending' },
-            { status: 'approved' },
-            { status: 'rejected' }
-          ]
-        });
+  try {
+    await connectToDB();
 
-        // Debug log
-        console.log(`Client ${relatedUser.user.businessName}: ${ordersCount} orders`);
+    // Run queries in parallel for better performance
+    const [supplier, orderCounts] = await Promise.all([
+      // Only fetch necessary fields for supplier and related users
+      User.findById(id)
+        .select('relatedUsers.user relatedUsers.status')
+        .populate('relatedUsers.user', 'clientNumber name businessName phone email')
+        .lean(),
+      
+      // Use aggregation for efficient order counting
+      Order.aggregate([
+        {
+          $match: {
+            supplierId: new mongoose.Types.ObjectId(id),
+            clientId: { $exists: true, $ne: null } // Ensure clientId exists and is not null
+          }
+        },
+        {
+          $group: {
+            _id: '$clientId',
+            ordersCount: { $sum: 1 }
+          }
+        }
+      ])
+    ]);
 
+    if (!supplier || !supplier.relatedUsers) {
+      return <div><h1>Supplier Not Found</h1></div>;
+    }
+
+    // Safely create a map of client IDs to order counts
+    const orderCountMap = new Map(
+      (orderCounts || []).map(count => [
+        count._id?.toString(),
+        typeof count.ordersCount === 'number' ? count.ordersCount : 0
+      ]).filter(([id]) => id) // Filter out any undefined IDs
+    );
+
+    // Process clients data with validation
+    const clientsWithFilteredOrders = supplier.relatedUsers
+      .filter(relatedUser => 
+        relatedUser?.user && 
+        relatedUser.user._id && 
+        relatedUser.user.businessName
+      )
+      .map(relatedUser => {
+        const userId = relatedUser.user._id.toString();
         return {
-          clientNumber: relatedUser.user.clientNumber,
-          id: relatedUser.user._id.toString(),
-          name: relatedUser.user.name,
-          businessName: relatedUser.user.businessName,
-          phone: relatedUser.user.phone,
-          email: relatedUser.user.email,
-          ordersCount,
-          status: relatedUser.status,
+          clientNumber: relatedUser.user.clientNumber || 0,
+          id: userId,
+          name: relatedUser.user.name || '',
+          businessName: relatedUser.user.businessName || '',
+          phone: relatedUser.user.phone || '',
+          email: relatedUser.user.email || '',
+          ordersCount: orderCountMap.get(userId) || 0,
+          status: relatedUser.status || 'active',
         };
-      })
-  );
+      });
 
-  return (
-    <>
+    // Ensure we have valid data to return
+    if (!Array.isArray(clientsWithFilteredOrders)) {
+      throw new Error('Failed to process clients data');
+    }
+
+    return (
       <Suspense fallback={<Loader/>}>
-        <Clients clients={clientsWithFilteredOrders} supplierId={id}/>
+        <Clients 
+          clients={clientsWithFilteredOrders} 
+          supplierId={id}
+        />
       </Suspense>
-    </>
-  );
+    );
+  } catch (error) {
+    console.error('Error loading supplier clients:', error);
+    return <div>Error loading clients data</div>;
+  }
 }

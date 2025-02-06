@@ -3,7 +3,7 @@
 import { useState } from "react";
 import DeleteCategoryPopup from "./DeleteCategoryPopup";
 
-export default function ManageCategoriesClient({ categoriesWithProductStatus ,supplierId}) {
+export default function ManageCategoriesClient({ categoriesWithProductStatus,categories ,supplierId}) {
   const [categoryList, setCategoryList] = useState(categoriesWithProductStatus);
   const [newCategory, setNewCategory] = useState("");
   const [editCategory, setEditCategory] = useState(null);

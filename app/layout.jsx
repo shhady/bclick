@@ -85,7 +85,7 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href={metadata.manifest} />
       </Head>
-      <body className={`${rubik.className} bg-[#f8f8ff]`}>
+      <body className={`${rubik.className} bg-[#f8f8ff] mb-16 md:mb-0`}>
         <ClerkProvider localization={heIL}>
           <ErrorBoundary>
             <UserProvider>
