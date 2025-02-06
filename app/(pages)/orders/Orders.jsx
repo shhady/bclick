@@ -601,9 +601,9 @@ export default function Orders({ initialOrders }) {
           <div key={order._id} className="bg-white p-4 rounded-lg shadow">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="font-bold">#{order.orderNumber}</p>
+                <p className="font-bold">מספר הזמנה: #{order.orderNumber}</p>
                 <p className="text-sm text-gray-500">
-                  {globalUser.role === 'client' 
+                 שם: {globalUser.role === 'client' 
                     ? order.supplierId?.businessName 
                     : order.clientId?.businessName}
                 </p>
