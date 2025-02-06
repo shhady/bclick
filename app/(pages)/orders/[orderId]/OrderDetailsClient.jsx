@@ -305,7 +305,7 @@ export default function OrderDetailsClient({ initialOrder }) {
       {/* Back Button */}
       <button 
         className="hidden  border border-gray-300 rounded-md p-2 my-2 md:flex items-center gap-2 shadow-md hover:bg-gray-50" 
-        onClick={() => router.push('/orders')}
+        onClick={() => router.back()}
       >
 
         <ArrowRight/> חזור לרשימת ההזמנות
