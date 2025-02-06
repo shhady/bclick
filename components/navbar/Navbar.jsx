@@ -203,4 +203,30 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+class NavbarErrorBoundary extends React.Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Navbar Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <NavbarSkeleton />;
+    }
+    return this.props.children;
+  }
+}
+
+// Wrap your Navbar component
+export default function NavbarWrapper() {
+  return (
+    <NavbarErrorBoundary>
+      <Navbar />
+    </NavbarErrorBoundary>
+  );
+}
