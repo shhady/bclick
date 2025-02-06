@@ -9,6 +9,7 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useUserContext } from '@/app/context/UserContext';
 import { OrderUpdateDialog } from '@/components/OrderUpdateDialog';
+import Loader from '@/components/loader/Loader';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -374,11 +375,17 @@ export default function OrderPage() {
       }, 250);
     }
   };
+ // Scroll to top when component mounts
+ useEffect(() => {
+  window.scrollTo(0, 0);
+}, []);
 
   if (isLoading) return (
-    <></>
+    <><Loader/></>
   );
   if (!order) return <div className="p-4">הזמנה לא נמצאה</div>;
+
+
 
   return (
     <div className="p-4" dir="rtl">
