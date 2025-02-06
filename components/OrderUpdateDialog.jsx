@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo,loadingAction }) {
   const [editedItems, setEditedItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  console.log(order)
+  
   useEffect(() => {
     if (order) {
       setEditedItems(order.items.map(item => {

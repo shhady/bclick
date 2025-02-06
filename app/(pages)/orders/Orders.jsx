@@ -10,6 +10,8 @@ import { FiEye, FiCheck, FiTruck, FiX } from 'react-icons/fi';
 import Link from 'next/link';
 import OrderStatusUpdate from '@/app/components/OrderStatusUpdate';
 import { OrderUpdateDialog } from '@/components/OrderUpdateDialog';
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
+import { RejectConfirmationDialog } from '@/components/RejectConfirmationDialog';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -72,6 +74,10 @@ export default function Orders({ initialOrders }) {
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [loadingAction, setLoadingAction] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [orderToReject, setOrderToReject] = useState(null);
 
   // Move all useCallback hooks to the top level
   const handleCloseUpdateDialog = useCallback(() => {
@@ -393,6 +399,8 @@ export default function Orders({ initialOrders }) {
   };
 
   const handleDeleteOrder = async (orderId) => {
+    setShowDeleteDialog(false);
+    setOrderToDelete(null);
     setLoadingAction('deleting');
     try {
       // Optimistically update UI
@@ -436,6 +444,11 @@ export default function Orders({ initialOrders }) {
     }
   };
 
+  const initiateDelete = (order) => {
+    setOrderToDelete(order);
+    setShowDeleteDialog(true);
+  };
+
   if (selectedOrder) {
     return (
       <OrderDetailsPage
@@ -464,7 +477,10 @@ export default function Orders({ initialOrders }) {
             התחל טיפול
           </button>
           <button
-            onClick={() => handleOrderUpdate(order._id, 'rejected')}
+            onClick={() => {
+              setOrderToReject(order);
+              setShowRejectDialog(true);
+            }}
             className="bg-red-100 text-red-600 px-4 py-1 rounded hover:bg-red-200"
           >
             ביטול
@@ -481,7 +497,7 @@ export default function Orders({ initialOrders }) {
       )}
       {globalUser.role === 'client' && order.status === 'pending' && (
         <button
-          onClick={() => handleDeleteOrder(order._id)}
+          onClick={() => initiateDelete(order)}
           className="bg-red-100 text-red-600 px-4 py-1 rounded hover:bg-red-200"
         >
           מחק הזמנה
@@ -599,8 +615,52 @@ export default function Orders({ initialOrders }) {
             <div className="mb-4">
               <p className="text-sm text-gray-600">סכום: ₪{order.total}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {renderOrderActions(order)}
+            <div className="flex justify-between items-center">
+            <Link
+                href={`/orders/${order._id}`}
+                className="text-blue-600 hover:text-blue-900"
+              >
+                <FiEye className="w-5 h-5" />
+              </Link>
+              <div className="flex gap-2">
+                
+                {globalUser.role === 'client' && order.status === 'pending' && (
+                  <button
+                    onClick={() => initiateDelete(order)}
+                    className="bg-red-100 text-red-600 px-4 py-1 rounded hover:bg-red-200"
+                  >
+                    מחק הזמנה
+                  </button>
+                )}
+                {globalUser.role === 'supplier' && order.status === 'pending' && (
+                  <>
+                    <button
+                      onClick={() => handleOrderUpdate(order._id, 'processing')}
+                      className="bg-blue-100 text-blue-600 px-4 py-1 rounded hover:bg-blue-200"
+                    >
+                      התחל טיפול
+                    </button>
+                    <button
+                      onClick={() => {
+                        setOrderToReject(order);
+                        setShowRejectDialog(true);
+                      }}
+                      className="bg-red-100 text-red-600 px-4 py-1 rounded hover:bg-red-200"
+                    >
+                      ביטול
+                    </button>
+                  </>
+                )}
+                {globalUser.role === 'supplier' && order.status === 'processing' && (
+                  <button
+                    onClick={() => handleOrderUpdate(order._id, 'approved')}
+                    className="bg-green-100 text-green-600 px-4 py-1 rounded hover:bg-green-200"
+                  >
+                    סיים טיפול
+                  </button>
+                )}
+              </div>
+             
             </div>
           </div>
         ))}
@@ -643,6 +703,30 @@ export default function Orders({ initialOrders }) {
         order={selectedOrder}
         stockInfo={stockInfo}
         loadingAction={loadingAction}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setOrderToDelete(null);
+        }}
+        onConfirm={() => handleDeleteOrder(orderToDelete?._id)}
+        orderNumber={orderToDelete?.orderNumber}
+      />
+
+      <RejectConfirmationDialog
+        isOpen={showRejectDialog}
+        onClose={() => {
+          setShowRejectDialog(false);
+          setOrderToReject(null);
+        }}
+        onConfirm={(note) => {
+          handleOrderUpdate(orderToReject?._id, 'rejected', note);
+          setShowRejectDialog(false);
+          setOrderToReject(null);
+        }}
+        orderNumber={orderToReject?.orderNumber}
       />
     </div>
   );
