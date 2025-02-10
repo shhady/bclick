@@ -6,15 +6,32 @@ import { SignOutButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { SlHandbag } from "react-icons/sl";
 import { FaWhatsapp } from "react-icons/fa";
+import { useRouter } from 'next/navigation';
+import { useClerk } from '@clerk/nextjs';
 
 import { useUserContext } from "@/app/context/UserContext";
 
 export default function ProfileMenu({onEdit}) {
     const [logoutPop, setLogoutPop] = useState(false);
     const [openMenu, setOpenMenu] = useState(false);
-    const { globalUser, setGlobalUser, setError } = useUserContext();
+    const { globalUser, setGlobalUser, logout } = useUserContext();
+    const router = useRouter();
+    const { signOut } = useClerk();
 
-
+    const handleSignOut = async () => {
+      try {
+        // First clear the user context and session storage using our logout function
+        logout();
+        
+        // Then sign out from Clerk
+        await signOut();
+        
+        // Finally navigate to home page
+        router.push('/');
+      } catch (error) {
+        console.error('Error during sign out:', error);
+      }
+    };
 
   const renderShareButtonsMobile = () => {
    // if (pathName === '/profile' && globalUser?.role === 'client' || pathName === '/orders' && globalUser?.role === 'client')  {
@@ -76,9 +93,12 @@ className="bg-gray-300 text-gray-700 text-sm px-4 py-1 rounded-md w-full flex ju
       <div className="relative bg-white rounded-lg shadow-lg p-6 z-10 w-80 text-center">
         <h2 className="text-lg font-semibold mb-4">בטוח רוצה להתנתק?</h2>
         <div className="flex justify-between gap-4">
-          <SignOutButton aftersignouturl="/"  className="bg-customRed text-white px-4 py-2 rounded-md w-full">
+          <button
+            onClick={handleSignOut}
+            className="bg-customRed text-white px-4 py-2 rounded-md w-full"
+          >
             התנתק
-          </SignOutButton>
+          </button>
           <button
             className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md w-full"
             onClick={() => setLogoutPop(false)}

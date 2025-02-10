@@ -41,7 +41,7 @@ function rateLimit(request) {
 }
 
 // Route matchers
-const PUBLIC_ROUTES = ['/sign-in(.*)', '/sign-up(.*)', '/sign-out(.*)', '/(.*)'];
+const PUBLIC_ROUTES = ['/sign-in(.*)', '/sign-up(.*)', '/sign-out(.*)', '/'];
 const ADMIN_ROUTES = ['/admin(.*)'];
 const isPublicRoute = createRouteMatcher(PUBLIC_ROUTES);
 const isAdminRoute = createRouteMatcher(ADMIN_ROUTES);
@@ -51,6 +51,7 @@ const isAdminRoute = createRouteMatcher(ADMIN_ROUTES);
  */
 export default clerkMiddleware(async (auth, request) => {
   // Apply rate limiting
+  
   if (rateLimit(request)) {
     return new NextResponse('Too Many Requests', { status: 429 });
   }

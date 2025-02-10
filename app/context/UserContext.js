@@ -181,6 +181,7 @@ export function UserProvider({ children }) {
   const logout = useCallback(() => {
     setGlobalUser(null);
     clearStoredUserData();
+    window.location.href = '/';
   }, []);
 
   // Memoized context value
