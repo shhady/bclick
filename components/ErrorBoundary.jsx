@@ -20,7 +20,7 @@ function ErrorUI() {
             רענן דף
           </button>
           <button
-            onClick={() => window.location.href = '/profile'}
+            onClick={() => window.location.href = '/newprofile'}
             className="w-full bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
           >
             חזור לדף הבית

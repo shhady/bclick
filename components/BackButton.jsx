@@ -11,7 +11,7 @@ export default function BackButton() {
   if (pathname === "/profile" || pathname === "/newprofile") return null;
   if (pathname === "/") return null;
   // Define paths where the back button should NOT be shown
-  const hiddenPaths = ["/profile", "/orders"];
+  const hiddenPaths = ["/profile", "/orders", "/newprofile"];
 
   // Check if the current path is one of the hidden paths
   const shouldHideButton =

@@ -79,7 +79,7 @@ const SupplierWarningBanner = () => (
     <div className='mb-2'>
       התוכן בקטלוג כפי שמופיע ללקוחות
     </div>
-    <Link href={'/profile'} className='bg-gray-700 px-3 py-2 rounded-lg'>
+    <Link href={'/newprofile'} className='bg-gray-700 px-3 py-2 rounded-lg'>
       <button>צא מתצוגה</button>
     </Link> 
   </div>

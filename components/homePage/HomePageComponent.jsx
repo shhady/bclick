@@ -19,7 +19,7 @@ export default function Home() {
   useEffect(() => {
     if (isLoaded) {
       if (isSignedIn) {
-        router.push('/profile'); // Redirect to profile if signed in
+        router.push('/newprofile'); // Redirect to profile if signed in
       } else {
         setLoading(false); // Stop showing the logo if no user is signed in
       }
@@ -78,7 +78,7 @@ export default function Home() {
           <div className="flex gap-4">
             {isSignedIn ? (
               <div className="flex items-center gap-2">
-                <Link href="/profile">
+                <Link href="/newprofile">
                   <button
                     style={{
                       background: '#3997D3',

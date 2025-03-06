@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
             
             // If first time user (no DB record), redirect to profile completion
             if (!userData) {
-              router.push('/profile/complete');
+              router.push('/newprofile/complete');
             }
           } else {
             console.error('Failed to fetch user data');
