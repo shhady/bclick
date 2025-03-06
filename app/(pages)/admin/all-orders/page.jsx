@@ -1,7 +1,21 @@
-import React from 'react'
+import React, { Suspense } from 'react'
+import dynamic from 'next/dynamic'
 
-export default function page() {
+// Create a loading component
+const OrdersLoading = () => (
+  <div className="p-4">Loading orders...</div>
+)
+
+// Dynamically import the client component with suspense
+const AllOrdersClient = dynamic(() => import('./AllOrdersClient'), {
+  ssr: false,
+  loading: () => <OrdersLoading />
+})
+
+export default function AllOrdersPage() {
   return (
-    <div>Orders</div>
+    <Suspense fallback={<OrdersLoading />}>
+      <AllOrdersClient />
+    </Suspense>
   )
 }
