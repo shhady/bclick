@@ -132,7 +132,7 @@ export default function NewCartPage() {
     };
 
     fetchCarts();
-  }, [newUser, searchParams]);
+  }, [newUser, searchParams, cart, toast]);
 
   // Handle quantity change with debounce
   const handleQuantityChange = async (cartIndex, itemIndex, newQuantity) => {
@@ -590,12 +590,12 @@ export default function NewCartPage() {
             
             <div className="space-y-2 mb-4">
               <div className="flex justify-between">
-                <span>סה"כ פריטים:</span>
+                <span>סה&quot;כ פריטים:</span>
                 <span>{totalItems}</span>
               </div>
               {carts.length > 0 && (
                 <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                  <span>סה"כ לתשלום:</span>
+                  <span>סה&quot;כ לתשלום:</span>
                   <span>₪{calculateCartTotal(carts[0])}</span>
                 </div>
               )}

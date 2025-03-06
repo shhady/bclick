@@ -104,11 +104,11 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   
 
   // Save changes before leaving the page
-  const saveChangesBeforeLeave = async () => {
+  const saveChangesBeforeLeave = useCallback(async () => {
     if (Object.keys(localChanges).length > 0) {
       await debouncedUpdate(localChanges);
     }
-  };
+  }, [localChanges, debouncedUpdate]);
 
   useEffect(() => {
     window.addEventListener('beforeunload', saveChangesBeforeLeave);

@@ -80,7 +80,7 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
       setIsCreateModalOpen(true);
       setIsLoading(false);
     }
-  }, [user, clerkUser]); // Remove newUser from dependencies to prevent infinite loop
+  }, [user, clerkUser, newUser, setNewUser]);
 
   const handleCreate = async () => {
     try {

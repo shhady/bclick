@@ -54,7 +54,7 @@ export default function NewSupplierProfile() {
               <Users className="text-red-600 h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">סה"כ לקוחות</p>
+              <p className="text-sm text-gray-600">סה&quot;כ לקוחות</p>
               <p className="text-xl font-bold">{totalClients}</p>
             </div>
           </Link>
@@ -67,7 +67,7 @@ export default function NewSupplierProfile() {
               <Package className="text-green-600 h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">סה"כ מוצרים</p>
+              <p className="text-sm text-gray-600">סה&quot;כ מוצרים</p>
               <p className="text-xl font-bold">{totalProducts}</p>
             </div>
           </Link>
@@ -77,7 +77,7 @@ export default function NewSupplierProfile() {
               <ShoppingCart className="text-blue-600 h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">סה"כ הזמנות</p>
+              <p className="text-sm text-gray-600">סה&quot;כ הזמנות</p> 
               <p className="text-xl font-bold">{totalOrders}</p>
             </div>
           </Link>

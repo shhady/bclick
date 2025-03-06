@@ -78,7 +78,7 @@ export default function NewClientProfile() {
               <FileText className="text-purple-600 h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">סה"כ הזמנות</p>
+              <p className="text-sm text-gray-600">סה&quot;כ הזמנות</p>
               <p className="text-xl font-bold">{ordersCount}</p>
             </div>
           </div>

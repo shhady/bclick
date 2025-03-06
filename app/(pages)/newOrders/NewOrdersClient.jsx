@@ -61,9 +61,12 @@ export default function NewOrdersClient({ initialOrders }) {
       observer.observe(loader.current);
     }
 
+    // Store the current value of the ref for cleanup
+    const currentLoaderRef = loader.current;
+
     return () => {
-      if (loader.current) {
-        observer.unobserve(loader.current);
+      if (currentLoaderRef) {
+        observer.unobserve(currentLoaderRef);
       }
     };
   }, [loadMoreOrders, isLoading, hasMore]);
