@@ -1,16 +1,16 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useCities } from '@/hooks/use-cities';
-import { useUserContext } from "@/app/context/UserContext";
+import { useNewUserContext } from "@/app/context/NewUserContext";
 
-export default function CreateModal({ formData, setFormData, onSubmit, isOpen }) {
+export default function NewCreateModal({ formData, setFormData, onSubmit, isOpen }) {
   const [errors, setErrors] = useState({});
   const [citySearch, setCitySearch] = useState(formData?.city?.trim() || '');
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const { cities, loading } = useCities();
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
-  const { setGlobalUser } = useUserContext();
+  const { setNewUser } = useNewUserContext();
 
   // Initialize citySearch when formData changes
   useEffect(() => {
@@ -104,10 +104,15 @@ export default function CreateModal({ formData, setFormData, onSubmit, isOpen })
 
       if (response.ok) {
         const result = await response.json();
-        // Update the global user context
-        setGlobalUser(result);
+        
+        // Update the new user context
+        setTimeout(() => {
+          setNewUser(result);
+        }, 0);
+        
         // Update the form data in the parent component
         setFormData(result);
+        
         // Call the parent's onSubmit function which will close the modal
         onSubmit();
       } else {
@@ -229,4 +234,4 @@ export default function CreateModal({ formData, setFormData, onSubmit, isOpen })
       </div>
     </div>
   );
-}
+} 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FaShoppingCart, FaUser, FaTags, FaList} from 'react-icons/fa';
 import { SlHandbag } from 'react-icons/sl';
 import Image from 'next/image';
@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useUserContext } from '@/app/context/UserContext';
 import { getCart } from '@/app/actions/cartActions';
 import { useCartContext } from '@/app/context/CartContext';
+import { useNewUserContext } from '@/app/context/NewUserContext';
 
 // Add this component before your main Navbar component
 const NavbarSkeleton = () => (
@@ -48,9 +49,64 @@ const Navbar = () => {
   const { globalUser, isRefreshing } = useUserContext();
   const pathName = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [popupMessage, setPopupMessage] = useState('');
   const { itemCount } = useCartContext();
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showCartTooltip, setShowCartTooltip] = useState(false);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  
+  // Try to use NewUserContext if available
+  let newUser = null;
+  let newUserPendingCount = 0;
+   console.log(globalUser._id)
+   console.log(searchParams.get('supplierId'))
+  try {
+    const newUserContext = useNewUserContext();
+    if (newUserContext) {
+      newUser = newUserContext.newUser;
+      // Calculate pending orders count from newUser context
+      newUserPendingCount = newUser?.orders?.filter(order => order.status === 'pending').length || 0;
+    }
+  } catch (error) {
+    console.log('NewUserContext not available in Navbar, using fallback');
+    // NewUserContext not available, we'll use the API fallback
+  }
+  
+  // Check if user is currently viewing a supplier catalog
+  const isInSupplierCatalog = pathName.includes('/supplier-catalog/');
+  
+  // Define pathParts at the component level
+  const pathParts = pathName ? pathName.split('/') : [];
+  const currentSupplierId = isInSupplierCatalog && pathParts.length > 0 ? pathParts[pathParts.length - 1] : null;
+
+  // Fetch pending orders count for suppliers
+  useEffect(() => {
+    const fetchPendingOrders = async () => {
+      if (!globalUser || globalUser.role !== 'supplier' || !globalUser._id) return;
+      
+      // If NewUserContext is available and has the user data, use that count
+      if (newUser && newUser._id === globalUser._id) {
+        setPendingOrdersCount(newUserPendingCount);
+        console.log('Using pending orders count from NewUserContext:', newUserPendingCount);
+        return;
+      }
+      
+      try {
+        // Fallback: Fetch orders with pending status for this supplier from API
+        const response = await fetch(`/api/orders?userId=${globalUser._id}&role=supplier&status=pending`);
+        if (response.ok) {
+          const data = await response.json();
+          setPendingOrdersCount(data.orders.length);
+          console.log('Fetched pending orders for supplier from API:', data.orders.length);
+        }
+      } catch (error) {
+        console.error('Error fetching pending orders:', error);
+      }
+    };
+
+    fetchPendingOrders();
+  }, [globalUser, newUser, newUserPendingCount]);
 
   // Use pathname changes to track navigation
   useEffect(() => {
@@ -67,7 +123,7 @@ const Navbar = () => {
     return pathName?.includes(path) ? 'text-customBlue' : 'text-gray-600';
   };
 
-  const isProfileOrOrders = pathName === '/profile' || pathName === '/orders';
+  const isProfileOrOrders = pathName === '/newprofile' || pathName === '/orders';
   const isOrdersPage = pathName === '/orders';
   
   const handlePopup = (message) => {
@@ -76,14 +132,12 @@ const Navbar = () => {
   };
 
   const navigateToSupplierCatalog = () => {
-    const pathParts = pathName.split('/');
     const clientId = pathParts[2];
     const supplierId = pathParts[pathParts.length - 1];
-    handleNavigation(`/client/${clientId}/supplier-catalog/${supplierId}`);
+    handleNavigation(`/client/${globalUser._id}/supplier-catalog/${searchParams.get('supplierId') }`);
   };
 
   const navigateToSupplierCart = () => {
-    const pathParts = pathName.split('/');
     const clientId = pathParts[2];
     const supplierId = pathParts[pathParts.length - 1];
     handleNavigation(`/client/${clientId}/cart-from-supplier/${supplierId}`);
@@ -108,26 +162,39 @@ const Navbar = () => {
       </button>
 
       {/* Cart */}
-       <button
-        onClick={() =>
-          isProfileOrOrders
-            ? handlePopup('בחר ספק כדי לצפות במוצרים בעגלה שלו')
-            : navigateToSupplierCart()
-        }
-        className={`flex flex-col items-center relative ${
-          isProfileOrOrders ? 'text-gray-400 cursor-not-allowed' : getIconColor('cart')
-        }`}
-      >
-        <SlHandbag className="text-[20px] md:text-[28px]" />
-        <span className="text-xs md:text-base mt-1">עגלה</span>
+      {isInSupplierCatalog ? (
+        <Link
+          href={`/cart?supplierId=${currentSupplierId}`}
+          className={`flex flex-col items-center relative ${getIconColor('cart')}`}
+        >
+          <SlHandbag className="text-[20px] md:text-[28px]" />
+          <span className="text-xs md:text-base mt-1">עגלה</span>
 
-        {/* Badge for item count */}
-        {itemCount > 0 && (
-          <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
-            {itemCount}
-          </span>
-        )}
-      </button>
+          {/* Badge for item count - only show when in supplier catalog and items exist */}
+          {itemCount > 0 && (
+            <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
+              {itemCount}
+            </span>
+          )}
+        </Link>
+      ) : (
+        <div 
+          className="flex flex-col items-center relative text-gray-400 cursor-not-allowed"
+          onMouseEnter={() => setShowCartTooltip(true)}
+          onMouseLeave={() => setShowCartTooltip(false)}
+          onClick={() => handlePopup('בחר ספק כדי לצפות בעגלה שלו')}
+        >
+          <SlHandbag className="text-[20px] md:text-[28px]" />
+          <span className="text-xs md:text-base mt-1">עגלה</span>
+          
+          {/* Tooltip for disabled cart */}
+          {showCartTooltip && (
+            <div className="absolute top-full mt-2 bg-gray-800 text-white text-xs rounded py-1 px-2 w-48 text-center z-50">
+              בחר ספק כדי לצפות בעגלה שלו
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 
@@ -144,7 +211,7 @@ const Navbar = () => {
             <span className="text-xs md:text-base mt-1">הזמנות</span>
           </Link>
           {/* Profile */}
-          <Link href="/profile" className={`flex flex-col items-center ${getIconColor('profile')}`}>
+          <Link href="/newprofile" className={`flex flex-col items-center ${getIconColor('profile')}`}>
             <FaUser className="text-[20px] md:text-[28px]" />
             <span className="text-xs md:text-base mt-1">פרופיל</span>
           </Link>
@@ -156,7 +223,13 @@ const Navbar = () => {
       <>
         {/* Catalog */}
         <Link
-          href={globalUser.role === 'supplier' ? `/supplier/${globalUser._id}/catalog` : '/catalog'}
+          href={
+            globalUser.role === 'supplier' 
+              ? `/supplier/${globalUser._id}/catalog` 
+              : isCartPage && searchParams.get('supplierId')
+                ? `/client/${globalUser._id}/supplier-catalog/${searchParams.get('supplierId')}`
+                : '/catalog'
+          }
           className={`flex flex-col items-center ${getIconColor('catalog')}`}
         >
           <FaTags  className="text-[20px] md:text-[28px]"/>
@@ -178,16 +251,26 @@ const Navbar = () => {
         <Link href="/orders" className={`flex flex-col items-center relative ${getIconColor('orders')}`}>
           <FaShoppingCart  className="text-[20px] md:text-[28px]"  />
           <span className="text-xs md:text-base mt-1">הזמנות </span>
-        {isOrdersPage ? (<></>) :(<>{globalUser?.orders?.filter((order) => order.status === 'pending').length > 0 && (
-            <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
-              {globalUser?.orders?.filter((order) => order.status === 'pending').length}
-            </span>
-          )}</> )}
+          
           {/* Badge for pending orders */}
-         
+          {!isOrdersPage && (
+            <>
+              {newUser && newUser.role === 'supplier' && pendingOrdersCount > 0 ? (
+                <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
+                  {pendingOrdersCount}
+                </span>
+              ) : (
+                newUser?.orders?.filter((order) => order.status === 'pending').length > 0 && (
+                  <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
+                    {newUser?.orders?.filter((order) => order.status === 'pending').length}
+                  </span>
+                )
+              )}
+            </>
+          )}
         </Link>
         {/* Profile */}
-        <Link href="/profile" className={`flex flex-col items-center ${getIconColor('profile')}`}>
+        <Link href="/newprofile" className={`flex flex-col items-center ${getIconColor('profile')}`}>
           <FaUser  className="text-[20px] md:text-[28px]" />
           <span className="text-xs md:text-base mt-1">פרופיל</span>
         </Link>

@@ -1,37 +1,103 @@
+import { NextResponse } from 'next/server';
 import { connectToDB } from '@/utils/database';
 import Cart from '@/models/cart';
+import Order from '@/models/order';
 import Product from '@/models/product';
+import User from '@/models/user';
 
-export default async function handler(req) {
-  if (req.method === 'POST') {
-    const { clientId, supplierId, items } = await req.json();
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const { clientId, supplierId } = body;
+
+    if (!clientId || !supplierId) {
+      return NextResponse.json(
+        { success: false, message: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
 
     await connectToDB();
 
-    try {
-      for (const item of items) {
-        const product = await Product.findById(item.productId);
-        if (!product) throw new Error(`Product with ID ${item.productId} not found`);
+    // Get the cart with items
+    const cart = await Cart.findOne({ clientId, supplierId })
+      .populate({
+        path: 'items.productId',
+        select: 'name price stock reserved imageUrl'
+      });
 
-        const availableStock = product.stock - (product.reserved || 0);
-        if (item.quantity > availableStock) {
-          throw new Error(
-            `Insufficient stock for product ${product.name}. Available: ${availableStock}, Requested: ${item.quantity}`
-          );
-        }
-
-        product.reserved = (product.reserved || 0) + item.quantity;
-        await product.save();
-      }
-
-      // Clear the cart after submission
-      await Cart.findOneAndDelete({ clientId, supplierId });
-
-      return new Response(JSON.stringify({ success: true }), { status: 200 });
-    } catch (error) {
-      return new Response(JSON.stringify({ success: false, message: error.message }), { status: 500 });
+    if (!cart || !cart.items || cart.items.length === 0) {
+      return NextResponse.json(
+        { success: false, message: 'Cart is empty or not found' },
+        { status: 404 }
+      );
     }
-  }
 
-  return new Response('Method Not Allowed', { status: 405 });
+    // Generate order number (timestamp-based for simplicity)
+    const orderNumber = Math.floor(Date.now() / 1000);
+
+    // Calculate totals for each item and the entire order
+    let total = 0;
+    const orderItems = cart.items.map(item => {
+      const itemTotal = item.quantity * item.productId.price;
+      total += itemTotal;
+      
+      return {
+        productId: item.productId._id,
+        quantity: item.quantity,
+        price: item.productId.price,
+        total: itemTotal
+      };
+    });
+
+    // Create a new order
+    const newOrder = new Order({
+      clientId,
+      supplierId,
+      items: orderItems,
+      total: total,
+      tax: 0.18, // 18% tax
+      orderNumber: orderNumber,
+      status: 'pending',
+      notes: [{ message: 'הזמנה חדשה נוצרה' }]
+    });
+
+    // Save the order
+    const savedOrder = await newOrder.save();
+
+    // Update product reserved quantities
+    for (const item of cart.items) {
+      await Product.findByIdAndUpdate(
+        item.productId._id,
+        { $inc: { reserved: item.quantity } }
+      );
+    }
+
+    // Add order to client and supplier
+    await User.findByIdAndUpdate(
+      clientId,
+      { $push: { orders: savedOrder._id } }
+    );
+
+    await User.findByIdAndUpdate(
+      supplierId,
+      { $push: { orders: savedOrder._id } }
+    );
+
+    // Delete the cart
+    await Cart.findOneAndDelete({ clientId, supplierId });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Order created successfully',
+      orderId: savedOrder._id,
+      orderNumber: orderNumber
+    });
+  } catch (error) {
+    console.error('Error submitting cart:', error);
+    return NextResponse.json(
+      { success: false, message: error.message },
+      { status: 500 }
+    );
+  }
 }

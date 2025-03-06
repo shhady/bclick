@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import OrderDetailsPage from './OrderDetailsPage';
 import { useUserContext } from "@/app/context/UserContext";
+import { useNewUserContext } from "@/app/context/NewUserContext";
 import Image from 'next/image';
 import Loader from '@/components/loader/Loader';
 import { useToast } from '@/hooks/use-toast';
@@ -78,6 +79,21 @@ export default function Orders({ initialOrders }) {
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [orderToReject, setOrderToReject] = useState(null);
+  
+  // Try to use NewUserContext if available
+  let newUser = null;
+  let updateNewUser = null;
+  
+  try {
+    const newUserContext = useNewUserContext();
+    if (newUserContext) {
+      newUser = newUserContext.newUser;
+      updateNewUser = newUserContext.updateNewUser;
+    }
+  } catch (error) {
+    console.log('NewUserContext not available in Orders component');
+    // NewUserContext not available, we'll continue without it
+  }
 
   // Move all useCallback hooks to the top level
   const handleCloseUpdateDialog = useCallback(() => {
@@ -338,6 +354,10 @@ export default function Orders({ initialOrders }) {
 
   const handleOrderUpdate = async (orderId, newStatus, note = '') => {
     try {
+      // Get the original order status before updating
+      const originalOrder = orders.find(order => order._id === orderId);
+      const originalStatus = originalOrder?.status;
+      
       // Optimistically update the UI
       setOrders(prevOrders => 
         prevOrders.map(order => 
@@ -368,7 +388,7 @@ export default function Orders({ initialOrders }) {
         setOrders(prevOrders => 
           prevOrders.map(order => 
             order._id === orderId 
-              ? { ...order, status: order.status }
+              ? { ...order, status: originalStatus }
               : order
           )
         );
@@ -383,6 +403,29 @@ export default function Orders({ initialOrders }) {
           order._id === orderId ? updatedOrder : order
         )
       );
+
+      // Update the newUserContext if available and if this is a supplier changing a pending order
+      if (updateNewUser && globalUser.role === 'supplier' && originalStatus === 'pending' && newStatus !== 'pending') {
+        try {
+          console.log('Updating newUserContext with updated order status');
+          
+          // If we have the newUser object with orders array
+          if (newUser && newUser.orders && Array.isArray(newUser.orders)) {
+            // Create a new orders array with the updated order
+            const updatedOrders = newUser.orders.map(order => 
+              order._id === orderId 
+                ? { ...order, status: newStatus }
+                : order
+            );
+            
+            // Update the newUserContext with the new orders array
+            updateNewUser({ orders: updatedOrders });
+          }
+        } catch (error) {
+          console.error('Error updating newUserContext:', error);
+          // Continue even if updating newUserContext fails
+        }
+      }
 
       toast({
         title: 'הצלחה',

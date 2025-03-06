@@ -8,7 +8,7 @@ export default function BackButton() {
   const router = useRouter();
   const pathname = usePathname();
 
-  if (pathname === "/profile" ) return null;
+  if (pathname === "/profile" || pathname === "/newprofile") return null;
   if (pathname === "/") return null;
   // Define paths where the back button should NOT be shown
   const hiddenPaths = ["/profile", "/orders"];

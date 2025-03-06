@@ -155,7 +155,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
   if (!cart) {
     return (
       <div className="h-screen flex flex-col items-center justify-center gap-4">
-        <h2 className="text-2xl">העגלה שלך עם הספק הזה ריקה</h2>
+        <h2 className="text-2xl">העגלה ריקה</h2>
         <Link
           href={`/client/${clientId}/supplier-catalog/${supplierId}`}
           className="bg-customBlue px-4 py-4 rounded-md"

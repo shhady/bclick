@@ -2,6 +2,7 @@ import localFont from "next/font/local";
 import { ClerkProvider } from '@clerk/nextjs';
 import { UserProvider } from '@/app/context/UserContext';
 import { CartProvider } from '@/app/context/CartContext';
+import { NewUserProvider } from '@/app/context/NewUserContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { heIL } from '@clerk/localizations';
 import { Rubik } from 'next/font/google';
@@ -89,10 +90,12 @@ export default function RootLayout({ children }) {
         <ClerkProvider localization={heIL}>
           <ErrorBoundary>
             <UserProvider>
-              <CartProvider>
-                <BackButton /> {/* Renders the button unless pathname is "/profile" */}
-                {children}
-              </CartProvider>
+              <NewUserProvider>
+                <CartProvider>
+                  <BackButton /> {/* Renders the button unless pathname is "/profile" */}
+                  {children}
+                </CartProvider>
+              </NewUserProvider>
             </UserProvider>
           </ErrorBoundary>
         </ClerkProvider>

@@ -4,6 +4,7 @@
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserContext } from '@/app/context/UserContext';
+import { useNewUserContext } from '@/app/context/NewUserContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowRight } from 'lucide-react';
 import { FiPrinter, FiCheck, FiX, FiClock } from 'react-icons/fi';
@@ -125,6 +126,21 @@ export default function OrderDetailsClient({ initialOrder }) {
   const router = useRouter();
   const { toast } = useToast();
   const printRef = useRef(null);
+  
+  // Try to use NewUserContext if available
+  let newUser = null;
+  let updateNewUser = null;
+  
+  try {
+    const newUserContext = useNewUserContext();
+    if (newUserContext) {
+      newUser = newUserContext.newUser;
+      updateNewUser = newUserContext.updateNewUser;
+    }
+  } catch (error) {
+    console.log('NewUserContext not available in OrderDetailsClient component');
+    // NewUserContext not available, we'll continue without it
+  }
 
   // Permission checks
   const isSupplier = globalUser?.role === 'supplier' && order.supplierId._id === globalUser._id;
@@ -139,6 +155,9 @@ export default function OrderDetailsClient({ initialOrder }) {
 
     setLoadingAction(status);
     try {
+      // Store the original status for comparison
+      const originalStatus = order.status;
+      
       const response = await fetch('/api/orders/update', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -160,6 +179,30 @@ export default function OrderDetailsClient({ initialOrder }) {
       setOrder(updatedOrder);
       setNote('');
       setErrorMessage('');
+      
+      // Update the newUserContext if available and if this is a supplier changing a pending order
+      if (updateNewUser && isSupplier && originalStatus === 'pending' && status !== 'pending') {
+        try {
+          console.log('Updating newUserContext with updated order status');
+          
+          // If we have the newUser object with orders array
+          if (newUser && newUser.orders && Array.isArray(newUser.orders)) {
+            // Create a new orders array with the updated order
+            const updatedOrders = newUser.orders.map(order => 
+              order._id === updatedOrder._id 
+                ? { ...order, status: status }
+                : order
+            );
+            
+            // Update the newUserContext with the new orders array
+            updateNewUser({ orders: updatedOrders });
+            console.log('Successfully updated newUserContext with new order status');
+          }
+        } catch (error) {
+          console.error('Error updating newUserContext:', error);
+          // Continue even if updating newUserContext fails
+        }
+      }
       
       toast({
         title: 'הצלחה',

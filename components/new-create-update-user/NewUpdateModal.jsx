@@ -1,16 +1,14 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useCities } from '@/hooks/use-cities';
-import { useUserContext } from "@/app/context/UserContext";
 
-export default function CreateModal({ formData, setFormData, onSubmit, isOpen }) {
+export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen, setIsOpen }) {
   const [errors, setErrors] = useState({});
   const [citySearch, setCitySearch] = useState(formData?.city?.trim() || '');
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const { cities, loading } = useCities();
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
-  const { setGlobalUser } = useUserContext();
 
   // Initialize citySearch when formData changes
   useEffect(() => {
@@ -95,28 +93,9 @@ export default function CreateModal({ formData, setFormData, onSubmit, isOpen })
       return;
     }
 
-    try {
-      const response = await fetch('/api/users/add-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentFormData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        // Update the global user context
-        setGlobalUser(result);
-        // Update the form data in the parent component
-        setFormData(result);
-        // Call the parent's onSubmit function which will close the modal
-        onSubmit();
-      } else {
-        const error = await response.json();
-        console.error('Error creating user profile:', error);
-      }
-    } catch (error) {
-      console.error('Error creating user profile:', error);
-    }
+    // Use the parent component's onSubmit handler instead of making our own API call
+    // This ensures consistent state management across components
+    await onSubmit(currentFormData);
   };
 
   if (!isOpen) return null;
@@ -124,7 +103,7 @@ export default function CreateModal({ formData, setFormData, onSubmit, isOpen })
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
-        <h2 className="text-2xl font-semibold text-center mb-4">יצירת פרופיל</h2>
+        <h2 className="text-2xl font-semibold text-center mb-4">עדכן פרופיל</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Regular form fields */}
           {[
@@ -195,7 +174,7 @@ export default function CreateModal({ formData, setFormData, onSubmit, isOpen })
             )}
             
             {showCityDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-16 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
                 {loading ? (
                   <div className="p-2 text-center text-gray-500">טוען ערים...</div>
                 ) : filteredCities.length > 0 ? (
@@ -217,16 +196,23 @@ export default function CreateModal({ formData, setFormData, onSubmit, isOpen })
             )}
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-4">
             <button
               type="submit"
               className="bg-customBlue text-white px-4 py-2 rounded-md hover:bg-blue-600"
             >
-              שמור
+              עדכן
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+            >
+              ביטול
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-}
+} 

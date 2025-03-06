@@ -5,11 +5,48 @@ import Image from 'next/image';
 import { useUserContext } from "@/app/context/UserContext";
 import { toast } from '@/hooks/use-toast';
 import { Camera, SwitchCamera, Pencil, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProfileMenu from './ProfileMenu';
 
 export default function Profile({ formData, onEdit }) {
   const { globalUser, setGlobalUser, setError } = useUserContext();
+  const [displayData, setDisplayData] = useState(formData);
+  
+  // Debug logs
+  console.log('Profile render - formData:', formData);
+  console.log('Profile render - globalUser:', globalUser);
+   
+  // Update displayData when formData or globalUser changes
+  useEffect(() => {
+    console.log('Profile useEffect - formData changed:', formData);
+    console.log('Profile useEffect - globalUser:', globalUser);
+    
+    // Prioritize globalUser data over formData
+    const sourceData = globalUser || formData;
+    
+    if (sourceData) {
+      // Create a copy with trimmed string values
+      const trimmedData = Object.entries(sourceData).reduce((acc, [key, value]) => {
+        acc[key] = typeof value === 'string' ? value.trim() : value;
+        return acc;
+      }, {});
+      console.log('Profile useEffect - setting displayData:', trimmedData);
+      setDisplayData(trimmedData);
+    }
+  }, [formData, globalUser]);
+
+  // Force refresh of displayData when globalUser changes
+  useEffect(() => {
+    if (globalUser) {
+      const trimmedData = Object.entries(globalUser).reduce((acc, [key, value]) => {
+        acc[key] = typeof value === 'string' ? value.trim() : value;
+        return acc;
+      }, {});
+      console.log('Profile globalUser effect - setting displayData:', trimmedData);
+      setDisplayData(trimmedData);
+    }
+  }, [globalUser]);
+
   const handleUploadSuccess = async (results) => {
     const newImage = {
       public_id: results.info.public_id,
@@ -28,7 +65,14 @@ export default function Profile({ formData, onEdit }) {
 
       if (response.ok) {
         const result = await response.json();
-        setGlobalUser(result);
+        console.log('Profile handleUploadSuccess - setting globalUser:', result);
+        
+        // Use a timeout to ensure the state update is processed
+        setTimeout(() => {
+          setGlobalUser(result);
+          console.log('Profile handleUploadSuccess - After setGlobalUser call with timeout');
+        }, 0);
+        
         toast({
           title: 'תמונה הועלתה בהצלחה',
           description: 'התמונה עודכנה בפרופיל',
@@ -46,6 +90,11 @@ export default function Profile({ formData, onEdit }) {
       });
     }
   };
+
+  // Use displayData for rendering, with fallbacks
+  const cityToDisplay = displayData?.city?.trim() || '';
+  const businessNameToDisplay = displayData?.businessName || 'משתמש';
+  const phoneToDisplay = displayData?.phone || 'טלפון לא הוזן';
 
   return (
     <div>
@@ -71,20 +120,15 @@ export default function Profile({ formData, onEdit }) {
 
       <div className="flex items-start justify-between gap-4 p-4 shadow-md">
         <div>
-          <h1 className="text-1xl font-semibold">{formData.businessName || 'משתמש'}</h1>
-          <p>{formData.city}</p>
+          <h1 className="text-1xl font-semibold">{businessNameToDisplay}</h1>
+          <p>{cityToDisplay}</p>
           
-          <p dir='ltr' className='text-right'>{formData.phone || 'טלפון לא הוזן'}</p>
+          <p dir='ltr' className='text-right'>{phoneToDisplay}</p>
         </div>
         <div className="flex flex-col items-center justify-end gap-2">
           <ProfileMenu onEdit={onEdit}/>
-
-
-         
         </div>
       </div>
-
-     
     </div>
   );
 }

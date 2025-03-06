@@ -77,7 +77,7 @@ export default function SubmitOrder({ cart, clientId, supplierId }) {
       await clearCart(cart.clientId, cart.supplierId);
     //   await deleteCart({ clientId, supplierId });
 
-      router.push('/profile');
+      router.push('/newprofile');
     } catch (error) {
       setErrorMessage('שגיאה בעת עיבוד ההזמנה');
       console.error('Order submission failed:', error);

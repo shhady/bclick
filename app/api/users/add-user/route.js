@@ -38,7 +38,15 @@ export async function POST(req) {
         const newUser = await User.create({
             ...data,
             clientNumber: nextClientNumber,
-        });
+        }).populate({
+            path: 'relatedUsers.user',
+            select: 'name email phone address role profileImage coverImage', // Populate related users
+          })
+          .populate({
+            path: 'orders', // Populate orders array
+            select: 'status _id', // Fetch only the status and _id fields
+          })
+          .lean();
 
         return new Response(JSON.stringify(newUser), { status: 201 });
     } catch (error) {

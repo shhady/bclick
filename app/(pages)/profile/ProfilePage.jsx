@@ -53,44 +53,57 @@ export default function ProfilePage({ user, pendingOrdersCount, totalOrdersCount
   useEffect(() => {
     // Initialize the user profile using the passed user prop
     if (user) {
-      setGlobalUser(user);
+      console.log('ProfilePage useEffect - setting globalUser from user prop:', user);
+      
+      // Use a timeout to ensure the state update is processed
+      setTimeout(() => {
+        setGlobalUser(user);
+        console.log('ProfilePage useEffect - After setGlobalUser call with timeout');
+      }, 0);
+      
       setFormData(user);
 
       const isComplete = checkProfileCompletion(user);
       setIsProfileComplete(isComplete);
-      setIsCreateModalOpen(!isComplete);
+
+      if (!isComplete) {
+        setIsCreateModalOpen(true);
+      }
     } else if (clerkUser) {
-      // Create a new user object with Clerk data
-      const newUser = {
-        clerkId: clerkUser.id,
-        name: clerkUser.fullName || '',
-        email: clerkUser.emailAddresses[0]?.emailAddress || '',
-        role: 'client', // Default role is client
-        profileImage: clerkUser.imageUrl || '',
-        phone: '',
-        address: '',
-        country: '',
-        area: '',
-        city: '',
-        businessName: '',
-        businessNumber: '',
-      };
-      setFormData(newUser);
+      // If no user data but we have a clerk user, show the create modal
       setIsCreateModalOpen(true);
     }
   }, [user, clerkUser, setGlobalUser]);
 
   const handleCreate = async () => {
     try {
+      // Trim all string values in the form data
+      const trimmedFormData = Object.entries(formData).reduce((acc, [key, value]) => {
+        acc[key] = typeof value === 'string' ? value.trim() : value;
+        return acc;
+      }, {});
+
+      console.log('ProfilePage handleCreate - trimmedFormData:', trimmedFormData);
+      console.log('ProfilePage handleCreate - Before API call, current globalUser:', globalUser);
+
       const response = await fetch('/api/users/add-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(trimmedFormData),
       });
 
       if (response.ok) {
         const result = await response.json();
-        setGlobalUser(result);
+        console.log('ProfilePage handleCreate - API response:', result);
+        
+        console.log('ProfilePage handleCreate - Before setGlobalUser');
+        
+        // Use a timeout to ensure the state update is processed
+        setTimeout(() => {
+          setGlobalUser(result);
+          console.log('ProfilePage handleCreate - After setGlobalUser call with timeout');
+        }, 0);
+        
         setFormData(result);
         setIsCreateModalOpen(false);
         setIsProfileComplete(true);
@@ -106,19 +119,39 @@ export default function ProfilePage({ user, pendingOrdersCount, totalOrdersCount
   };
 
   const handleUpdate = async () => {
-
     try {
+      // Trim all string values in the form data
+      const trimmedFormData = Object.entries(formData).reduce((acc, [key, value]) => {
+        acc[key] = typeof value === 'string' ? value.trim() : value;
+        return acc;
+      }, {});
+
+      console.log('ProfilePage handleUpdate - trimmedFormData:', trimmedFormData);
+      console.log('ProfilePage handleUpdate - Before API call, current globalUser:', globalUser);
+
       const response = await fetch('/api/users/update-user', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(trimmedFormData),
       });
 
       if (response.ok) {
         const result = await response.json();
-        setGlobalUser(result);
+        console.log('ProfilePage handleUpdate - API response:', result);
+        
+        console.log('ProfilePage handleUpdate - Before setGlobalUser');
+        
+        // Use a timeout to ensure the state update is processed
+        setTimeout(() => {
+          setGlobalUser(result);
+          console.log('ProfilePage handleUpdate - After setGlobalUser call with timeout');
+        }, 0);
+        
         setFormData(result);
         setIsUpdateModalOpen(false);
+      } else {
+        const error = await response.json();
+        console.error('Error updating user profile:', error);
       }
     } catch (error) {
       console.error('Error updating user profile:', error);
