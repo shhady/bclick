@@ -28,6 +28,8 @@ export default function NewProfile({ formData, onEdit }) {
   
   // Update displayData when formData or newUser changes
   useEffect(() => {
+    console.log('NewProfile useEffect - formData or newUser changed', { formData, newUser });
+    
     // Prioritize newUser data over formData
     const sourceData = newUser || formData;
     
@@ -38,19 +40,9 @@ export default function NewProfile({ formData, onEdit }) {
         return acc;
       }, {});
       setDisplayData(trimmedData);
+      console.log('NewProfile useEffect - displayData updated', trimmedData);
     }
   }, [formData, newUser]);
-
-  // Force refresh of displayData when newUser changes
-  useEffect(() => {
-    if (newUser) {
-      const trimmedData = Object.entries(newUser).reduce((acc, [key, value]) => {
-        acc[key] = typeof value === 'string' ? value.trim() : value;
-        return acc;
-      }, {});
-      setDisplayData(trimmedData);
-    }
-  }, [newUser]);
 
   const uploadToCloudinary = async (file, setProgress) => {
     const formData = new FormData();
@@ -139,6 +131,9 @@ export default function NewProfile({ formData, onEdit }) {
         // Set the new user data directly
         setNewUser(result);
         
+        // Also update the local displayData state to immediately reflect changes
+        setDisplayData({...displayData, coverImage: result.coverImage});
+        
         toast({
           title: 'תמונת רקע הועלתה בהצלחה',
           description: 'התמונה עודכנה בפרופיל',
@@ -211,6 +206,9 @@ export default function NewProfile({ formData, onEdit }) {
         
         // Set the new user data directly
         setNewUser(result);
+        
+        // Also update the local displayData state to immediately reflect changes
+        setDisplayData({...displayData, profileImage: result.profileImage});
         
         toast({
           title: 'תמונת פרופיל הועלתה בהצלחה',

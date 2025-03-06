@@ -35,37 +35,34 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
   };
    
   useEffect(() => {
-    // Initialize the user profile using the passed user prop or newUser from context
-    const userData = user || newUser;
+    // Prioritize newUser over the user prop
+    const userData = newUser || user;
     
     if (userData) {
       console.log('NewProfilePage useEffect - setting user data:', userData);
       
-      // Only update the context if we have user data from the prop, not from context
-      // This prevents an infinite loop of updates
-      if (user && user !== newUser) {
+      // Only update the context if the user prop exists but newUser is not set yet
+      if (user && !newUser) {
         setNewUser(user);
       }
       
-      // Always update local form data
+      // Update local formData and check profile completeness
       setFormData(userData);
-
       const isComplete = checkProfileCompletion(userData);
       setIsProfileComplete(isComplete);
-
+      
       if (!isComplete) {
         setIsCreateModalOpen(true);
       }
       
       setIsLoading(false);
     } else if (clerkUser) {
-      // If no user data but we have a clerk user, show the create modal
-      // Create a new user object with Clerk data
+      // Create a new user object from Clerk if necessary
       const newUserData = {
         clerkId: clerkUser.id,
         name: clerkUser.fullName || '',
         email: clerkUser.emailAddresses[0]?.emailAddress || '',
-        role: 'client', // Default role is client
+        role: 'client',
         profileImage: clerkUser.imageUrl || '',
         phone: '',
         address: '',
@@ -81,7 +78,7 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
       setIsLoading(false);
     }
   }, [user, clerkUser, newUser, setNewUser]);
-
+  
   const handleCreate = async () => {
     try {
       setIsLoading(true);
@@ -145,9 +142,12 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
         // First close the modal to prevent UI issues
         setIsUpdateModalOpen(false);
         
-        // Update state directly without setTimeout to preserve object references
+        // Update both the context and local state with the updated user data
         setNewUser(result);
         setFormData(result);
+        
+        // Force a re-render by updating a state variable
+        setIsProfileComplete(checkProfileCompletion(result));
       } else {
         const error = await response.json();
         console.error('Error updating user profile:', error);

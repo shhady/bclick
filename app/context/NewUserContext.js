@@ -76,6 +76,7 @@ export function NewUserProvider({ children }) {
   const [error, setError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  console.log('newUser', newUser);
   // Initialize user data from storage on mount (client-side only)
   useEffect(() => {
     if (typeof window === 'undefined') return;
