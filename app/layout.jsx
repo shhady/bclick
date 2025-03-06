@@ -9,6 +9,7 @@ import { Rubik } from 'next/font/google';
 import Head from "next/head";
 import "./globals.css";
 import BackButton  from "@/components/BackButton"; // Import the new component
+import { Suspense } from "react";
 
 const rubik = Rubik({
   subsets: ['latin'],
@@ -88,8 +89,10 @@ export default function RootLayout({ children }) {
       </Head>
       <body className={`${rubik.className} bg-[#f8f8ff] mb-16 md:mb-0`}>
         <ClerkProvider localization={heIL}>
+        <Suspense fallback={<div>Loading...</div>}>
           <ErrorBoundary>
-            <UserProvider>
+          
+              <UserProvider>
               <NewUserProvider>
                 <CartProvider>
                   <BackButton /> {/* Renders the button unless pathname is "/profile" */}
@@ -97,7 +100,9 @@ export default function RootLayout({ children }) {
                 </CartProvider>
               </NewUserProvider>
             </UserProvider>
+           
           </ErrorBoundary>
+          </Suspense>
         </ClerkProvider>
       </body>
     </html>
