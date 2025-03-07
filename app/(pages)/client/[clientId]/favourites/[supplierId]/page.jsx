@@ -3,78 +3,96 @@ import Favourite from '@/models/favourite';
 import User from '@/models/user';
 import Product from '@/models/product';
 import Category from '@/models/category';
-import { Suspense } from 'react';
-import Loader from '@/components/loader/Loader';
-import dynamic from 'next/dynamic';
 import Cart from '@/models/cart';
+import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
+import Loader from '@/components/loader/Loader';
 
-
-const FavoriteProducts = dynamic(() => import('./FavoriteProducts'))
+// Simple dynamic import without client-side only options
+const FavoriteProducts = dynamic(() => import('./FavoriteProducts'));
 
 // Enhanced Server-Side Rendering Strategy
 export const revalidate = 60; // Cache for 60 seconds
 // export const dynamic = 'force-dynamic'; // Ensure fresh data for critical sections
 
-export default async function Page({ params }) {
+export default async function FavouritesPage({ params }) {
   const { clientId, supplierId } = await params;
 
-  await connectToDB();
+  try {
+    await connectToDB();
 
-  const [supplier, categories, favourites, products, cart] = await Promise.all([
-    User.findById(supplierId).lean().catch((err) => {
-      console.error('User fetch failed:', err);
-      return null;
-    }),
-    Category.find({ supplierId: supplierId, status: 'shown' }).lean().catch((err) => {
-      console.error('Category fetch failed:', err);
-      return [];
-    }),
-    Favourite.findOne({ clientId })
-      .populate('productIds')
-      .lean()
-      .catch((err) => {
-        console.error('Favourites fetch failed:', err);
-        return null;
-      }),
-    Product.find({
-      supplierId: supplierId,
-      status: { $in: ['active', 'out_of_stock'] },
-    })
-      .lean()
-      .catch((err) => {
-        console.error('Product fetch failed:', err);
-        return [];
-      }),
-      Cart.findOne({ clientId, supplierId })
-      .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
-      .lean().catch((err) => {
-        console.error('Cart fetch failed:', err);
-        return [];
-      })
-  ]);
+    // Fetch supplier details from User model
+    const supplier = await User.findById(supplierId);
+    if (!supplier) {
+      throw new Error("Supplier not found");
+    }
 
-  if (!supplier) {
-    console.error('Supplier not found for ID:', supplierId);
-    return <h1>Supplier Not Found</h1>;
+    // Fetch all categories for this supplier
+    const categories = await Category.find({ supplierId });
+
+    // Fetch favorites for this client
+    const favoriteDoc = await Favourite.findOne({ clientId }).populate('productIds');
+    
+    if (!favoriteDoc) {
+      // Return empty favorites if none found
+      return (
+        <div className="pb-20">
+          <Suspense fallback={<Loader />}>
+            <FavoriteProducts
+              supplier={JSON.parse(JSON.stringify(supplier))}
+              categories={JSON.parse(JSON.stringify(categories))}
+              products={[]}
+              favorites={[]}
+              supplierId={supplierId}
+              clientId={clientId}
+              cart={{ items: [] }}
+            />
+          </Suspense>
+        </div>
+      );
+    }
+
+    // Filter favorite products to only include those from this supplier
+    const favoriteProducts = favoriteDoc.productIds.filter(
+      product => product.supplierId && product.supplierId.toString() === supplierId
+    );
+
+    // Fetch cart for this client and supplier
+    const cart = await Cart.findOne({ clientId, supplierId }).populate({
+      path: 'items.productId',
+      model: Product
+    });
+
+    // Serialize the data for client-side rendering
+    const serializedSupplier = JSON.parse(JSON.stringify(supplier));
+    const serializedCategories = JSON.parse(JSON.stringify(categories));
+    const serializedProducts = JSON.parse(JSON.stringify(favoriteProducts));
+    const serializedCart = cart ? JSON.parse(JSON.stringify(cart)) : { items: [] };
+
+    return (
+      <div className="pb-20">
+        <Suspense fallback={<Loader />}>
+          <FavoriteProducts
+            supplier={serializedSupplier}
+            categories={serializedCategories}
+            products={serializedProducts}
+            favorites={serializedProducts}
+            supplierId={supplierId}
+            clientId={clientId}
+            cart={serializedCart}
+          />
+        </Suspense>
+      </div>
+    );
+  } catch (error) {
+    console.error("Error fetching favorites:", error);
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <h1 className="text-2xl font-bold text-red-500 mb-4">שגיאה בטעינת המועדפים</h1>
+        <p className="text-gray-600">אירעה שגיאה בטעינת המועדפים. אנא נסה שוב מאוחר יותר.</p>
+      </div>
+    );
   }
-
-  const serializedData = {
-    supplier: serializeSupplier(supplier),
-    categories: categories.map(serializeCategory),
-    products: products.map(serializeProduct),
-    favorites: favourites?.productIds?.map(serializeProduct) || [],
-    cart: cart ? serializeCart(cart) : null
-
-  };
- 
-  return (
-    <div className="mb-20">
-      {/* <h1 className="text-2xl font-bold my-6">
-        המועדפים שלך מהספק {serializedData.supplier.businessName}
-      </h1> */}
-    <Suspense fallback={<Loader/>}>  <FavoriteProducts {...serializedData}  clientId={clientId} supplierId={supplierId}/></Suspense>
-    </div>
-  );
 }
 
 function serializeSupplier(supplier) {
@@ -101,7 +119,6 @@ function serializeProduct(product) {
     supplierId: product.supplierId.toString(),
   };
 }
-
 
 function serializeCategory(category) {
   return {

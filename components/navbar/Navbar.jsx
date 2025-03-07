@@ -74,7 +74,7 @@ const Navbar = () => {
   }
   
   // Check if user is currently viewing a supplier catalog
-  const isInSupplierCatalog = pathName.includes('/supplier-catalog/');
+  const isInSupplierCatalog = pathName.includes('/supplier-catalog/' ) || pathName.includes('/favourites');
   
   // Define pathParts at the component level
   const pathParts = pathName ? pathName.split('/') : [];
@@ -132,15 +132,41 @@ const Navbar = () => {
   };
 
   const navigateToSupplierCatalog = () => {
-    const clientId = pathParts[2];
-    const supplierId = pathParts[pathParts.length - 1];
-    handleNavigation(`/client/${globalUser._id}/supplier-catalog/${searchParams.get('supplierId') }`);
+    // Get the stored supplierId from localStorage if available
+    let supplierId;
+    if (typeof window !== 'undefined') {
+      supplierId = localStorage.getItem('currentSupplierId');
+    }
+    
+    // If we have a supplierId in localStorage, use it
+    if (supplierId) {
+      handleNavigation(`/client/${globalUser._id}/supplier-catalog/${supplierId}`);
+    } else {
+      // Fallback to the URL parameter if available
+      const urlSupplierId = searchParams.get('supplierId');
+      if (urlSupplierId) {
+        handleNavigation(`/client/${globalUser._id}/supplier-catalog/${urlSupplierId}`);
+      } else {
+        // If no supplierId is available, just go to the client's home page
+        handleNavigation(`/client/${globalUser._id}`);
+      }
+    }
   };
 
   const navigateToSupplierCart = () => {
-    const clientId = pathParts[2];
-    const supplierId = pathParts[pathParts.length - 1];
-    handleNavigation(`/client/${clientId}/cart-from-supplier/${supplierId}`);
+    // Get the stored supplierId from localStorage if available
+    let supplierId;
+    if (typeof window !== 'undefined') {
+      supplierId = localStorage.getItem('currentSupplierId');
+    }
+    
+    // If we have a supplierId, use it for the cart URL
+    if (supplierId) {
+      handleNavigation(`/client/${globalUser._id}/cart-from-supplier/${supplierId}`);
+    } else {
+      // Otherwise just go to the main cart page
+      handleNavigation('/cart');
+    }
   };
 
   const renderClientNav = () => (

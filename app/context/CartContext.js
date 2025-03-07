@@ -20,8 +20,9 @@ export const CartProvider = ({ children }) => {
   const isProfileOrOrders = pathName === '/profile' || pathName === '/orders' || 
                            pathName === '/newprofile' || pathName === '/orders';
   
-  // Check if user is in a supplier catalog or cart page
+  // Check if user is in a supplier catalog, favorites, or cart page
   const isInSupplierCatalog = pathName.includes('/supplier-catalog/');
+  const isInFavorites = pathName.includes('/favourites/');
   const isCartPage = pathName === '/cart';
 
   useEffect(() => {
@@ -42,6 +43,15 @@ export const CartProvider = ({ children }) => {
         if (supplierId) {
           setCurrentSupplierId(supplierId);
         }
+      } else if (isInFavorites) {
+        // Handle favorites page - format: /client/[clientId]/favourites/[supplierId]
+        clientId = pathParts[2];
+        supplierId = pathParts[pathParts.length - 1];
+        
+        // Store the current supplier ID when in favorites
+        if (supplierId) {
+          setCurrentSupplierId(supplierId);
+        }
       } else if (isCartPage) {
         // If on cart page, try to get supplier ID from query params
         const supplierIdFromQuery = searchParams.get('supplierId');
@@ -51,8 +61,8 @@ export const CartProvider = ({ children }) => {
         }
       }
       
-      // Reset item count when not in supplier catalog and not on cart page
-      if (!isInSupplierCatalog && !isCartPage) {
+      // Reset item count when not in supplier catalog, favorites, or cart page
+      if (!isInSupplierCatalog && !isInFavorites && !isCartPage) {
         setItemCount(0);
         return;
       }
@@ -101,6 +111,10 @@ export const CartProvider = ({ children }) => {
     if (isInSupplierCatalog) {
       clientId = pathParts[2];
       supplierId = pathParts[pathParts.length - 1];
+    } else if (isInFavorites) {
+      // Handle favorites page - format: /client/[clientId]/favourites/[supplierId]
+      clientId = pathParts[2];
+      supplierId = pathParts[pathParts.length - 1];
     } else if (isCartPage) {
       // If on cart page, try to get supplier ID from query params
       const supplierIdFromQuery = searchParams.get('supplierId');
@@ -110,8 +124,8 @@ export const CartProvider = ({ children }) => {
       }
     }
     
-    // Reset item count when not in supplier catalog and not on cart page
-    if (!isInSupplierCatalog && !isCartPage) {
+    // Reset item count when not in supplier catalog, favorites, or cart page
+    if (!isInSupplierCatalog && !isInFavorites && !isCartPage) {
       setItemCount(0);
       return;
     }

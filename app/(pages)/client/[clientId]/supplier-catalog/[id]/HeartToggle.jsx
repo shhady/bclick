@@ -4,7 +4,7 @@ import { AiFillHeart } from 'react-icons/ai';
 import { checkFavoriteStatus } from '@/app/actions/checkFavoriteStatus';
 import { toggleFavorite } from '@/app/actions/toggleFavorite';
 
-export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
+export default function HeartToggle({ productId, clientId, onFavoriteToggle }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true); // Track whether the status is being checked
@@ -49,18 +49,18 @@ export default function StarToggle({ productId, clientId, onFavoriteToggle }) {
 
   return (
     <>
-      {!checking && ( // Only render the star after checking is complete
+      {!checking && ( // Only render the heart after checking is complete
         <button
-        onClick={handleToggle}
-        disabled={loading}
-        className={`transition-colors ${
-          isFavorite ? 'text-red-500' : 'text-gray-300'
-        }`}
-      >
-        <AiFillHeart size={28} />
-        {loading && <span className="loader"></span>}
-      </button>
+          onClick={handleToggle}
+          disabled={loading}
+          className={`transition-colors ${
+            isFavorite ? 'text-red-500' : 'text-gray-300'
+          }`}
+        >
+          <AiFillHeart size={28} />
+          {loading && <span className="loader"></span>}
+        </button>
       )}
     </>
   );
-}
+} 
