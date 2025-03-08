@@ -29,7 +29,7 @@ export default memo(function ProductCard({ product, showProductDetail, cart }) {
             {cart?.items.find((item) => item.productId?._id === product?._id) && (
               <span className='text-customBlue text-sm'>עדכן כמות</span>
             )}
-            {product.stock - (product.reserved || 0) === 0 && (
+            {product.stock  === 0 && (
               <span className="text-red-500 text-sm">אינו זמין במלאי</span>
             )}
           </div>

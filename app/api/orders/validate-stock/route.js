@@ -8,7 +8,7 @@ export async function POST(req) {
 
     for (const item of items) {
       const product = await Product.findById(item.productId);
-      if (!product || product.stock - product.reserved < item.quantity) {
+      if (!product || product.stock  < item.quantity) {
         return new Response(
           JSON.stringify({
             message: `מלאי לא מספיק עבור המוצר: ${product?.name || 'לא נמצא'}`,

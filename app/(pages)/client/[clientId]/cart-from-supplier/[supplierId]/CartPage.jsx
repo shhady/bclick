@@ -64,7 +64,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
     const existingItem = cart.items.find((item) => item.productId._id === productId);
     if (!existingItem) return;
   
-    const maxAvailable = existingItem.productId.stock - (existingItem.productId.reserved || 0);
+    const maxAvailable = existingItem.productId.stock ;
   
     if (newQuantity > maxAvailable) {
       setCart((prevCart) => ({

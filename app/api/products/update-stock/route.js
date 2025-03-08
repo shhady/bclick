@@ -14,13 +14,14 @@ export async function POST(request) {
         throw new Error(`Product not found: ${item.productId._id}`);
       }
 
-      if (action === 'approve') {
-        // When order is approved: reduce both stock and reserved
-        product.stock -= item.quantity;
-        product.reserved -= item.quantity;
-      } else if (action === 'reject') {
-        // When order is rejected: only reduce reserved
-        product.reserved -= item.quantity;
+      // if (action === 'approve') {
+      //   // When order is approved: reduce both stock and 
+      //   product.stock -= item.quantity;
+       
+      // } else
+       if (action === 'reject') {
+        // When order is rejected: only reduce 
+        product.stock += item.quantity;
       }
 
       await product.save();

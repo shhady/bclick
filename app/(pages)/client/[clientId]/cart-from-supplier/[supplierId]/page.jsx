@@ -24,7 +24,7 @@ export default async function Page({ params }) {
   let cart;
   try {
     cart = await Cart.findOne({ clientId, supplierId })
-      .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
+      .populate('items.productId', 'name price stock barCode imageUrl weight weightUnit')
       .lean();
 
     if (!cart) {

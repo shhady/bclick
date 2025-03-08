@@ -23,7 +23,7 @@ export async function POST(request) {
     const cart = await Cart.findOne({ clientId, supplierId })
       .populate({
         path: 'items.productId',
-        select: 'name price stock reserved imageUrl'
+        select: 'name price stock  imageUrl'
       });
 
     if (!cart || !cart.items || cart.items.length === 0) {
@@ -65,11 +65,11 @@ export async function POST(request) {
     // Save the order
     const savedOrder = await newOrder.save();
 
-    // Update product reserved quantities
+    // Update product  quantities
     for (const item of cart.items) {
       await Product.findByIdAndUpdate(
         item.productId._id,
-        { $inc: { reserved: item.quantity } }
+        { $inc: { stock: -item.quantity } }
       );
     }
 

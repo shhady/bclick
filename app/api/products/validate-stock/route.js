@@ -12,7 +12,7 @@ export async function POST(request) {
     for (const item of items) {
       const product = await Product.findById(item.productId._id);
       if (product) {
-        const available = product.stock - (product.reserved || 0);
+        const available = product.stock;
         stockInfo[product._id] = {
           available,
           hasEnough: available >= item.quantity

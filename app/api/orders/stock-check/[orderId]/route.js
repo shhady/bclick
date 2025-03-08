@@ -24,8 +24,7 @@ export async function GET(req, { params }) {
     currentProducts.forEach(product => {
       stockInfo[product._id.toString()] = {
         stock: product.stock,
-        reserved: product.reserved || 0,
-        available: product.stock - (product.reserved || 0)
+        available: product.stock
       };
     });
 

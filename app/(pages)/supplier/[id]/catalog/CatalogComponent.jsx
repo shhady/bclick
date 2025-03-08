@@ -32,7 +32,7 @@ const ProductSkeleton = () => (
 
 export default function CatalogPage({sProducts, sCategories}) {
   const { globalUser } = useUserContext();
-  const [products, setProducts] = useState(sProducts || []);
+  const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [categories, setCategories] = useState(sCategories || []);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -44,8 +44,9 @@ export default function CatalogPage({sProducts, sCategories}) {
 
   // Memoize the low stock check
   useEffect(() => {
+    setProducts(sProducts)
     setLowStockNotification(products.some((product) => product.stock === 0));
-  }, [products]);
+  }, [sProducts]);
 
   // Optimize filtering with useMemo
   const filteredProductsMemo = useMemo(() => {

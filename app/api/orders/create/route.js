@@ -15,7 +15,7 @@ export async function POST(req) {
     // Check stock availability for each product
     for (const item of items) {
       const product = await Product.findById(item.productId);
-      if (!product || product.stock - product.reserved < item.quantity) {
+      if (!product || product.stock < item.quantity) {
         return NextResponse.json({
           message: `מלאי לא מספיק עבור המוצר: ${product?.name || 'לא נמצא'}`,
         }, { status: 400 });
@@ -36,11 +36,11 @@ export async function POST(req) {
       orderNumber: nextOrderNumber
     });
 
-    // Update reserved stock
+    // Update s stock
     await Promise.all(items.map(item => 
       Product.findByIdAndUpdate(
         item.productId,
-        { $inc: { reserved: item.quantity } },
+        { $inc: { stock: -item.quantity } },
         { new: true }
       )
     ));

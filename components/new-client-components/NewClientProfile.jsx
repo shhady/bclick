@@ -108,7 +108,7 @@ export default function NewClientProfile() {
               return (
                 <Link
                   key={supplier._id}
-                  href={`/client/${newUser?._id}/supplier-catalog/${supplier?.user?._id}`}
+                  href={`/catalog/${supplier?.user?._id}`}
                   className="flex items-center justify-start w-full gap-4 max-w-md p-4 bg-white shadow-lg rounded-lg border border-gray-200"
                 >
                   <div className="flex-shrink-0">

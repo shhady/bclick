@@ -1,4 +1,4 @@
-'use client';
+
 import React, { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 
@@ -16,14 +16,14 @@ const CartLoading = () => (
 
 // Dynamically import the client component with suspense
 const CartClient = dynamic(() => import('./CartClient'), {
-  ssr: false,
   loading: () => <CartLoading />
 });
 
-export default function CartPage() {
+export default async function CartPage({params}) {
+    const { id } = await params;
   return (
     <Suspense fallback={<CartLoading />}>
-      <CartClient />
+      <CartClient id={id} />
     </Suspense>
   );
 } 

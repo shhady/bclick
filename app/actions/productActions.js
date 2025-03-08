@@ -58,7 +58,7 @@ export async function fetchProducts({ supplierId, categoryId, page = 1, limit = 
           status: product.status,
           stock: product.stock,
           description: product.description,
-          reserved: product.reserved
+        
         }));
 
       return {

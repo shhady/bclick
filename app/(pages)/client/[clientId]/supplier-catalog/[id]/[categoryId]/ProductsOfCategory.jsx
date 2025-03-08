@@ -34,7 +34,7 @@ const ProductCard = memo(function ProductCard({ product, showProductDetail, cart
   const currentCart = contextCart || cart;
   
   const isInCart = currentCart?.items?.find((item) => item.productId?._id === product?._id);
-  const isOutOfStock = product.stock - (product.reserved || 0) === 0;
+  const isOutOfStock = product.stock === 0;
   
   return (
     <div
@@ -47,7 +47,7 @@ const ProductCard = memo(function ProductCard({ product, showProductDetail, cart
         </div>
       )}
       
-      {isOutOfStock && (
+      {product.stock === 0 && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10 z-10">
           <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
             אזל מהמלאי
@@ -328,9 +328,8 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
   const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState('');
   const [cart, setCart] = useState(myCart);
-  const [reserved, setReserved] = useState(product?.reserved || 0);
   const [availableStock, setAvailableStock] = useState(
-    product?.stock - (product?.reserved || 0)
+    product?.stock
   ); 
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
@@ -338,8 +337,7 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
   const { toast } = useToast();
 
   useEffect(() => {
-    setReserved(product?.reserved || 0);
-    setAvailableStock(product?.stock - (product?.reserved || 0));
+    setAvailableStock(product?.stock);    
     const existingItem = cart?.items.find(
       (item) => item?.productId?._id === product?._id
     );
@@ -383,7 +381,6 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
       if (response.success) {
         setCart(response.cart);
         setAvailableStock(response.updatedAvailableStock);
-        setReserved(response.reserved);
         setError('');
         
         // Update the cart context to ensure UI updates immediately
@@ -504,14 +501,14 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
             <div className="mb-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-700">מלאי זמין:</span>
-                <span className={`text-sm font-medium ${isOutOfStock ? 'text-red-500' : 'text-green-600'}`}>
-                  {isOutOfStock ? 'אזל מהמלאי' : `${availableStock} יחידות`}
+                <span className={`text-sm font-medium ${product.stock === 0 ? 'text-red-500' : 'text-green-600'}`}>
+                  {product.stock === 0 ? 'אזל מהמלאי' : `${availableStock} יחידות`}
                 </span>
               </div>
             </div>
             
             {/* Quantity selector */}
-            {!isOutOfStock && existingItem && (
+            {product.stock > 0 && existingItem && (
               <div className="mb-4 flex flex-col items-center justify-center gap-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">כמות:</label>
                 <div className="flex items-center">
@@ -549,7 +546,7 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
                 <>
                   <button
                     onClick={addToCartHandler}
-                    disabled={isOutOfStock || isUpdating || isRemoving}
+                    disabled={product.stock === 0 || isUpdating || isRemoving}
                     className="w-full py-3 px-4 rounded-lg font-medium transition-colors bg-green-600 hover:bg-green-700 text-white"
                   >
                     {isUpdating ? (
@@ -586,9 +583,9 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
               ) : (
                 <button
                   onClick={addToCartHandler}
-                  disabled={isOutOfStock || isUpdating}
+                  disabled={product.stock === 0 || isUpdating}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                    isOutOfStock 
+                    product.stock === 0 
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                       : 'bg-customBlue hover:bg-blue-600 text-white'
                   }`}
@@ -601,7 +598,7 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
                       </svg>
                       מעדכן...
                     </div>
-                  ) : isOutOfStock ? (
+                  ) : product.stock === 0 ? (
                     'אזל מהמלאי'
                   ) : (
                     'הוסף לעגלה'

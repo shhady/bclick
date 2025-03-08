@@ -31,10 +31,10 @@ export async function PUT(req) {
         return NextResponse.json({ error: 'Can only update items for pending orders' }, { status: 400 });
       }
       
-      // First, restore the original reserved quantities
+      // First, restore the original  quantities
       for (const originalItem of originalOrder.items) {
         await Product.findByIdAndUpdate(originalItem.productId._id, {
-          $inc: { reserved: -originalItem.quantity }
+          $inc: { stock: -originalItem.quantity }
         });
       }
 
@@ -50,15 +50,15 @@ export async function PUT(req) {
           item => item.productId._id.toString() === newItem.productId.toString()
         );
         const originalQuantity = originalItem ? originalItem.quantity : 0;
-        const availableStock = product.stock - (product.reserved || 0) + originalQuantity;
+        const availableStock = product.stock  + originalQuantity;
 
         if (availableStock < newItem.quantity) {
           throw new Error(`Not enough stock for product: ${product.name}`);
         }
 
-        // Update reserved quantity
+        // Update quantity
         await Product.findByIdAndUpdate(newItem.productId, {
-          $inc: { reserved: newItem.quantity }
+          $inc: { stock: newItem.quantity }
         });
       }
 
@@ -90,29 +90,12 @@ export async function PUT(req) {
     if (status && userRole === 'supplier') {
       // Handle stock updates based on status change
       if (status === 'approved') {
-        // Reduce actual stock and reserved stock
-        for (const item of originalOrder.items) {
-          const product = await Product.findById(item.productId._id);
-          if (!product) {
-            throw new Error(`Product not found: ${item.productId._id}`);
-          }
-          
-          if (product.stock - item.quantity < 0) {
-            throw new Error(`Not enough stock for product: ${product.name}`);
-          }
-
-          await Product.findByIdAndUpdate(item.productId._id, {
-            $inc: { 
-              stock: -item.quantity,
-              reserved: -item.quantity
-            }
-          });
-        }
+        // Reduce actual stock 
+        // do nothing
       } else if (status === 'rejected') {
-        // Only reduce reserved stock
         for (const item of originalOrder.items) {
           await Product.findByIdAndUpdate(item.productId._id, {
-            $inc: { reserved: -item.quantity }
+            $inc: { stock: item.quantity }
           });
         }
       }

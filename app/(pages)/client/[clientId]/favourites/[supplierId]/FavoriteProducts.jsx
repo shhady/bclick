@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 // Store the current supplierId in localStorage for navbar navigation
 function storeCurrentSupplier(supplierId) {
   if (typeof window !== 'undefined') {
+    console.log("Storing supplierId in localStorage:", supplierId);
     localStorage.setItem('currentSupplierId', supplierId);
   }
 }
@@ -36,7 +37,7 @@ function ProductGrid({
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
       {products.map((product) => {
         const isInCart = currentCart?.items?.find((item) => item.productId?._id === product?._id);
-        const isOutOfStock = product.stock - (product.reserved || 0) === 0;
+        const isOutOfStock = product.stock === 0;
         
         return (
           <div
@@ -109,18 +110,13 @@ function ProductDetailModal({
   const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState('');
   const [cart, setCart] = useState(myCart);
-  const [reserved, setReserved] = useState(product?.reserved || 0);
-  const [availableStock, setAvailableStock] = useState(
-    product?.stock - (product?.reserved || 0)
-  ); 
+  const [availableStock, setAvailableStock] = useState(product?.stock);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const { fetchCartAgain, addItemToCart } = useCartContext();
   const { toast } = useToast();
 
   useEffect(() => {
-    setReserved(product?.reserved || 0);
-    setAvailableStock(product?.stock - (product?.reserved || 0));
     const existingItem = cart?.items.find(
       (item) => item?.productId?._id === product?._id
     );
@@ -164,7 +160,6 @@ function ProductDetailModal({
       if (response.success) {
         setCart(response.cart);
         setAvailableStock(response.updatedAvailableStock);
-        setReserved(response.reserved);
         setError('');
         
         // Update the cart context to ensure UI updates immediately
@@ -500,7 +495,7 @@ export default function FavoriteProducts({
           {/* Cart button for mobile */}
           {cartCount > 0 && (
             <Link 
-              href={`/cart?supplierId=${supplierId}`}
+              href={`/cart/${supplierId}`}
               className="md:hidden flex items-center gap-2 px-4 py-2 bg-customBlue text-white rounded-lg shadow-md hover:bg-blue-600 transition-colors"
             >
               <ShoppingBag className="h-4 w-4" />

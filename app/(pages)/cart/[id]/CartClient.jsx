@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useNewUserContext } from '@/app/context/NewUserContext';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter} from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
@@ -18,11 +18,10 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useCartContext } from '@/app/context/CartContext';
 
-export default function CartClient() {
+export default function CartClient({id}) {
   const { newUser } = useNewUserContext();
   const { currentSupplierId, cart, clearCart } = useCartContext();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [carts, setCarts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,21 +49,10 @@ export default function CartClient() {
         }
         
         // Get the supplier ID from URL query parameter or from context
-        const supplierIdFromQuery = searchParams.get('supplierId');
         
         // Try to get supplier ID from different sources
-        let currentSupplierId = supplierIdFromQuery;
+        let currentSupplierId = id;
         
-        // If no supplier ID in query, check if we're coming from a supplier catalog
-        if (!currentSupplierId) {
-          const pathName = window.location.pathname;
-          const isFromSupplierCatalog = pathName.includes('/supplier-catalog/');
-          
-          if (isFromSupplierCatalog) {
-            const pathParts = pathName.split('/');
-            currentSupplierId = pathParts[pathParts.length - 1];
-          }
-        }
         
         // Set flag based on whether we have a supplier ID
         if (currentSupplierId) {
@@ -132,7 +120,7 @@ export default function CartClient() {
     };
 
     fetchCarts();
-  }, [newUser, searchParams, cart, toast]);
+  }, [newUser, id, cart, toast]);
 
   // Handle quantity change with debounce
   const handleQuantityChange = async (cartIndex, itemIndex, newQuantity) => {
@@ -145,7 +133,7 @@ export default function CartClient() {
     if (newQuantity < 1) return;
     
     // Check if the product has enough stock
-    const maxAvailable = item.productId.stock - (item.productId.reserved || 0);
+    const maxAvailable = item.productId.stock;
     if (newQuantity > maxAvailable) {
       toast({
         title: 'כמות לא זמינה',
@@ -187,6 +175,7 @@ export default function CartClient() {
       const updatedCart = updatedCarts[cartIndex];
       updatedCart.totalPrice = calculateCartTotal(updatedCart);
       setCarts(updatedCarts);
+      
     } catch (error) {
       console.error('Error updating quantity:', error);
       toast({
@@ -629,4 +618,5 @@ export default function CartClient() {
       </div>
     </div>
   );
-} 
+}     
+  

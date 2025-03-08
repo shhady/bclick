@@ -39,7 +39,7 @@ export default async function Page({ params }) {
     .lean()
 
     const cart = await Cart.findOne({ clientId, supplierId: id })
-    .populate('items.productId', 'name price stock reserved imageUrl')
+    .populate('items.productId', 'name price stock imageUrl')
     .lean()
 
   // Remove products fetch from initial load
@@ -101,10 +101,27 @@ function serializeCategory(category) {
 function serializeProduct(product) {
   if (!product) return null;
   
+  // Handle categoryId properly
+  let categoryId;
+  if (product.categoryId) {
+    if (typeof product.categoryId === 'object' && product.categoryId._id) {
+      // If categoryId is an object with _id, use that
+      categoryId = product.categoryId._id.toString();
+    } else if (typeof product.categoryId === 'string') {
+      // If categoryId is already a string, use it directly
+      categoryId = product.categoryId;
+    } else {
+      // Fallback
+      categoryId = product.categoryId.toString();
+    }
+  } else {
+    categoryId = '';
+  }
+  
   return {
     ...product,
     _id: product._id?.toString() || '',
-    categoryId: product.categoryId?.toString() || '',
+    categoryId: categoryId,
     supplierId: product.supplierId?.toString() || '',
     stock: product.stock || 0,
   };

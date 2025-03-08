@@ -21,7 +21,7 @@ export async function POST(request) {
         );
       }
 
-      const availableStock = product.stock - (product.reserved || 0);
+      const availableStock = product.stock ;
       stockValidation[product._id] = {
         available: availableStock,
         requested: item.quantity,
@@ -60,11 +60,11 @@ export async function POST(request) {
       status: 'pending'
     });
 
-    // Update reserved stock for each product
+    // Update stock for each product
     for (const item of items) {
       await Product.findByIdAndUpdate(
         item.productId._id,
-        { $inc: { reserved: item.quantity } }
+        { $inc: { stock: -item.quantity } }
       );
     }
 

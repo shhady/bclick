@@ -1,12 +1,20 @@
 // ClientComponent.jsx
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useUserContext } from "@/app/context/UserContext";
 import { ShoppingBag, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useCartContext } from "@/app/context/CartContext";
+
+// Store the current supplierId in localStorage for navbar navigation
+function storeCurrentSupplier(supplierId) {
+  if (typeof window !== 'undefined') {
+    console.log("Storing supplierId in localStorage from catalog:", supplierId);
+    localStorage.setItem('currentSupplierId', supplierId);
+  }
+}
 
 // Lazy load components
 const SupplierCategories = dynamic(() => import('./SupplierCategories'), {
@@ -84,7 +92,7 @@ export default function ClientComponent({
       {/* Floating cart button */}
       {(cart?.items?.length > 0 || itemCount > 0) && (
         <Link 
-          href={`/cart?supplierId=${supplier._id}`}
+          href={`/cart/${supplier._id}`}
           className="fixed bottom-24 md:bottom-8 right-8 bg-customBlue text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-colors z-50 flex items-center justify-center"
         >
           <ShoppingBag className="h-6 w-6" />

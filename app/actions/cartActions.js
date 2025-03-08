@@ -12,7 +12,7 @@ export async function addToCart({ clientId, supplierId, productId, quantity }) {
     if (!product) throw new Error('Product not found');
     if (product.supplierId.toString() !== supplierId) throw new Error('Invalid supplier for product');
 
-    const availableStock = product.stock - (product.reserved || 0);
+    const availableStock = product.stock;
     if (availableStock < quantity) throw new Error('Insufficient available stock');
 
     let cart = await Cart.findOne({ clientId, supplierId })
@@ -44,14 +44,14 @@ export async function addToCart({ clientId, supplierId, productId, quantity }) {
 
     // Fetch the updated cart with populated fields
     const populatedCart = await Cart.findOne({ clientId, supplierId })
-      .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
+      .populate('items.productId', 'name price stock  barCode imageUrl weight weightUnit')
       const serializedCart = JSON.parse(JSON.stringify(populatedCart));
 
     return {
       success: true,
       cart:serializedCart, // Return fully populated cart
       updatedAvailableStock: availableStock,
-      reserved: product.reserved,
+     
     };
   } catch (error) {
     console.error('Error adding to cart:', error);
@@ -90,7 +90,7 @@ export async function updateCartItem({ clientId, supplierId, productId, quantity
   
     try {
       const cart = await Cart.findOne({ clientId, supplierId })
-        .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
+        .populate('items.productId', 'name price stock barCode imageUrl weight weightUnit')
         .lean(); // Converts the result to plain objects
   
       if (cart) {

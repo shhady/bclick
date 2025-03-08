@@ -29,7 +29,7 @@ export async function PUT(req) {
     await cart.save();
 
     const populatedCart = await Cart.findOne({ clientId, supplierId })
-    .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
+    .populate('items.productId', 'name price stock  barCode imageUrl weight weightUnit')
 
     return new Response(JSON.stringify({ success: true, cart:populatedCart }), { status: 200 });
   } catch (error) {
@@ -70,11 +70,11 @@ export async function POST(req) {
       return new Response(JSON.stringify({ success: false, message: 'Cart not found' }), { status: 404 });
     }
 
-    // Update stock reserved values on submit
+    // Update stock  values on submit
     for (const item of items) {
       const product = cart.items.find((p) => p.productId.toString() === item.productId);
       if (product) {
-        product.reserved += item.quantity;
+        product.stock += item.quantity;
       }
     }
     cart.updatedAt = new Date();
@@ -102,7 +102,7 @@ export async function GET(request) {
     await connectToDB();
     
     const cart = await Cart.findOne({ clientId, supplierId })
-      .populate('items.productId', 'name price stock reserved barCode imageUrl weight weightUnit')
+      .populate('items.productId', 'name price stock  barCode imageUrl weight weightUnit')
       .lean();
 
     if (!cart) {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import { FaShoppingCart, FaUser, FaTags, FaList} from 'react-icons/fa';
 import { SlHandbag } from 'react-icons/sl';
 import Image from 'next/image';
@@ -46,55 +46,54 @@ const NavbarSkeleton = () => (
 );
 
 const Navbar = () => {
-  const { globalUser, isRefreshing } = useUserContext();
+  const { id } = useParams();
   const pathName = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [popupMessage, setPopupMessage] = useState('');
   const { itemCount } = useCartContext();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showCartTooltip, setShowCartTooltip] = useState(false);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
-  
-  // Try to use NewUserContext if available
-  let newUser = null;
-  let newUserPendingCount = 0;
-   console.log(globalUser._id)
-   console.log(searchParams.get('supplierId'))
-  try {
-    const newUserContext = useNewUserContext();
-    if (newUserContext) {
-      newUser = newUserContext.newUser;
-      // Calculate pending orders count from newUser context
-      newUserPendingCount = newUser?.orders?.filter(order => order.status === 'pending').length || 0;
+  const [supplierId, setSupplierId] = useState();
+  const {newUser} = useNewUserContext();
+  console.log(itemCount)
+  console.log(pendingOrdersCount)
+  useEffect(() => {
+    if (id) {
+      setSupplierId(id);
     }
-  } catch (error) {
-    console.log('NewUserContext not available in Navbar, using fallback');
-    // NewUserContext not available, we'll use the API fallback
-  }
+  }, [id]); 
+  // Try to use NewUserContext if available
+  useEffect(()=>{
+    if(newUser){
+      setPendingOrdersCount(newUser?.orders?.filter((order) => order.status === 'pending').length || 0);
+    }
+  },[newUser]) 
+ 
+  // Check if user is currently viewing a supplier catalog, favorites, or cart
+  const isInSupplierCatalog = pathName.includes('/catalog/') || 
+                             pathName.includes('/favourites') || 
+                             pathName.includes('/cart/');
   
-  // Check if user is currently viewing a supplier catalog
-  const isInSupplierCatalog = pathName.includes('/supplier-catalog/' ) || pathName.includes('/favourites');
-  
+
   // Define pathParts at the component level
   const pathParts = pathName ? pathName.split('/') : [];
   const currentSupplierId = isInSupplierCatalog && pathParts.length > 0 ? pathParts[pathParts.length - 1] : null;
-
   // Fetch pending orders count for suppliers
   useEffect(() => {
     const fetchPendingOrders = async () => {
-      if (!globalUser || globalUser.role !== 'supplier' || !globalUser._id) return;
+      if (!newUser || newUser.role !== 'supplier' || !newUser._id) return;
       
       // If NewUserContext is available and has the user data, use that count
-      if (newUser && newUser._id === globalUser._id) {
-        setPendingOrdersCount(newUserPendingCount);
-        console.log('Using pending orders count from NewUserContext:', newUserPendingCount);
+      if (newUser && newUser._id === newUser._id) {
+        setPendingOrdersCount(newUser?.orders?.filter((order) => order.status === 'pending').length || 0);
+        console.log('Using pending orders count from NewUserContext:', newUser?.orders?.filter((order) => order.status === 'pending').length || 0);
         return;
       }
       
       try {
         // Fallback: Fetch orders with pending status for this supplier from API
-        const response = await fetch(`/api/orders?userId=${globalUser._id}&role=supplier&status=pending`);
+        const response = await fetch(`/api/orders?userId=${newUser._id}&role=supplier&status=pending`);
         if (response.ok) {
           const data = await response.json();
           setPendingOrdersCount(data.orders.length);
@@ -106,7 +105,7 @@ const Navbar = () => {
     };
 
     fetchPendingOrders();
-  }, [globalUser, newUser, newUserPendingCount]);
+  }, [newUser, pendingOrdersCount]);
 
   // Use pathname changes to track navigation
   useEffect(() => {
@@ -123,7 +122,7 @@ const Navbar = () => {
     return pathName?.includes(path) ? 'text-customBlue' : 'text-gray-600';
   };
 
-  const isProfileOrOrders = pathName === '/newprofile' || pathName === '/orders';
+  const isProfileOrOrders = pathName === '/newprofile' || pathName.includes('/orders') ;
   const isOrdersPage = pathName === '/orders';
   
   const handlePopup = (message) => {
@@ -133,39 +132,10 @@ const Navbar = () => {
 
   const navigateToSupplierCatalog = () => {
     // Get the stored supplierId from localStorage if available
-    let supplierId;
-    if (typeof window !== 'undefined') {
-      supplierId = localStorage.getItem('currentSupplierId');
-    }
-    
-    // If we have a supplierId in localStorage, use it
-    if (supplierId) {
-      handleNavigation(`/client/${globalUser._id}/supplier-catalog/${supplierId}`);
-    } else {
-      // Fallback to the URL parameter if available
-      const urlSupplierId = searchParams.get('supplierId');
-      if (urlSupplierId) {
-        handleNavigation(`/client/${globalUser._id}/supplier-catalog/${urlSupplierId}`);
-      } else {
-        // If no supplierId is available, just go to the client's home page
-        handleNavigation(`/client/${globalUser._id}`);
-      }
-    }
-  };
-
-  const navigateToSupplierCart = () => {
-    // Get the stored supplierId from localStorage if available
-    let supplierId;
-    if (typeof window !== 'undefined') {
-      supplierId = localStorage.getItem('currentSupplierId');
-    }
-    
-    // If we have a supplierId, use it for the cart URL
-    if (supplierId) {
-      handleNavigation(`/client/${globalUser._id}/cart-from-supplier/${supplierId}`);
-    } else {
-      // Otherwise just go to the main cart page
-      handleNavigation('/cart');
+    if(supplierId){
+      handleNavigation(`/catalog/${supplierId}`);
+    }else{
+      handleNavigation(`/catalog/${newUser?._id}`);
     }
   };
 
@@ -189,20 +159,22 @@ const Navbar = () => {
 
       {/* Cart */}
       {isInSupplierCatalog ? (
-        <Link
-          href={`/cart?supplierId=${currentSupplierId}`}
-          className={`flex flex-col items-center relative ${getIconColor('cart')}`}
-        >
-          <SlHandbag className="text-[20px] md:text-[28px]" />
-          <span className="text-xs md:text-base mt-1">עגלה</span>
+        <div className="relative">
+          <Link
+            href={`/cart/${supplierId}`}
+            className={`flex flex-col items-center ${getIconColor('cart')}`}
+          >
+            <SlHandbag className="text-[20px] md:text-[28px]" />
+            <span className="text-xs md:text-base mt-1">עגלה</span>
+          </Link>
 
-          {/* Badge for item count - only show when in supplier catalog and items exist */}
-          {itemCount > 0 && (
+          {/* Badge for item count - always show when items exist */}
+          {itemCount > 0 && !pathName.includes('/cart/') && (
             <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
               {itemCount}
             </span>
           )}
-        </Link>
+        </div>
       ) : (
         <div 
           className="flex flex-col items-center relative text-gray-400 cursor-not-allowed"
@@ -225,9 +197,9 @@ const Navbar = () => {
   );
 
   const renderLinks = () => {
-    if (!globalUser) return <div className='md:hidden'><Image src={'/bclick-logo.jpg'} alt='logo' width={100} height={100} className='h-[40px] w-fit'/></div>;
+    if (!newUser) return <div className='md:hidden'><Image src={'/bclick-logo.jpg'} alt='logo' width={100} height={100} className='h-[40px] w-fit'/></div>;
 
-    if (globalUser.role === 'client') {
+    if (newUser.role === 'client') {
       return (
         <>
           {renderClientNav()}
@@ -250,10 +222,10 @@ const Navbar = () => {
         {/* Catalog */}
         <Link
           href={
-            globalUser.role === 'supplier' 
-              ? `/supplier/${globalUser._id}/catalog` 
-              : isCartPage && searchParams.get('supplierId')
-                ? `/client/${globalUser._id}/supplier-catalog/${searchParams.get('supplierId')}`
+            newUser.role === 'supplier' 
+              ? `/catalog/${newUser._id}` 
+              : isCartPage && supplierId
+                ? `/catalog/${supplierId}`
                 : '/catalog'
           }
           className={`flex flex-col items-center ${getIconColor('catalog')}`}
@@ -263,9 +235,9 @@ const Navbar = () => {
         </Link>
 
         {/* Clients */}
-        {globalUser.role === 'supplier' && (
+        {newUser.role === 'supplier' && (
           <Link
-            href={`/supplier/${globalUser._id}/clients`}
+            href={`/supplier/${newUser._id}/clients`}
             className={`flex flex-col items-center ${getIconColor('client')}`}
           >
             <FaList  className="text-[20px] md:text-[28px]" />
@@ -307,7 +279,7 @@ const Navbar = () => {
   return (
     <div>
       {/* Loading indicator */}
-      {(isRefreshing || isTransitioning) && (
+      {/* {(isRefreshing || isTransitioning) && (
         <div className="fixed top-0 left-0 w-full h-1 bg-blue-100">
           <div className="h-full bg-customBlue animate-progress-bar" 
                style={{ 
@@ -316,7 +288,7 @@ const Navbar = () => {
                  animation: 'progress 2s ease-in-out infinite'
                }} />
         </div>
-      )}
+      )} */}
 
       {/* Popup Message */}
       {popupMessage && (

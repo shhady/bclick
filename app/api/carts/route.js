@@ -22,7 +22,7 @@ export async function GET(request) {
     const carts = await Cart.find({ clientId })
       .populate({
         path: 'items.productId',
-        select: 'name price stock reserved imageUrl weight weightUnit'
+        select: 'name price stock imageUrl weight weightUnit'
       })
       .populate({
         path: 'supplierId',
