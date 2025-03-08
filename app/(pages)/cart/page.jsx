@@ -199,7 +199,7 @@ export default function CartPage() {
             </div>
             
             <div className="flex justify-between items-center mt-4 pt-4 border-t">
-              <span className="text-gray-600">סה"כ:</span>
+              <span className="text-gray-600">סה&quot;כ:</span>
               <span className="font-bold text-lg">₪{cart.totalPrice.toFixed(2)}</span>
             </div>
             
