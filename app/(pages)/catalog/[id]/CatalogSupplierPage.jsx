@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Suspense } from 'react';
 import Loader from '@/components/loader/Loader';
 import SupplierCatalogComponent from '../../supplier/[id]/catalog/CatalogComponent';
-import { useInView } from 'react-intersection-observer';
+import { useInView } from '@/hooks/use-intersection-observer';
 import { debounce } from 'lodash';
 
 export default function CatalogSupplierPage({ 
