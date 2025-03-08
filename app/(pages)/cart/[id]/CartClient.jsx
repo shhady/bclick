@@ -562,7 +562,7 @@ export default function CartClient({id}) {
               
               <div className="flex justify-between items-center mt-4">
                 <Link
-                  href={`/client/${newUser?._id}/supplier-catalog/${typeof carts[0].supplierId === 'object' ? carts[0].supplierId._id : carts[0].supplierId}`}
+                  href={`/catalog/${typeof carts[0].supplierId === 'object' ? carts[0].supplierId._id : carts[0].supplierId}`}
                   className="px-4 py-2 border border-customBlue text-customBlue rounded-md hover:bg-blue-50 transition flex items-center gap-1"
                 >
                   <Plus size={16} />

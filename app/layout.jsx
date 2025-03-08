@@ -9,6 +9,7 @@ import { Rubik } from 'next/font/google';
 import Head from "next/head";
 import "./globals.css";
 import BackButton  from "@/components/BackButton"; // Import the new component
+import ScrollToTop from "@/components/ScrollToTop";
 
 const rubik = Rubik({
   subsets: ['latin'],
@@ -87,6 +88,7 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href={metadata.manifest} />
       </Head>
       <body className={`${rubik.className} bg-[#f8f8ff] mb-16 md:mb-0`}>
+        <ScrollToTop />
         <ClerkProvider localization={heIL}>
        
           <ErrorBoundary>

@@ -86,7 +86,7 @@ function ProductGrid({
               <h2 className="text-sm font-bold text-gray-800 mb-1 line-clamp-2 h-10">{product.name}</h2>
               
               <div className="flex justify-between items-center mt-2">
-                <span className="text-xs text-gray-500">{product?.weight || 'משקל לא צוין'}</span>
+                <span className="text-xs text-gray-500">{product.weight ? `משקל: ${product.weight} ${product.weightUnit}` : 'משקל לא צוין'}</span>
                 <span className="text-lg font-bold text-customBlue">₪{product?.price}</span>
               </div>
             </div>
@@ -276,7 +276,7 @@ function ProductDetailModal({
             
             <div className="flex justify-between items-center mb-4">
               <span className="text-2xl font-bold text-customBlue">₪{product.price}</span>
-              <span className="text-sm text-gray-500">{product.weight || 'משקל לא צוין'}</span>
+              <span className="text-sm text-gray-500">{product.weight ? `משקל: ${product.weight} ${product.weightUnit}` : 'משקל לא צוין'}</span>
             </div>
             
             {product.description && (

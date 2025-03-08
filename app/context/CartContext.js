@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getCart, deleteCart } from '@/app/actions/cartActions';
 import { usePathname, useParams } from 'next/navigation';
 import { useUserContext } from "@/app/context/UserContext";
@@ -26,6 +26,9 @@ export const CartProvider = ({ children }) => {
   const isInFavorites = pathName.includes('/favourites/');
   // Check if user is on a cart page (assuming route structure like /cart/[id])
   const isCartPage = pathName.includes('/cart');
+
+  // Add a ref to track if a fetch is in progress
+  const isFetchingRef = useRef(false);
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -76,6 +79,11 @@ export const CartProvider = ({ children }) => {
     
       // Only fetch cart if we have both clientId and supplierId
       if (clientId && supplierId) {
+        // Skip fetching if we're in the cart page and we already know the cart is empty
+        if (isCartPage && cart === null) {
+          return;
+        }
+        
         const response = await getCart({ clientId, supplierId });
         if (response.success && response.serializedCart) {
           try {
@@ -113,9 +121,20 @@ export const CartProvider = ({ children }) => {
     // Don't fetch cart for supplier users
     if (globalUser?.role === 'supplier') return;
     
+    // Prevent multiple simultaneous fetches
+    if (isFetchingRef.current) return;
+    
     // Only fetch cart if we have both clientId and supplierId
     if (globalUser?._id && currentSupplierId) {
       try {
+        isFetchingRef.current = true;
+        
+        // Skip fetching if we're in the cart page and we already know the cart is empty
+        if (isCartPage && cart === null) {
+          isFetchingRef.current = false;
+          return;
+        }
+        
         const response = await getCart({ 
           clientId: globalUser._id, 
           supplierId: currentSupplierId 
@@ -142,6 +161,8 @@ export const CartProvider = ({ children }) => {
       } catch (error) {
         console.error('Error in fetchCartAgain:', error);
         setItemCount(0);
+      } finally {
+        isFetchingRef.current = false;
       }
     }
   };

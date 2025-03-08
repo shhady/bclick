@@ -71,7 +71,7 @@ const ProductCard = memo(function ProductCard({ product, showProductDetail, cart
         <h2 className="text-sm font-bold text-gray-800 mb-1 line-clamp-2 h-10">{product.name}</h2>
         
         <div className="flex justify-between items-center mt-2">
-          <span className="text-xs text-gray-500">{product?.weight || 'משקל לא צוין'}</span>
+          <span className="text-xs text-gray-500">{product.weight ? `משקל: ${product.weight} ${product.weightUnit}` : 'משקל לא צוין'}</span>
           <span className="text-lg font-bold text-customBlue">₪{product?.price}</span>
         </div>
         
@@ -169,13 +169,19 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
         return updatedGroups;
       });
 
+      // Fix: Use the pagination data from the response to determine if there are more pages
+      const currentPage = reset ? 1 : loadingState.page;
+      const hasMorePages = currentPage < pagination.pages;
+
       setLoadingState(prev => ({
         ...prev,
-        page: prev.page + 1,
+        page: currentPage + 1,
         loading: false,
         initialFetchDone: true,
-        hasMore: loadingState.page < pagination.pages
+        hasMore: hasMorePages
       }));
+
+      console.log(`Fetched page ${currentPage}/${pagination.pages}, hasMore: ${hasMorePages}`);
     } catch (error) {
       console.error('Error fetching products:', error);
       setLoadingState(prev => ({ 
@@ -209,6 +215,7 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
     const observer = new IntersectionObserver(
       entries => {
         if (entries[0].isIntersecting) {
+          console.log('Observer triggered, fetching more products');
           fetchMoreProducts(false);
         }
       },
@@ -300,6 +307,16 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
 
         <div ref={observerRef} className="h-20 w-full">
           {loadingState.loading && <ProductSkeleton />}
+          {!loadingState.loading && loadingState.hasMore && (
+            <div className="text-center py-4">
+              <p className="text-gray-500">גלול למטה לטעינת מוצרים נוספים</p>
+            </div>
+          )}
+          {!loadingState.loading && !loadingState.hasMore && Object.keys(groupedProducts).length > 0 && (
+            <div className="text-center py-4">
+              <p className="text-gray-500">אין מוצרים נוספים לטעינה</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -496,7 +513,7 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
             
             <div className="flex justify-between items-center mb-4">
               <span className="text-2xl font-bold text-customBlue">₪{product.price}</span>
-              <span className="text-sm text-gray-500">{product.weight || 'משקל לא צוין'}</span>
+              <span className="text-sm text-gray-500">{product.weight ? `משקל: ${product.weight} ${product.weightUnit}` : 'משקל לא צוין'}</span>
             </div>
             
             {product.description && (

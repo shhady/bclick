@@ -9,7 +9,18 @@ export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen
   const { cities, loading } = useCities();
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
-
+  const [showAreaDropdown, setShowAreaDropdown] = useState(false);
+  const areaDropdownRef = useRef(null);
+  
+  // Area options in Hebrew
+  const areaOptions = [
+    'צפון',
+    'דרום',
+    'מזרח',
+    'מערב',
+    'מרכז'
+  ];
+  
   // Initialize citySearch when formData changes
   useEffect(() => {
     if (formData?.city) {
@@ -65,6 +76,30 @@ export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen
     }
   };
 
+  // Handle area selection
+  const handleAreaSelect = (area) => {
+    setFormData(prev => ({ ...prev, area }));
+    setShowAreaDropdown(false);
+    setErrors(prev => ({ ...prev, area: '' }));
+  };
+  
+  // Toggle area dropdown
+  const toggleAreaDropdown = () => {
+    setShowAreaDropdown(!showAreaDropdown);
+  };
+  
+  // Close area dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutsideArea(event) {
+      if (areaDropdownRef.current && !areaDropdownRef.current.contains(event.target)) {
+        setShowAreaDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutsideArea);
+    return () => document.removeEventListener('mousedown', handleClickOutsideArea);
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -109,10 +144,6 @@ export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen
           {[
             { label: 'שם עסק', name: 'businessName' },
             { label: 'ח.פ. / ע.מ', name: 'businessNumber' },
-            { label: 'כתובת', name: 'address' },
-            { label: 'טלפון', name: 'phone' },
-            { label: 'מדינה', name: 'country' },
-            { label: 'אזור', name: 'area', placeholder: 'צפון, מערב, מזרח, דרום' },
           ].map((field) => (
             <div className="flex flex-col" key={field.name}>
               <label className="block text-sm font-medium text-gray-700">{field.label}</label>
@@ -195,6 +226,55 @@ export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen
               </div>
             )}
           </div>
+
+          {/* Area dropdown */}
+          <div className="flex flex-col relative" ref={areaDropdownRef}>
+            <label className="block text-sm font-medium text-gray-700">אזור</label>
+            <div className="relative">
+              <select
+                name="area"
+                value={formData.area || ''}
+                onChange={handleChange}
+                className={`border ${
+                  errors.area ? 'border-red-500' : 'border-gray-300'
+                } rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-customBlue`}
+              >
+                <option value="">בחר אזור</option>
+                {areaOptions.map((area) => (
+                  <option key={area} value={area}>
+                    {area}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.area && (
+              <p className="text-red-500 text-sm mt-1">{errors.area}</p>
+            )}
+          </div>
+
+          {/* Remaining form fields */}
+          {[
+            { label: 'כתובת', name: 'address' },
+            { label: 'טלפון', name: 'phone' },
+            { label: 'מדינה', name: 'country' },
+          ].map((field) => (
+            <div className="flex flex-col" key={field.name}>
+              <label className="block text-sm font-medium text-gray-700">{field.label}</label>
+              <input
+                type="text"
+                name={field.name}
+                value={formData[field.name] || ''}
+                onChange={handleChange}
+                className={`border ${
+                  errors[field.name] ? 'border-red-500' : 'border-gray-300'
+                } rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-customBlue`}
+                placeholder={field.placeholder || ''}
+              />
+              {errors[field.name] && (
+                <p className="text-red-500 text-sm mt-1">{errors[field.name]}</p>
+              )}
+            </div>
+          ))}
 
           <div className="flex justify-end gap-4">
             <button
