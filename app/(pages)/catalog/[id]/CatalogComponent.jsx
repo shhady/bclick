@@ -24,14 +24,13 @@ export default function CatalogComponent({
   supplierId 
 }) {
   const { newUser } = useNewUserContext()
-  console.log(newUser)
+  
 
   // State for infinite scrolling products
   const [page, setPage] = useState(1)
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  console.log(products)
   // Fetch products with infinite scrolling
   useEffect(() => {
     const fetchProducts = async () => {

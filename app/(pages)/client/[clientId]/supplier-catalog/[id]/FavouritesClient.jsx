@@ -33,7 +33,6 @@
 //   //   }
 //   //   fetchFavorites(favoriteProducts)
 //   // },[])
-//   // console.log(favoriteProducts);
 
 //   if(!favoriteProducts){
 //     return <div><Loader /></div>

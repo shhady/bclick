@@ -53,12 +53,10 @@ export default function ProfilePage({ user, pendingOrdersCount, totalOrdersCount
   useEffect(() => {
     // Initialize the user profile using the passed user prop
     if (user) {
-      console.log('ProfilePage useEffect - setting globalUser from user prop:', user);
       
       // Use a timeout to ensure the state update is processed
       setTimeout(() => {
         setGlobalUser(user);
-        console.log('ProfilePage useEffect - After setGlobalUser call with timeout');
       }, 0);
       
       setFormData(user);
@@ -83,8 +81,7 @@ export default function ProfilePage({ user, pendingOrdersCount, totalOrdersCount
         return acc;
       }, {});
 
-      console.log('ProfilePage handleCreate - trimmedFormData:', trimmedFormData);
-      console.log('ProfilePage handleCreate - Before API call, current globalUser:', globalUser);
+     
 
       const response = await fetch('/api/users/add-user', {
         method: 'POST',
@@ -94,14 +91,11 @@ export default function ProfilePage({ user, pendingOrdersCount, totalOrdersCount
 
       if (response.ok) {
         const result = await response.json();
-        console.log('ProfilePage handleCreate - API response:', result);
         
-        console.log('ProfilePage handleCreate - Before setGlobalUser');
         
         // Use a timeout to ensure the state update is processed
         setTimeout(() => {
           setGlobalUser(result);
-          console.log('ProfilePage handleCreate - After setGlobalUser call with timeout');
         }, 0);
         
         setFormData(result);
@@ -126,9 +120,7 @@ export default function ProfilePage({ user, pendingOrdersCount, totalOrdersCount
         return acc;
       }, {});
 
-      console.log('ProfilePage handleUpdate - trimmedFormData:', trimmedFormData);
-      console.log('ProfilePage handleUpdate - Before API call, current globalUser:', globalUser);
-
+     
       const response = await fetch('/api/users/update-user', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -137,14 +129,10 @@ export default function ProfilePage({ user, pendingOrdersCount, totalOrdersCount
 
       if (response.ok) {
         const result = await response.json();
-        console.log('ProfilePage handleUpdate - API response:', result);
-        
-        console.log('ProfilePage handleUpdate - Before setGlobalUser');
-        
+       
         // Use a timeout to ensure the state update is processed
         setTimeout(() => {
           setGlobalUser(result);
-          console.log('ProfilePage handleUpdate - After setGlobalUser call with timeout');
         }, 0);
         
         setFormData(result);

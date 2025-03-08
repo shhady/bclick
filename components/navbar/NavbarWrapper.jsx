@@ -16,7 +16,7 @@ export default async function NavbarWrapper({params}) {
       console.error("Error extracting ID from params:", error);
     }
   }
-  console.log(id)
+  
   return (
     <Suspense fallback={<div className="w-full h-16 bg-white shadow animate-pulse" />}>
       <Navbar id={id} />

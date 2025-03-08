@@ -37,10 +37,7 @@ const getCategoryData = cache(async (supplierId) => {
       ])
     ]);
 
-    // Debug logging
-    // console.log('Product counts:', productCounts);
-    // console.log('Categories:', categories);
-
+    
     // Create a Map for product counts
     const productCountMap = new Map(
       productCounts.map(({ _id, count }) => [
@@ -64,8 +61,7 @@ const getCategoryData = cache(async (supplierId) => {
       };
     });
 
-    // Debug logging
-    console.log('Processed categories:', processedCategories);
+ 
 
     return processedCategories;
   } catch (error) {

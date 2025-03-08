@@ -12,10 +12,7 @@ export default function NewOrdersClient({ initialOrders }) {
   const loader = useRef(null);
   const { globalUser } = useUserContext();
 
-  useEffect(() => {
-    console.log('Initial orders:', initialOrders);
-    console.log('Current orders:', orders);
-  }, [initialOrders, orders]);
+ 
 
   const loadMoreOrders = useCallback(async () => {
     if (isLoading || !hasMore || !globalUser) return;

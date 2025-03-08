@@ -56,8 +56,7 @@ const Navbar = () => {
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [supplierId, setSupplierId] = useState();
   const {newUser} = useNewUserContext();
-  console.log(itemCount)
-  console.log(pendingOrdersCount)
+  
   useEffect(() => {
     if (id) {
       setSupplierId(id);
@@ -87,7 +86,6 @@ const Navbar = () => {
       // If NewUserContext is available and has the user data, use that count
       if (newUser && newUser._id === newUser._id) {
         setPendingOrdersCount(newUser?.orders?.filter((order) => order.status === 'pending').length || 0);
-        console.log('Using pending orders count from NewUserContext:', newUser?.orders?.filter((order) => order.status === 'pending').length || 0);
         return;
       }
       
@@ -97,7 +95,7 @@ const Navbar = () => {
         if (response.ok) {
           const data = await response.json();
           setPendingOrdersCount(data.orders.length);
-          console.log('Fetched pending orders for supplier from API:', data.orders.length);
+         
         }
       } catch (error) {
         console.error('Error fetching pending orders:', error);

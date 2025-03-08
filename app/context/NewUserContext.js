@@ -28,7 +28,6 @@ const getStoredUserData = () => {
     
     // Parse the stored data
     const parsedData = JSON.parse(userData);
-    console.log('getStoredUserData - Retrieved data from storage:', parsedData);
     return parsedData;
   } catch (error) {
     console.error('Error reading from session storage:', error);
@@ -40,7 +39,6 @@ const storeUserData = (userData) => {
   if (typeof window === 'undefined') return;
   
   try {
-    console.log('storeUserData - Storing user data in session storage');
     
     // Ensure we're storing a complete copy with all nested objects
     const dataToStore = JSON.stringify(userData);
@@ -76,7 +74,7 @@ export function NewUserProvider({ children }) {
   const [error, setError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  console.log('newUser', newUser);
+ 
   // Initialize user data from storage on mount (client-side only)
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -97,7 +95,6 @@ export function NewUserProvider({ children }) {
       return;
     }
     
-    console.log('Fetching user data for clerkId:', clerkId);
     setLoading(true);
     
     try {
@@ -112,7 +109,6 @@ export function NewUserProvider({ children }) {
       }
       
       const userData = await response.json();
-      console.log('Received user data from API:', userData);
       
       if (!userData) {
         console.error('No user data returned from API');
@@ -139,7 +135,6 @@ export function NewUserProvider({ children }) {
 
   // Function to handle user changes
   const processUserChange = useCallback((user) => {
-    console.log('processUserChange called with user:', user);
     
     if (!user) {
       setNewUserState(null);
@@ -150,7 +145,6 @@ export function NewUserProvider({ children }) {
     
     // If we already have user data and it's the same user, don't refetch
     if (newUser && newUser.clerkId === user.id) {
-      console.log('User already loaded, skipping fetch');
       setLoading(false);
       return;
     }
@@ -183,7 +177,6 @@ export function NewUserProvider({ children }) {
 
   // Enhanced setNewUser function with proper state management
   const setNewUser = useCallback((userData) => {
-    console.log('NewUserContext setNewUser - Setting new user data:', userData);
     
     if (userData) {
       // Don't use JSON.parse/stringify as it can lose complex object references
@@ -193,7 +186,6 @@ export function NewUserProvider({ children }) {
       // For storage, we can use JSON methods since we're serializing anyway
       try {
         storeUserData(userData);
-        console.log('NewUserContext setNewUser - User data stored successfully');
       } catch (error) {
         console.error('Error storing user data:', error);
       }
@@ -205,7 +197,6 @@ export function NewUserProvider({ children }) {
 
   // Enhanced update functions with cache management
   const updateNewUser = useCallback((updatedData) => {
-    console.log('NewUserContext updateNewUser - Updating user with:', updatedData);
     
     setNewUserState((prev) => {
       if (!prev) return null;
@@ -217,7 +208,6 @@ export function NewUserProvider({ children }) {
 
   // Enhanced logout function
   const logout = useCallback(() => {
-    console.log('NewUserContext logout - Clearing user data');
     setNewUserState(null);
     clearStoredUserData();
     // Remove the redirect as it will be handled by Clerk's signOut

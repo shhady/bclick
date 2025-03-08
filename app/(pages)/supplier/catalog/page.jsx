@@ -62,7 +62,6 @@
 //   };
 
 //   const handleUpdateProduct = async (updatedProduct) => {
-//     console.log(updatedProduct);
   
 //     // Determine the status based on stock and user input
 //     if (updatedProduct.status === "hidden") {

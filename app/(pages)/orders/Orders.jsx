@@ -407,7 +407,6 @@ export default function Orders({ initialOrders }) {
       // Update the newUserContext if available and if this is a supplier changing a pending order
       if (updateNewUser && globalUser.role === 'supplier' && originalStatus === 'pending' && newStatus !== 'pending') {
         try {
-          console.log('Updating newUserContext with updated order status');
           
           // If we have the newUser object with orders array
           if (newUser && newUser.orders && Array.isArray(newUser.orders)) {

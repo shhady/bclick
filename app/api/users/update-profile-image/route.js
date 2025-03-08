@@ -8,7 +8,6 @@ export async function PUT(request) {
     const data = await request.json();
     const { clerkId, profileImage } = data;
     
-    console.log(`Update Profile Image API: Updating user with clerkId: ${clerkId}`);
     
     if (!clerkId) {
       return new Response(JSON.stringify({ error: 'Clerk ID is required' }), { status: 400 });
@@ -33,11 +32,9 @@ export async function PUT(request) {
     .lean();
 
     if (!updatedUser) {
-      console.log(`Update Profile Image API: User not found for clerkId: ${clerkId}`);
       return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
     }
     
-    console.log(`Update Profile Image API: Successfully updated profile image for user: ${updatedUser.name}`);
 
     return new Response(
       JSON.stringify(updatedUser),

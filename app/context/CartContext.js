@@ -27,7 +27,6 @@ export const CartProvider = ({ children }) => {
   // Check if user is on a cart page (assuming route structure like /cart/[id])
   const isCartPage = pathName.includes('/cart');
 
-  console.log(itemCount)
   useEffect(() => {
     const fetchCart = async () => {
       // Don't fetch cart for supplier users
@@ -47,7 +46,7 @@ export const CartProvider = ({ children }) => {
         }
       } else if (isInFavorites) {
         // Handle favorites page - format: /client/[clientId]/favourites/[supplierId]
-        clientId = pathParts[2];
+        clientId = globalUser?._id;
         supplierId = pathParts[pathParts.length - 1];
         
         if (supplierId) {
@@ -70,7 +69,6 @@ export const CartProvider = ({ children }) => {
     
       // Check if supplier has changed
       if (supplierId && supplierId !== currentSupplierId) {
-        console.log('Supplier changed from', currentSupplierId, 'to', supplierId);
         setCurrentSupplierId(supplierId);
         setCart(null);
         setItemCount(0);
@@ -102,6 +100,7 @@ export const CartProvider = ({ children }) => {
   }, [
     pathName,
     isInSupplierCatalog,
+    isInFavorites,
     isCartPage,
     globalUser?.role,
     globalUser?._id,
@@ -111,7 +110,40 @@ export const CartProvider = ({ children }) => {
   
   // The rest of your provider (fetchCartAgain, clearCart, addItemToCart) remains unchanged
   const fetchCartAgain = async () => {
-    // ... same logic as above
+    // Don't fetch cart for supplier users
+    if (globalUser?.role === 'supplier') return;
+    
+    // Only fetch cart if we have both clientId and supplierId
+    if (globalUser?._id && currentSupplierId) {
+      try {
+        const response = await getCart({ 
+          clientId: globalUser._id, 
+          supplierId: currentSupplierId 
+        });
+        
+        if (response.success && response.serializedCart) {
+          try {
+            const cart = JSON.parse(response.serializedCart);
+            const itemCount = cart?.items?.reduce(
+              (total, item) => total + item.quantity,
+              0
+            ) || 0;
+            setCart(cart);
+            setItemCount(itemCount);
+          } catch (error) {
+            console.error('Error parsing serializedCart in fetchCartAgain:', error);
+            setItemCount(0);
+          }
+        } else {
+          // If no cart found, reset the state
+          setCart(null);
+          setItemCount(0);
+        }
+      } catch (error) {
+        console.error('Error in fetchCartAgain:', error);
+        setItemCount(0);
+      }
+    }
   };
 
   const clearCart = async (clientId, supplierId) => {
@@ -125,8 +157,8 @@ export const CartProvider = ({ children }) => {
   };
 
   const addItemToCart = (newCart) => {
-    // Only update cart if in supplier catalog
-    if (!isInSupplierCatalog) return;
+    // Update cart if in supplier catalog or favorites page
+    if (!isInSupplierCatalog && !isInFavorites) return;
     
     setCart(newCart);
     // Count total items (not just number of different products)

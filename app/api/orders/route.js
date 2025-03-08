@@ -14,7 +14,6 @@ export async function GET(request) {
     const status = searchParams.get('status');
     const skip = (page - 1) * limit;
 
-    console.log('Received search params:', { page, limit, userId, userRole, search, status });
 
     await connectToDB();
 
@@ -39,14 +38,12 @@ export async function GET(request) {
       if (isOrderNumber) {
         // If it's a number, search for exact order number match
         query.orderNumber = parseInt(search);
-        console.log('Searching for order number:', parseInt(search));
       } else {
         // If it's not a number, search for business names
         const users = await User.find({
           businessName: { $regex: search, $options: 'i' }
         }).select('_id');
         const matchingUserIds = users.map(user => user._id);
-        console.log('Found matching users:', matchingUserIds.length);
 
         if (matchingUserIds.length > 0) {
           query.$or = [
@@ -60,7 +57,6 @@ export async function GET(request) {
       }
     }
 
-    console.log('Final query:', JSON.stringify(query, null, 2));
 
     // Use Promise.all for parallel execution
     const [total, orders] = await Promise.all([
@@ -74,7 +70,6 @@ export async function GET(request) {
         .lean()
     ]);
 
-    console.log('Found orders:', orders.length);
 
     // Calculate if there are more orders
     const hasMore = total > skip + orders.length;

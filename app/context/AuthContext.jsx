@@ -42,7 +42,7 @@ export function AuthProvider({ children }) {
     };
 
     initializeUser();
-  }, [clerkUser, clerkLoaded]);
+  }, [clerkUser, clerkLoaded, router]);
 
   return (
     <AuthContext.Provider value={{ 

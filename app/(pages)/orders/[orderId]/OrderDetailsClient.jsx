@@ -183,7 +183,6 @@ export default function OrderDetailsClient({ initialOrder }) {
       // Update the newUserContext if available and if this is a supplier changing a pending order
       if (updateNewUser && isSupplier && originalStatus === 'pending' && status !== 'pending') {
         try {
-          console.log('Updating newUserContext with updated order status');
           
           // If we have the newUser object with orders array
           if (newUser && newUser.orders && Array.isArray(newUser.orders)) {
@@ -196,7 +195,6 @@ export default function OrderDetailsClient({ initialOrder }) {
             
             // Update the newUserContext with the new orders array
             updateNewUser({ orders: updatedOrders });
-            console.log('Successfully updated newUserContext with new order status');
           }
         } catch (error) {
           console.error('Error updating newUserContext:', error);

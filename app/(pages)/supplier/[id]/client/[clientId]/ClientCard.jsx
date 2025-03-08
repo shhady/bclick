@@ -84,13 +84,10 @@ export default function ClientCard({ client, supplierId }) {
         setGlobalUser((prev) => {
           if (!prev) return prev;
           
-          // Log the structure to debug
-          console.log('Previous state:', prev);
-          console.log('Client ID to update:', client.id);
+      
           
           const updatedRelatedUsers = prev.relatedUsers.map((relatedUser) => {
             // Log each related user to see the structure
-            console.log('Checking relatedUser:', relatedUser);
             
             // Check both possible paths for the ID
             if (relatedUser.user._id === client.id || relatedUser.user.id === client.id) {
@@ -106,11 +103,7 @@ export default function ClientCard({ client, supplierId }) {
             return relatedUser;
           });
           
-          // Log the updated state
-          console.log('Updated state:', {
-            ...prev,
-            relatedUsers: updatedRelatedUsers
-          });
+      
           
           return {
             ...prev,

@@ -47,7 +47,7 @@ export default function SupplierDetails({
           <div className="flex flex-col items-end">
             {globalUser?.role === 'client' ? (
               <Link 
-                href={`/client/${clientId}/favourites/${supplier._id}`}
+                href={`/favourites/${supplier._id}`}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all bg-amber-100 text-amber-700 hover:bg-amber-200"
               >
                 <Star className="h-4 w-4 fill-amber-500 text-amber-500" />

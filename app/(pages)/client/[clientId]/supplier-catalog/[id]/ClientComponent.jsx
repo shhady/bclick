@@ -11,7 +11,6 @@ import { useCartContext } from "@/app/context/CartContext";
 // Store the current supplierId in localStorage for navbar navigation
 function storeCurrentSupplier(supplierId) {
   if (typeof window !== 'undefined') {
-    console.log("Storing supplierId in localStorage from catalog:", supplierId);
     localStorage.setItem('currentSupplierId', supplierId);
   }
 }

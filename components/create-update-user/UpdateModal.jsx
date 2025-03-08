@@ -81,7 +81,6 @@ export default function UpdateModal({ formData, setFormData, onSubmit, isOpen, s
       city: citySearch.trim()
     };
 
-    console.log('UpdateModal handleSubmit - currentFormData:', currentFormData);
 
     const newErrors = {};
     ['businessName', 'businessNumber', 'address', 'country', 'area', 'city', 'phone'].forEach(
@@ -107,17 +106,14 @@ export default function UpdateModal({ formData, setFormData, onSubmit, isOpen, s
 
       if (response.ok) {
         const result = await response.json();
-        console.log('UpdateModal handleSubmit - API response:', result);
         
         // Ensure we have a valid result with all required fields
         if (result && result._id) {
           // Update the global user context with the complete result
-          console.log('UpdateModal handleSubmit - Before setGlobalUser, current globalUser:', globalUser);
           
           // Use a timeout to ensure the state update is processed
           setTimeout(() => {
             setGlobalUser(result);
-            console.log('UpdateModal handleSubmit - After setGlobalUser call with timeout');
           }, 0);
           
           // Update the form data in the parent component with the result from the server

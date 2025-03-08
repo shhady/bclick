@@ -16,7 +16,6 @@ import { useRouter } from 'next/navigation';
 // Store the current supplierId in localStorage for navbar navigation
 function storeCurrentSupplier(supplierId) {
   if (typeof window !== 'undefined') {
-    console.log("Storing supplierId in localStorage:", supplierId);
     localStorage.setItem('currentSupplierId', supplierId);
   }
 }
@@ -110,15 +109,25 @@ function ProductDetailModal({
   const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState('');
   const [cart, setCart] = useState(myCart);
-  const [availableStock, setAvailableStock] = useState(product?.stock);
+  const [availableStock, setAvailableStock] = useState(
+    product?.stock
+  ); 
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const { fetchCartAgain, addItemToCart } = useCartContext();
   const { toast } = useToast();
 
   useEffect(() => {
-    const existingItem = cart?.items.find(
-      (item) => item?.productId?._id === product?._id
+    // Only update cart state when myCart changes
+    setCart(myCart);
+  }, [myCart]);
+
+  useEffect(() => {
+    if (!product) return;
+    
+    setAvailableStock(product.stock);    
+    const existingItem = cart?.items?.find(
+      (item) => item?.productId?._id === product._id
     );
     if (existingItem) {
       setQuantity(existingItem.quantity);
@@ -251,15 +260,13 @@ function ProductDetailModal({
             </button>
             
             {/* Favorite toggle */}
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                onFavoriteToggle(product._id, false);
-              }}
-              className="absolute top-3 left-3 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors"
-            >
-              <Heart className="h-5 w-5 fill-red-500 text-red-500" />
-            </button>
+            <div className="absolute top-3 left-3">
+              <StarToggle 
+                productId={product._id} 
+                clientId={clientId} 
+                onFavoriteToggle={onFavoriteToggle}
+              />
+            </div>
           </div>
           
           {/* Product Details */}
@@ -282,23 +289,23 @@ function ProductDetailModal({
             <div className="mb-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-700">מלאי זמין:</span>
-                <span className={`text-sm font-medium ${isOutOfStock ? 'text-red-500' : 'text-green-600'}`}>
-                  {isOutOfStock ? 'אזל מהמלאי' : `${availableStock} יחידות`}
+                <span className={`text-sm font-medium ${product.stock === 0 ? 'text-red-500' : 'text-green-600'}`}>
+                  {product.stock === 0 ? 'אזל מהמלאי' : `${availableStock} יחידות`}
                 </span>
               </div>
             </div>
             
             {/* Quantity selector */}
-            {!isOutOfStock && existingItem && (
-              <div className="mb-4">
+            {product.stock > 0 && existingItem && (
+              <div className="mb-4 flex flex-col items-center justify-center gap-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">כמות:</label>
                 <div className="flex items-center">
-                  <button 
-                    onClick={() => handleQuantityChange(quantity - 1)}
-                    disabled={quantity <= 1 || isUpdating}
-                    className="bg-gray-200 text-gray-700 px-3 py-2 rounded-l-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                   <button 
+                    onClick={() => handleQuantityChange(quantity + 1)}
+                    disabled={quantity >= availableStock || isUpdating}
+                    className="bg-gray-200 text-gray-700 px-3 py-2 rounded-r-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    -
+                    +
                   </button>
                   <input 
                     type="number" 
@@ -309,12 +316,13 @@ function ProductDetailModal({
                     className="w-16 text-center border-y border-gray-200 py-2 focus:outline-none"
                   />
                   <button 
-                    onClick={() => handleQuantityChange(quantity + 1)}
-                    disabled={quantity >= availableStock || isUpdating}
-                    className="bg-gray-200 text-gray-700 px-3 py-2 rounded-r-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => handleQuantityChange(quantity - 1)}
+                    disabled={quantity <= 1 || isUpdating}
+                    className="bg-gray-200 text-gray-700 px-3 py-2 rounded-l-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    +
+                    -
                   </button>
+                 
                 </div>
                 {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
               </div>
@@ -326,7 +334,7 @@ function ProductDetailModal({
                 <>
                   <button
                     onClick={addToCartHandler}
-                    disabled={isOutOfStock || isUpdating || isRemoving}
+                    disabled={product.stock === 0 || isUpdating || isRemoving}
                     className="w-full py-3 px-4 rounded-lg font-medium transition-colors bg-green-600 hover:bg-green-700 text-white"
                   >
                     {isUpdating ? (
@@ -363,9 +371,9 @@ function ProductDetailModal({
               ) : (
                 <button
                   onClick={addToCartHandler}
-                  disabled={isOutOfStock || isUpdating}
+                  disabled={product.stock === 0 || isUpdating}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                    isOutOfStock 
+                    product.stock === 0 
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                       : 'bg-customBlue hover:bg-blue-600 text-white'
                   }`}
@@ -378,7 +386,7 @@ function ProductDetailModal({
                       </svg>
                       מעדכן...
                     </div>
-                  ) : isOutOfStock ? (
+                  ) : product.stock === 0 ? (
                     'אזל מהמלאי'
                   ) : (
                     'הוסף לעגלה'
@@ -392,6 +400,7 @@ function ProductDetailModal({
     </div>
   );
 }
+
 
 export default function FavoriteProducts({
   supplier,

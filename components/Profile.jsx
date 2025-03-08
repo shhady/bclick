@@ -12,15 +12,10 @@ export default function Profile({ formData, onEdit }) {
   const { globalUser, setGlobalUser, setError } = useUserContext();
   const [displayData, setDisplayData] = useState(formData);
   
-  // Debug logs
-  console.log('Profile render - formData:', formData);
-  console.log('Profile render - globalUser:', globalUser);
-   
+  //
   // Update displayData when formData or globalUser changes
   useEffect(() => {
-    console.log('Profile useEffect - formData changed:', formData);
-    console.log('Profile useEffect - globalUser:', globalUser);
-    
+   
     // Prioritize globalUser data over formData
     const sourceData = globalUser || formData;
     
@@ -30,7 +25,6 @@ export default function Profile({ formData, onEdit }) {
         acc[key] = typeof value === 'string' ? value.trim() : value;
         return acc;
       }, {});
-      console.log('Profile useEffect - setting displayData:', trimmedData);
       setDisplayData(trimmedData);
     }
   }, [formData, globalUser]);
@@ -42,7 +36,6 @@ export default function Profile({ formData, onEdit }) {
         acc[key] = typeof value === 'string' ? value.trim() : value;
         return acc;
       }, {});
-      console.log('Profile globalUser effect - setting displayData:', trimmedData);
       setDisplayData(trimmedData);
     }
   }, [globalUser]);
@@ -65,12 +58,10 @@ export default function Profile({ formData, onEdit }) {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Profile handleUploadSuccess - setting globalUser:', result);
         
         // Use a timeout to ensure the state update is processed
         setTimeout(() => {
           setGlobalUser(result);
-          console.log('Profile handleUploadSuccess - After setGlobalUser call with timeout');
         }, 0);
         
         toast({

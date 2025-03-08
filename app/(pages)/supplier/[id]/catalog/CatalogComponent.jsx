@@ -46,7 +46,7 @@ export default function CatalogPage({sProducts, sCategories}) {
   useEffect(() => {
     setProducts(sProducts)
     setLowStockNotification(products.some((product) => product.stock === 0));
-  }, [sProducts]);
+  }, [sProducts, products]);
 
   // Optimize filtering with useMemo
   const filteredProductsMemo = useMemo(() => {

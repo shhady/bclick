@@ -39,7 +39,6 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
     const userData = newUser || user;
     
     if (userData) {
-      console.log('NewProfilePage useEffect - setting user data:', userData);
       
       // Only update the context if the user prop exists but newUser is not set yet
       if (user && !newUser) {
@@ -89,7 +88,6 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
         return acc;
       }, {});
 
-      console.log('NewProfilePage handleCreate - trimmedFormData:', trimmedFormData);
 
       const response = await fetch('/api/users/add-user', {
         method: 'POST',
@@ -99,7 +97,6 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
 
       if (response.ok) {
         const result = await response.json();
-        console.log('NewProfilePage handleCreate - API response:', result);
         
         // Update both the context and local state
         setNewUser(result);
@@ -127,7 +124,6 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
         return acc;
       }, {});
 
-      console.log('NewProfilePage handleUpdate - trimmedFormData:', trimmedFormData);
 
       const response = await fetch('/api/users/update-user', {
         method: 'PUT',
@@ -137,7 +133,6 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
 
       if (response.ok) {
         const result = await response.json();
-        console.log('NewProfilePage handleUpdate - API response:', result);
         
         // First close the modal to prevent UI issues
         setIsUpdateModalOpen(false);

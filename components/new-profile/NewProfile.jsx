@@ -28,7 +28,6 @@ export default function NewProfile({ formData, onEdit }) {
   
   // Update displayData when formData or newUser changes
   useEffect(() => {
-    console.log('NewProfile useEffect - formData or newUser changed', { formData, newUser });
     
     // Prioritize newUser data over formData
     const sourceData = newUser || formData;
@@ -40,7 +39,6 @@ export default function NewProfile({ formData, onEdit }) {
         return acc;
       }, {});
       setDisplayData(trimmedData);
-      console.log('NewProfile useEffect - displayData updated', trimmedData);
     }
   }, [formData, newUser]);
 

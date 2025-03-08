@@ -57,7 +57,7 @@ export default function CartPage({ clientId, supplierId, cart: initialCart }) {
         }));
       }
     }, 500),
-    []
+    [clientId, supplierId]
   );
   
   const handleQuantityChange = useCallback((productId, newQuantity) => {

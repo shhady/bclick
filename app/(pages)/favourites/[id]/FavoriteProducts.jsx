@@ -1,324 +1,104 @@
-'use client';
-import { fetchProducts } from '@/app/actions/productActions';
-import Loader from '@/components/loader/Loader';
+'use client'
+import React, { useCallback, useRef, useState, useEffect } from 'react'
+import SupplierCover from './SupplierCover';
 import Image from 'next/image';
-import { useEffect, useState, useRef,useCallback, memo, useMemo } from 'react';
-import StarToggle from '../StarToggle';
-import { addToCart,getCart } from '@/app/actions/cartActions';
+
+import { Suspense } from 'react';
+import Loader from '@/components/loader/Loader';
+import { addToCart } from '@/app/actions/cartActions';
 import { useCartContext } from '@/app/context/CartContext';
-import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { ArrowLeft, Heart, ShoppingBag, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Heart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import StarToggle from '../../client/[clientId]/supplier-catalog/[id]/StarToggle';
+import SupplierDetails from './SupplierDetails';
 
-const ProductSkeleton = memo(function ProductSkeleton() {
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="border p-4 rounded-lg shadow flex flex-col items-center animate-pulse">
-          <div className="w-full h-40 bg-gray-300 rounded"></div>
-          <div className="w-3/4 h-4 bg-gray-300 rounded mt-4"></div>
-          <div className="w-1/2 h-4 bg-gray-300 rounded mt-2"></div>
-          <div className="w-1/3 h-4 bg-gray-300 rounded mt-2"></div>
-        </div>
-      ))}
-    </div>
-  );
-});
+// Store the current supplierId in localStorage for navbar navigation
+function storeCurrentSupplier(supplierId) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('currentSupplierId', supplierId);
+  }
+}
 
-ProductSkeleton.displayName = 'ProductSkeleton';
-
-const ProductCard = memo(function ProductCard({ product, showProductDetail, cart }) {
+function ProductGrid({ 
+  products, 
+  clientId, 
+  onFavoriteToggle,
+  showProductDetail,
+  cart 
+}) {
   const { cart: contextCart } = useCartContext();
   
   // Use the cart from context if available, otherwise use the prop
   const currentCart = contextCart || cart;
   
-  const isInCart = currentCart?.items?.find((item) => item.productId?._id === product?._id);
-  const isOutOfStock = product.stock === 0;
-  
   return (
-    <div
-      onClick={() => showProductDetail(product)}
-      className={`cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center bg-white relative overflow-hidden ${isOutOfStock ? 'opacity-75' : ''}`}
-    >
-      {isInCart && (
-        <div className="absolute top-2 right-2 bg-customBlue text-white text-xs px-2 py-1 rounded-full z-30">
-          בעגלה
-        </div>
-      )}
-      
-      {product.stock === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10 z-10">
-          <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
-            אזל מהמלאי
-          </div>
-        </div>
-      )}
-      
-      <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded-lg mb-3 p-2">
-        <Image
-          src={product?.imageUrl?.secure_url || '/no-image.jpg'}
-          alt={product.name}
-          width={160}
-          height={160}
-          className="object-contain max-h-full transition-transform hover:scale-105"
-          loading="lazy"
-          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 16vw"
-        />
-      </div>
-      
-      <div className="w-full text-center">
-        <h2 className="text-sm font-bold text-gray-800 mb-1 line-clamp-2 h-10">{product.name}</h2>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-4 px-2">
+      {products.map((product) => {
+        const isInCart = currentCart?.items?.find((item) => item.productId?._id === product?._id);
+        const isOutOfStock = product.stock === 0;
         
-        <div className="flex justify-between items-center mt-2">
-          <span className="text-xs text-gray-500">{product?.weight || 'משקל לא צוין'}</span>
-          <span className="text-lg font-bold text-customBlue">₪{product?.price}</span>
-        </div>
-        
-        {isInCart && (
-          <div className="mt-2 w-full">
-            <button className="w-full py-1 px-2 bg-blue-50 text-customBlue rounded-lg text-sm hover:bg-blue-100 transition">
-              עדכן כמות
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}, (prevProps, nextProps) => {
-  return prevProps.product._id === nextProps.product._id &&
-         prevProps.cart?.items?.length === nextProps.cart?.items?.length;
-});
-
-ProductCard.displayName = 'ProductCard';
-
-
-
-export default function ProductsOfCategory({ cart, favorites: initialFavorites, clientId, supplierId, categoryId, limit = 10 }) {
-  const [groupedProducts, setGroupedProducts] = useState({});
-  const [loadingState, setLoadingState] = useState({
-    loading: false,
-    hasMore: true,
-    initialFetchDone: false,
-    page: 1,
-    error: null
-  });
-  const observerRef = useRef();
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [favorites, setFavorites] = useState(initialFavorites);
-
-  // Memoize flattened products for favorites functionality
-  const allProducts = useMemo(() => 
-    Object.values(groupedProducts).flat(),
-    [groupedProducts]
-  );
-
-  // Function to fetch products
-  const fetchMoreProducts = useCallback(async (reset = false) => {
-    if (loadingState.loading) return;
-    
-    setLoadingState(prev => ({ 
-      ...prev, 
-      loading: true, 
-      error: null,
-      page: reset ? 1 : prev.page 
-    }));
-    
-    try {
-      const response = await fetchProducts({ 
-        supplierId, 
-        categoryId, 
-        page: reset ? 1 : loadingState.page,
-        limit 
-      });
-
-      const { products: newProducts, pagination } = response;
-
-      if (!newProducts?.length) {
-        setLoadingState(prev => ({ 
-          ...prev, 
-          hasMore: false, 
-          loading: false,
-          initialFetchDone: true 
-        }));
-        return;
-      }
-
-      // Group products by category
-      const grouped = newProducts.reduce((acc, product) => {
-        const { categoryName } = product;
-        if (!acc[categoryName]) acc[categoryName] = [];
-        acc[categoryName].push(product);
-        return acc;
-      }, {});
-
-      setGroupedProducts(prevGroups => {
-        if (reset) return grouped;
-
-        // Merge with existing groups
-        const updatedGroups = { ...prevGroups };
-        Object.entries(grouped).forEach(([category, products]) => {
-          if (!updatedGroups[category]) {
-            updatedGroups[category] = products;
-          } else {
-            const existingIds = new Set(updatedGroups[category].map(p => p._id));
-            const uniqueProducts = products.filter(p => !existingIds.has(p._id));
-            updatedGroups[category] = [...updatedGroups[category], ...uniqueProducts];
-          }
-        });
-        return updatedGroups;
-      });
-
-      setLoadingState(prev => ({
-        ...prev,
-        page: prev.page + 1,
-        loading: false,
-        initialFetchDone: true,
-        hasMore: loadingState.page < pagination.pages
-      }));
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      setLoadingState(prev => ({ 
-        ...prev, 
-        loading: false,
-        error: 'Failed to load products. Please try again.',
-        hasMore: true
-      }));
-    }
-  }, [supplierId, categoryId, limit, loadingState.page, loadingState.loading]);
-
-  // Reset and initial fetch when category changes
-  useEffect(() => {
-    setGroupedProducts({});
-    setLoadingState({
-      loading: false,
-      hasMore: true,
-      initialFetchDone: false,
-      page: 1,
-      error: null
-    });
-    // Call fetchMoreProducts directly without adding it to dependencies
-    fetchMoreProducts(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId]);
-
-  // Intersection Observer for infinite scrolling
-  useEffect(() => {
-    if (!loadingState.initialFetchDone || loadingState.loading || !loadingState.hasMore) return;
-
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          fetchMoreProducts(false);
-        }
-      },
-      { rootMargin: '100px' }
-    );
-
-    const currentObserver = observer;
-    const currentRef = observerRef.current;
-
-    if (currentRef) {
-      currentObserver.observe(currentRef);
-    }
-
-    return () => {
-      if (currentRef) {
-        currentObserver.unobserve(currentRef);
-      }
-    };
-  }, [loadingState.initialFetchDone, loadingState.loading, loadingState.hasMore, fetchMoreProducts]);
-
-  const closeProductDetail = () => {
-    setSelectedProduct(null);
-  };
-
-  const handleFavoriteToggle = useCallback(async (productId, isFavorite) => {
-    try {
-      const endpoint = isFavorite 
-        ? `/api/favourites/add` 
-        : `/api/favourites/remove`;
-      
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        body: JSON.stringify({ clientId, productId }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (response.ok) {
-        setFavorites(current => 
-          isFavorite 
-            ? [...current, allProducts.find(p => p._id === productId)]
-            : current.filter(p => p._id !== productId)
-        );
-      }
-    } catch (error) {
-      console.error('Favorite toggle failed:', error);
-    }
-  }, [clientId, allProducts]);
-
-  const showProductDetail = (product) => {
-    setSelectedProduct(product);
-  };
-
-  return (
-    <div className="">
-      <div>
-        {Object.keys(groupedProducts).length > 0 ? (
-          Object.keys(groupedProducts).map((categoryName) => (
-            <div key={categoryName} className="mt-8">
-              <h2 className="text-2xl font-bold mb-4">{categoryName}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 px-2">
-                {groupedProducts[categoryName].map((product) => (
-                  <ProductCard
-                    key={product._id}
-                    product={product}
-                    showProductDetail={showProductDetail}
-                    cart={cart}
-                  />
-                ))}
+        return (
+          <div
+            key={product._id}
+            onClick={() => showProductDetail(product)}
+            className={`cursor-pointer border p-4 rounded-lg shadow hover:shadow-md transition flex flex-col items-center bg-white relative overflow-hidden ${isOutOfStock ? 'opacity-75' : ''}`}
+          >
+            {isInCart && (
+              <div className="absolute top-2 right-2 bg-customBlue text-white text-xs px-2 py-1 rounded-full z-30">
+                בעגלה
+              </div>
+            )}
+            
+            {isOutOfStock && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10 z-10">
+                <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                  אזל מהמלאי
+                </div>
+              </div>
+            )}
+            
+            <div className="absolute top-2 left-2 z-20">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFavoriteToggle(product._id, false);
+                }}
+                className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors"
+              >
+                <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+              </button>
+            </div>
+            
+            <div className="relative w-full h-40 flex items-center justify-center overflow-hidden rounded-lg mb-3 bg-gray-50 p-2">
+              <Image
+                src={product?.imageUrl?.secure_url || '/no-image.jpg'}
+                alt={product.name}
+                width={160}
+                height={160}
+                className="object-contain max-h-full transition-transform hover:scale-105"
+                loading="lazy"
+              />
+            </div>
+            
+            <div className="w-full text-center">
+              <h2 className="text-sm font-bold text-gray-800 mb-1 line-clamp-2 h-10">{product.name}</h2>
+              
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-xs text-gray-500">{product?.weight || 'משקל לא צוין'}</span>
+                <span className="text-lg font-bold text-customBlue">₪{product?.price}</span>
               </div>
             </div>
-          ))
-        ) : (
-          <div className="text-center mt-4">
-            <p className="text-gray-600">טוען מוצרים...</p>
           </div>
-        )}
-
-        {loadingState.error && (
-          <div className="text-center py-4">
-            <p className="text-red-500 mb-2">{loadingState.error}</p>
-            <button 
-              onClick={() => fetchMoreProducts(false)}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              נסה שוב
-            </button>
-          </div>
-        )}
-
-        <div ref={observerRef} className="h-20 w-full">
-          {loadingState.loading && <ProductSkeleton />}
-        </div>
-      </div>
-
-      <ProductDetailModal 
-        product={selectedProduct}
-        isVisible={!!selectedProduct}
-        onClose={closeProductDetail}
-        clientId={clientId}
-        supplierId={supplierId}
-        onFavoriteToggle={handleFavoriteToggle}
-        cart={cart}
-      />
+        );
+      })}
     </div>
   );
 }
 
-
-
- function ProductDetailModal({ 
+// ProductDetailModal Component
+function ProductDetailModal({ 
   product, 
   isVisible, 
   onClose, 
@@ -623,4 +403,194 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
 }
 
 
+export default function FavoriteProducts({
+  supplier,
+  categories,
+  supplierId,
+  clientId,
+  cart: initialCart,
+  products: initialProducts,
+  favorites: initialFavorites,
+}) {
+  const [products, setProducts] = useState(initialProducts || []);
+  const [favorites, setFavorites] = useState(initialFavorites || []);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const categoryRefs = useRef({}); // To store references for categories
+  const { itemCount, cart: contextCart, fetchCartAgain, addItemToCart } = useCartContext();
+  const router = useRouter();
+  const { toast } = useToast();
   
+  // Store the current supplier ID for navbar navigation - only run once on mount
+  useEffect(() => {
+    if (supplierId) {
+      storeCurrentSupplier(supplierId);
+    }
+    
+    // Force fetch cart once on component mount
+    fetchCartAgain();
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array to run only once
+  
+  // Use the cart from context if available, otherwise use the initial cart
+  const currentCart = contextCart || initialCart;
+  
+  // Get cart count from context
+  const cartCount = itemCount || (contextCart?.items?.length || 0);
+  
+  const handleFavoriteToggle = useCallback(async (productId, isFavorite) => {
+    try {
+      const endpoint = isFavorite 
+        ? `/api/favourites/add` 
+        : `/api/favourites/remove`;
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify({ clientId, productId }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        setFavorites(current => 
+          isFavorite 
+            ? [...current, products.find(p => p._id === productId)]
+            : current.filter(p => p._id !== productId)
+        );
+        
+        // If removing from favorites, check if we need to refresh the page
+        if (!isFavorite) {
+          // If this was the last favorite, refresh the page after a short delay
+          const updatedFavorites = favorites.filter(p => p._id !== productId);
+          if (updatedFavorites.length === 0) {
+            setTimeout(() => {
+              router.refresh();
+            }, 300);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Favorite toggle failed:', error);
+      toast({
+        title: 'שגיאה',
+        description: 'אירעה שגיאה בעדכון המועדפים',
+        variant: 'destructive',
+      });
+    }
+  }, [clientId, products, favorites, router, toast]);
+  
+  const showProductDetail = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const closeProductDetail = () => {
+    setSelectedProduct(null);
+  };
+  
+  return (
+    <div className="mb-20 bg-[#f8f8ff]">
+      <Suspense fallback={<Loader/>}>
+        <SupplierCover supplier={supplier} />
+      </Suspense>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Suspense fallback={<Loader/>}>
+          <SupplierDetails
+            supplier={supplier} 
+            clientId={clientId}
+          />
+        </Suspense>
+        
+        {/* Back to catalog button */}
+        <div className="mb-6 flex justify-between items-center">
+          {/* <Link 
+            href={`/client/${clientId}/supplier-catalog/${supplierId}`}
+            className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>חזרה לקטלוג</span>
+          </Link> */}
+          
+          {/* Cart button for mobile */}
+          {/* {cartCount > 0 && (
+            <Link 
+              href={`/cart/${supplierId}`}
+              className="md:hidden flex items-center gap-2 px-4 py-2 bg-customBlue text-white rounded-lg shadow-md hover:bg-blue-600 transition-colors"
+            >
+              <ShoppingBag className="h-4 w-4" />
+              <span>עגלת קניות</span>
+              <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {cartCount}
+              </span>
+            </Link>
+          )} */}
+        </div>
+        
+        {/* Favorites header */}
+        <div className="bg-white rounded-lg shadow-md p-4 mb-6 flex items-center gap-2">
+          <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+          <h1 className="text-xl font-bold">המועדפים שלי</h1>
+        </div>
+        
+        <div>
+          {favorites.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-md p-8 text-center">
+              <div className="flex flex-col items-center justify-center gap-4">
+                <div className="bg-gray-100 p-4 rounded-full">
+                  <Heart className="h-10 w-10 text-gray-400" />
+                </div>
+                <h2 className="text-xl font-semibold">אין מוצרים במועדפים</h2>
+                <p className="text-gray-500 max-w-md mx-auto mb-4">
+                  לא נמצאו מוצרים במועדפים שלך. חזור לקטלוג והוסף מוצרים למועדפים.
+                </p>
+                <Link
+                  href={`/client/${clientId}/supplier-catalog/${supplierId}`}
+                  className="px-6 py-3 bg-customBlue text-white rounded-md hover:bg-blue-600 transition flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>חזרה לקטלוג</span>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="categories">
+              {categories.map((category) => {
+                const categoryFavorites = favorites.filter(
+                  (product) => product.categoryId === category._id
+                );
+
+                if (categoryFavorites.length === 0) return null;
+
+                return (
+                  <div key={category._id} className="mb-8">
+                    <h2 className="text-xl font-bold mb-4 px-4 py-2 rounded-lg">{category.name}</h2>
+                    <Suspense fallback={<Loader/>}>
+                      <ProductGrid
+                        products={categoryFavorites}
+                        clientId={clientId}
+                        onFavoriteToggle={handleFavoriteToggle}
+                        showProductDetail={showProductDetail}
+                        cart={currentCart}
+                      />
+                    </Suspense>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <ProductDetailModal 
+        product={selectedProduct}
+        isVisible={!!selectedProduct}
+        onClose={closeProductDetail}
+        clientId={clientId}
+        onFavoriteToggle={handleFavoriteToggle}
+        supplierId={supplierId}
+        cart={currentCart}
+      />
+      
+    
+    </div>
+  );
+}
