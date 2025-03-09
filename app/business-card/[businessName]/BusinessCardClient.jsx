@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Phone, Mail, MapPin, Building, User, Share2, ExternalLink, Download, Clipboard, Check, MapPinned } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 export default function BusinessCardClient({ profileUser, viewer }) {
   const router = useRouter();
@@ -154,11 +156,16 @@ export default function BusinessCardClient({ profileUser, viewer }) {
       <div className="relative h-48 md:h-64 w-full overflow-hidden">
         {profileUser.coverImage?.secure_url ? (
           <>
-            <img
-              src={profileUser.coverImage.secure_url}
-              alt="Cover"
-              className="w-full h-full object-cover"
-            />
+            <div className="relative w-full h-full">
+              <Image
+                src={profileUser.coverImage.secure_url}
+                alt="Cover"
+                fill
+                sizes="100vw"
+                className="object-cover"
+                priority
+              />
+            </div>
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/70"></div>
           </>
         ) : (
@@ -175,19 +182,27 @@ export default function BusinessCardClient({ profileUser, viewer }) {
             <div className="absolute -top-20 md:-top-24 left-1/2 transform -translate-x-1/2 animate-fadeIn" style={{animationDelay: "0.2s"}}>
               <div className="h-36 w-36 md:h-40 md:w-40 rounded-full border-4 border-white overflow-hidden bg-gray-200 shadow-lg flex items-center justify-center">
                 {profileUser.logo?.secure_url ? (
-                  <img
-                    src={profileUser.logo.secure_url}
-                    alt={profileUser.name}
-                    className="w-full h-full object-cover"
-                    style={{ objectPosition: 'center' }}
-                  />
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={profileUser.logo.secure_url}
+                      alt={profileUser.name}
+                      fill
+                      sizes="160px"
+                      className="object-cover"
+                      style={{ objectPosition: 'center' }}
+                    />
+                  </div>
                 ) : profileUser.profileImage ? (
-                  <img
-                    src={profileUser.profileImage}
-                    alt={profileUser.name}
-                    className="w-full h-full object-cover"
-                    style={{ objectPosition: 'center' }}
-                  />
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={profileUser.profileImage}
+                      alt={profileUser.name}
+                      fill
+                      sizes="160px"
+                      className="object-cover"
+                      style={{ objectPosition: 'center' }}
+                    />
+                  </div>
                 ) : (
                   <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
                     <User size={64} className="text-blue-500" />
@@ -208,7 +223,7 @@ export default function BusinessCardClient({ profileUser, viewer }) {
             )}
             
             {/* Role Badge */}
-            {profileUser.role === 'supplier' &&  <div className="mb-4 animate-fadeIn" style={{animationDelay: "0.5s"}}>
+            <div className="mb-4 animate-fadeIn" style={{animationDelay: "0.5s"}}>
               <span className={`inline-block px-4 py-1.5 text-sm font-medium rounded-full ${
                 profileUser.role === 'supplier' 
                   ? 'bg-blue-100 text-blue-800' 
@@ -216,35 +231,38 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                   ? 'bg-green-100 text-green-800'
                   : 'bg-gray-100 text-gray-800'
               }`}>
-              
-                 ספק
+                {profileUser.role === 'supplier' 
+                  ? 'ספק' 
+                  : profileUser.role === 'client'
+                  ? 'לקוח'
+                  : profileUser.role}
               </span>
-            </div>}
+            </div>
             
             {/* Quick Action Buttons */}
             <div className="flex flex-wrap justify-center gap-2 md:gap-3 mt-4 animate-fadeIn" style={{animationDelay: "0.6s"}}>
               {profileUser.phone && (
-                <a 
+                <Link
                   href={`tel:${profileUser.phone}`}
                   className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
                 >
                   <Phone size={18} className="md:hidden" />
                   <Phone size={20} className="hidden md:block" />
-                </a>
+                </Link>
               )}
               
               {profileUser.email && (
-                <a 
+                <Link
                   href={`mailto:${profileUser.email}`}
                   className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
                 >
                   <Mail size={18} className="md:hidden" />
                   <Mail size={20} className="hidden md:block" />
-                </a>
+                </Link>
               )}
               
               {(profileUser.address || profileUser.city) && (
-                <a 
+                <Link
                   href={`https://maps.google.com/?q=${encodeURIComponent([profileUser.address, profileUser.city, profileUser.country].filter(Boolean).join(', '))}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -252,7 +270,7 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                 >
                   <MapPin size={18} className="md:hidden" />
                   <MapPin size={20} className="hidden md:block" />
-                </a>
+                </Link>
               )}
               
               <button
@@ -282,7 +300,15 @@ export default function BusinessCardClient({ profileUser, viewer }) {
               >
                 <h3 className="text-lg font-bold mb-4">סרוק לשמירת כרטיס הביקור</h3>
                 <div className="bg-white p-2 rounded-lg shadow-inner mx-auto mb-4 flex items-center justify-center">
-                  <img src={qrCode} alt="QR Code" className="w-full max-w-[200px] h-auto mx-auto" />
+                  <div className="relative w-full h-48 max-w-[200px] mx-auto">
+                    <Image
+                      src={qrCode}
+                      alt="QR Code"
+                      fill
+                      sizes="200px"
+                      className="object-contain"
+                    />
+                  </div>
                 </div>
                 <button
                   onClick={toggleQRCode}
@@ -305,9 +331,9 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">טלפון</p>
-                    <a href={`tel:${profileUser.phone}`} className="text-gray-800 hover:text-blue-600 transition-colors">
+                    <Link href={`tel:${profileUser.phone}`} className="text-gray-800 hover:text-blue-600 transition-colors">
                       {profileUser.phone}
-                    </a>
+                    </Link>
                   </div>
                 </div>
               )}
@@ -319,9 +345,9 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">אימייל</p>
-                    <a href={`mailto:${profileUser.email}`} className="text-gray-800 hover:text-green-600 transition-colors">
+                    <Link href={`mailto:${profileUser.email}`} className="text-gray-800 hover:text-green-600 transition-colors">
                       {profileUser.email}
-                    </a>
+                    </Link>
                   </div>
                 </div>
               )}
@@ -333,14 +359,14 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">כתובת</p>
-                    <a 
+                    <Link 
                       href={`https://maps.google.com/?q=${encodeURIComponent(profileUser.address)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-800 hover:text-red-600 transition-colors"
                     >
                       {profileUser.address}
-                    </a>
+                    </Link>
                   </div>
                 </div>
               )}

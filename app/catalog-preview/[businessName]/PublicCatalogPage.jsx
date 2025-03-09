@@ -29,8 +29,8 @@ export default function PublicCatalogPage({
   });
   
   // Debounced fetch function to prevent too many requests
-  const debouncedFetch = useCallback(
-    debounce(async () => {
+  const debouncedFetch = useCallback(() => {
+    const fetchProducts = debounce(async () => {
       if (!hasMore || loading) return;
       
       setLoading(true);
@@ -61,9 +61,10 @@ export default function PublicCatalogPage({
       } finally {
         setLoading(false);
       }
-    }, 300),
-    [hasMore, loading, page, products, supplierId]
-  );
+    }, 300);
+    
+    fetchProducts();
+  }, [hasMore, loading, page, products, supplierId]);
   
   // Fetch more products when sentinel is in view
   useEffect(() => {

@@ -1,10 +1,11 @@
- # *
+# *
 User-agent: *
 Allow: /
+Disallow: /api/*
+Disallow: /admin/*
 
 # Host
 Host: https://bclick-umber.vercel.app
 
 # Sitemaps
 Sitemap: https://bclick-umber.vercel.app/sitemap.xml
-Sitemap: https://bclick-umber.vercel.app/server-sitemap.xml 

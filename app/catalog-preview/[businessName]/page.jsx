@@ -6,6 +6,7 @@ import { currentUser } from '@clerk/nextjs/server';
 import Product from '@/models/product';
 import { redirect } from 'next/navigation';
 import PublicCatalogPage from './PublicCatalogPage';
+import Link from 'next/link';
 
 export default async function PublicCatalogByBusinessName({ params }) {
     await connectToDB();
@@ -34,9 +35,9 @@ export default async function PublicCatalogByBusinessName({ params }) {
         <div className="flex flex-col items-center justify-center min-h-screen">
           <h1 className="text-3xl font-bold mb-4">ספק לא נמצא</h1>
           <p className="text-gray-600 mb-6">הקטלוג שחיפשת אינו קיים או שהוסר.</p>
-          <a href="/" className="px-4 py-2 bg-customBlue text-white rounded-md hover:bg-blue-600 transition">
+          <Link href="/" className="px-4 py-2 bg-customBlue text-white rounded-md hover:bg-blue-600 transition">
             חזרה לדף הבית
-          </a>
+          </Link>
         </div>
       );
     }
