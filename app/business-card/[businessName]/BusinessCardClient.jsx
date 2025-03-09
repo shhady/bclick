@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Phone, Mail, MapPin, Building, User, Share2, ExternalLink, Download, Clipboard, Check, MapPinned } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-
+import { useNewUserContext } from '@/app/context/NewUserContext';
 export default function BusinessCardClient({ profileUser, viewer }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -14,7 +14,8 @@ export default function BusinessCardClient({ profileUser, viewer }) {
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [qrCode, setQrCode] = useState('');
-  
+    const {newUser} = useNewUserContext();
+    console.log(newUser)
   // Generate QR code on component mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -110,27 +111,27 @@ export default function BusinessCardClient({ profileUser, viewer }) {
   };
   
   // Function to download vCard
-  const downloadVCard = () => {
-    const vCardData = [
-      'BEGIN:VCARD',
-      'VERSION:3.0',
-      `FN:${profileUser.name}`,
-      profileUser.businessName ? `ORG:${profileUser.businessName}` : '',
-      profileUser.phone ? `TEL;TYPE=WORK,VOICE:${profileUser.phone}` : '',
-      profileUser.email ? `EMAIL;TYPE=WORK:${profileUser.email}` : '',
-      profileUser.address ? `ADR;TYPE=WORK:;;${profileUser.address};${profileUser.city || ''};${profileUser.country || ''};;;` : '',
-      'END:VCARD'
-    ].filter(Boolean).join('\n');
+  // const downloadVCard = () => {
+  //   const vCardData = [
+  //     'BEGIN:VCARD',
+  //     'VERSION:3.0',
+  //     `FN:${profileUser.name}`,
+  //     profileUser.businessName ? `ORG:${profileUser.businessName}` : '',
+  //     profileUser.phone ? `TEL;TYPE=WORK,VOICE:${profileUser.phone}` : '',
+  //     profileUser.email ? `EMAIL;TYPE=WORK:${profileUser.email}` : '',
+  //     profileUser.address ? `ADR;TYPE=WORK:;;${profileUser.address};${profileUser.city || ''};${profileUser.country || ''};;;` : '',
+  //     'END:VCARD'
+  //   ].filter(Boolean).join('\n');
     
-    const blob = new Blob([vCardData], { type: 'text/vcard' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${profileUser.name.replace(/\s+/g, '_')}_contact.vcf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  //   const blob = new Blob([vCardData], { type: 'text/vcard' });
+  //   const url = URL.createObjectURL(blob);
+  //   const link = document.createElement('a');
+  //   link.href = url;
+  //   link.download = `${profileUser.name.replace(/\s+/g, '_')}_contact.vcf`;
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // };
   
   // Function to toggle QR code display
   const toggleQRCode = () => {
@@ -167,6 +168,7 @@ export default function BusinessCardClient({ profileUser, viewer }) {
               />
             </div>
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/70"></div>
+            {newUser && <Link href="/newprofile" className="absolute top-4 left-4 bg-white/80 text-black px-4 py-2 rounded-full">דף הבית </Link>}
           </>
         ) : (
           <div className="w-full h-full bg-gradient-to-r from-blue-600 to-purple-600"></div>
@@ -174,8 +176,8 @@ export default function BusinessCardClient({ profileUser, viewer }) {
       </div>
       
       {/* Profile Card */}
-      <div className="max-w-3xl mx-auto -mt-24 relative z-10 px-4 opacity-0 animate-fadeIn">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 animate-slideUp">
+      <div className="max-w-3xl mx-auto -mt-6 relative z-10 px-4 opacity-0 animate-fadeIn">
+        <div className="bg-white rounded-2xl shadow-2xl  border border-gray-100 animate-slideUp">
           {/* Profile Header */}
           <div className="relative pt-24 md:pt-20 pb-6 md:pb-8 px-4 md:px-6 text-center">
             {/* Profile Image */}
@@ -222,22 +224,7 @@ export default function BusinessCardClient({ profileUser, viewer }) {
               </p>
             )}
             
-            {/* Role Badge */}
-            <div className="mb-4 animate-fadeIn" style={{animationDelay: "0.5s"}}>
-              <span className={`inline-block px-4 py-1.5 text-sm font-medium rounded-full ${
-                profileUser.role === 'supplier' 
-                  ? 'bg-blue-100 text-blue-800' 
-                  : profileUser.role === 'client'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-800'
-              }`}>
-                {profileUser.role === 'supplier' 
-                  ? 'ספק' 
-                  : profileUser.role === 'client'
-                  ? 'לקוח'
-                  : profileUser.role}
-              </span>
-            </div>
+           
             
             {/* Quick Action Buttons */}
             <div className="flex flex-wrap justify-center gap-2 md:gap-3 mt-4 animate-fadeIn" style={{animationDelay: "0.6s"}}>
@@ -281,13 +268,13 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                 <QRCodeIcon size={20} className="hidden md:block" />
               </button>
               
-              <button
+              {/* <button
                 onClick={downloadVCard}
                 className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors"
               >
                 <Download size={18} className="md:hidden" />
                 <Download size={20} className="hidden md:block" />
-              </button>
+              </button> */}
             </div>
           </div>
           
@@ -301,11 +288,11 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                 <h3 className="text-lg font-bold mb-4">סרוק לשמירת כרטיס הביקור</h3>
                 <div className="bg-white p-2 rounded-lg shadow-inner mx-auto mb-4 flex items-center justify-center">
                   <div className="relative w-full h-48 max-w-[200px] mx-auto">
-                    <Image
+                    <img
                       src={qrCode}
                       alt="QR Code"
-                      fill
-                      sizes="200px"
+                      
+                    
                       className="object-contain"
                     />
                   </div>
@@ -385,7 +372,7 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                 </div>
               )}
               
-              {profileUser.area && (
+              {/* {profileUser.area && (
                 <div className="flex items-center animate-fadeIn" style={{animationDelay: "1.2s"}}>
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 ml-4">
                     <MapPinned size={18} />
@@ -397,7 +384,7 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                     </p>
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
           
