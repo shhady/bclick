@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Phone, Mail, MapPin, Building, User, Share2, ExternalLink, Download, Clipboard, Check, MapPinned } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { motion } from 'framer-motion';
 
 export default function BusinessCardClient({ profileUser, viewer }) {
   const router = useRouter();
@@ -110,27 +108,27 @@ export default function BusinessCardClient({ profileUser, viewer }) {
   };
   
   // Function to download vCard
-  // const downloadVCard = () => {z
-  //   const vCardData = [
-  //     'BEGIN:VCARD',
-  //     'VERSION:3.0',
-  //     `FN:${profileUser.name}`,
-  //     profileUser.businessName ? `ORG:${profileUser.businessName}` : '',
-  //     profileUser.phone ? `TEL;TYPE=WORK,VOICE:${profileUser.phone}` : '',
-  //     profileUser.email ? `EMAIL;TYPE=WORK:${profileUser.email}` : '',
-  //     profileUser.address ? `ADR;TYPE=WORK:;;${profileUser.address};${profileUser.city || ''};${profileUser.country || ''};;;` : '',
-  //     'END:VCARD'
-  //   ].filter(Boolean).join('\n');
+  const downloadVCard = () => {
+    const vCardData = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `FN:${profileUser.name}`,
+      profileUser.businessName ? `ORG:${profileUser.businessName}` : '',
+      profileUser.phone ? `TEL;TYPE=WORK,VOICE:${profileUser.phone}` : '',
+      profileUser.email ? `EMAIL;TYPE=WORK:${profileUser.email}` : '',
+      profileUser.address ? `ADR;TYPE=WORK:;;${profileUser.address};${profileUser.city || ''};${profileUser.country || ''};;;` : '',
+      'END:VCARD'
+    ].filter(Boolean).join('\n');
     
-  //   const blob = new Blob([vCardData], { type: 'text/vcard' });
-  //   const url = URL.createObjectURL(blob);
-  //   const link = document.createElement('a');
-  //   link.href = url;
-  //   link.download = `${profileUser.name.replace(/\s+/g, '_')}_contact.vcf`;
-  //   document.body.appendChild(link);
-  //   link.click();
-  //   document.body.removeChild(link);
-  // };
+    const blob = new Blob([vCardData], { type: 'text/vcard' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${profileUser.name.replace(/\s+/g, '_')}_contact.vcf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   
   // Function to toggle QR code display
   const toggleQRCode = () => {
@@ -150,27 +148,8 @@ export default function BusinessCardClient({ profileUser, viewer }) {
     return areaMap[area] || area;
   };
   
- const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { when: "beforeChildren", staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  };
-
-  const buttonVariants = {
-    hover: { scale: 1.05, transition: { duration: 0.2 } },
-    tap: { scale: 0.95, transition: { duration: 0.2 } }
-  };
-
-  
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 ">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 pb-10">
       {/* Cover Image with Gradient Overlay */}
       <div className="relative h-48 md:h-64 w-full overflow-hidden">
         {profileUser.coverImage?.secure_url ? (
@@ -186,58 +165,14 @@ export default function BusinessCardClient({ profileUser, viewer }) {
           <div className="w-full h-full bg-gradient-to-r from-blue-600 to-purple-600"></div>
         )}
       </div>
-      <div className="max-w-3xl mx-auto relative z-50 px-4 -mt-24 flex justify-center items-center">
-  {/* Profile Image Container (outside the card) */}
-  <motion.div 
-    className="absolute -top-4 md:-top-12  transform -translate-x-1/2"
-    initial={{ y: 20, opacity: 0 }}
-    animate={{ y: 0, opacity: 1 }}
-    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-  >
-    <div className="h-36 w-36 md:h-40 md:w-40 rounded-full border-4 z-50 border-white overflow-hidden bg-gray-200 shadow-lg flex items-center justify-center">
-      {profileUser.logo?.secure_url ? (
-        <img
-          src={profileUser.logo.secure_url}
-          alt={profileUser.name}
-          className="w-full h-full object-cover"
-          style={{ objectPosition: 'center' }}
-        />
-      ) : profileUser.profileImage ? (
-        <img
-          src={profileUser.profileImage}
-          alt={profileUser.name}
-          className="w-full h-full object-cover"
-          style={{ objectPosition: 'center' }}
-        />
-      ) : (
-        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
-          <User size={64} className="text-blue-500" />
-        </div>
-      )}
-    </div>
-  </motion.div>
-  </div>
       
       {/* Profile Card */}
-      <motion.div 
-        className="max-w-3xl mx-auto relative z-10 px-4 mt-12" 
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <motion.div 
-          className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100"
-          variants={itemVariants}
-        >
+      <div className="max-w-3xl mx-auto -mt-24 relative z-10 px-4 opacity-0 animate-fadeIn">
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 animate-slideUp">
           {/* Profile Header */}
-          <div className="relative pt-24   md:pt-20 pb-6 md:pb-8 px-4 md:px-6 text-center">
-            {/* Profile Image - Only one instance inside the card header */}
-            {/* <motion.div 
-              className="absolute -top-20 md:-top-24 left-1/2 transform -translate-x-1/2"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            >
+          <div className="relative pt-24 md:pt-20 pb-6 md:pb-8 px-4 md:px-6 text-center">
+            {/* Profile Image */}
+            <div className="absolute -top-20 md:-top-24 left-1/2 transform -translate-x-1/2 animate-fadeIn" style={{animationDelay: "0.2s"}}>
               <div className="h-36 w-36 md:h-40 md:w-40 rounded-full border-4 border-white overflow-hidden bg-gray-200 shadow-lg flex items-center justify-center">
                 {profileUser.logo?.secure_url ? (
                   <img
@@ -259,27 +194,21 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                   </div>
                 )}
               </div>
-            </motion.div> */}
+            </div>
             
             {/* Name and Business */}
-            <motion.h1 
-              className="text-3xl font-bold text-gray-900 mt-2 mb-1"
-              variants={itemVariants}
-            >
+            <h1 className="text-3xl font-bold text-gray-900 mt-2 mb-1 animate-fadeIn" style={{animationDelay: "0.3s"}}>
               {profileUser.name}
-            </motion.h1>
+            </h1>
             
             {profileUser.businessName && (
-              <motion.p 
-                className="text-xl text-gray-600 mb-3"
-                variants={itemVariants}
-              >
+              <p className="text-xl text-gray-600 mb-3 animate-fadeIn" style={{animationDelay: "0.4s"}}>
                 {profileUser.businessName}
-              </motion.p>
+              </p>
             )}
             
             {/* Role Badge */}
-            {profileUser.role === 'supplier' &&  <motion.div className="mb-4" variants={itemVariants}>
+            {profileUser.role === 'supplier' &&  <div className="mb-4 animate-fadeIn" style={{animationDelay: "0.5s"}}>
               <span className={`inline-block px-4 py-1.5 text-sm font-medium rounded-full ${
                 profileUser.role === 'supplier' 
                   ? 'bg-blue-100 text-blue-800' 
@@ -287,15 +216,13 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                   ? 'bg-green-100 text-green-800'
                   : 'bg-gray-100 text-gray-800'
               }`}>
+              
                  ספק
               </span>
-            </motion.div>}
+            </div>}
             
             {/* Quick Action Buttons */}
-            <motion.div 
-              className="flex flex-wrap justify-center gap-2 md:gap-3 mt-4"
-              variants={itemVariants}
-            >
+            <div className="flex flex-wrap justify-center gap-2 md:gap-3 mt-4 animate-fadeIn" style={{animationDelay: "0.6s"}}>
               {profileUser.phone && (
                 <a 
                   href={`tel:${profileUser.phone}`}
@@ -336,19 +263,22 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                 <QRCodeIcon size={20} className="hidden md:block" />
               </button>
               
-             
-            </motion.div>
+              <button
+                onClick={downloadVCard}
+                className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors"
+              >
+                <Download size={18} className="md:hidden" />
+                <Download size={20} className="hidden md:block" />
+              </button>
+            </div>
           </div>
           
           {/* QR Code Modal */}
           {showQR && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={toggleQRCode}>
-              <motion.div 
+              <div 
                 className="bg-white rounded-xl p-6 max-w-xs w-full text-center"
                 onClick={e => e.stopPropagation()}
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
               >
                 <h3 className="text-lg font-bold mb-4">סרוק לשמירת כרטיס הביקור</h3>
                 <div className="bg-white p-2 rounded-lg shadow-inner mx-auto mb-4 flex items-center justify-center">
@@ -360,22 +290,16 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                 >
                   סגור
                 </button>
-              </motion.div>
+              </div>
             </div>
           )}
           
           {/* Contact Information */}
-          <motion.div 
-            className="px-6 py-6 border-t border-gray-100"
-            variants={itemVariants}
-          >
+          <div className="px-6 py-6 border-t border-gray-100 animate-fadeIn" style={{animationDelay: "0.7s"}}>
             <h2 className="text-lg font-semibold mb-4 text-gray-800">פרטי קשר</h2>
             <div className="space-y-4">
               {profileUser.phone && (
-                <motion.div 
-                  className="flex items-center"
-                  variants={itemVariants}
-                >
+                <div className="flex items-center animate-fadeIn" style={{animationDelay: "0.8s"}}>
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-blue-600 ml-4">
                     <Phone size={18} />
                   </div>
@@ -385,14 +309,11 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                       {profileUser.phone}
                     </a>
                   </div>
-                </motion.div>
+                </div>
               )}
               
               {profileUser.email && (
-                <motion.div 
-                  className="flex items-center"
-                  variants={itemVariants}
-                >
+                <div className="flex items-center animate-fadeIn" style={{animationDelay: "0.9s"}}>
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-50 text-green-600 ml-4">
                     <Mail size={18} />
                   </div>
@@ -402,14 +323,11 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                       {profileUser.email}
                     </a>
                   </div>
-                </motion.div>
+                </div>
               )}
               
               {profileUser.address && (
-                <motion.div 
-                  className="flex items-center"
-                  variants={itemVariants}
-                >
+                <div className="flex items-center animate-fadeIn" style={{animationDelay: "1s"}}>
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-50 text-red-600 ml-4">
                     <MapPin size={18} />
                   </div>
@@ -424,14 +342,11 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                       {profileUser.address}
                     </a>
                   </div>
-                </motion.div>
+                </div>
               )}
               
               {(profileUser.city || profileUser.country) && (
-                <motion.div 
-                  className="flex items-center"
-                  variants={itemVariants}
-                >
+                <div className="flex items-center animate-fadeIn" style={{animationDelay: "1.1s"}}>
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-50 text-amber-600 ml-4">
                     <Building size={18} />
                   </div>
@@ -441,14 +356,11 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                       {[profileUser.city, profileUser.country].filter(Boolean).join(', ')}
                     </p>
                   </div>
-                </motion.div>
+                </div>
               )}
               
-              {/* {profileUser.area && (
-                <motion.div 
-                  className="flex items-center"
-                  variants={itemVariants}
-                >
+              {profileUser.area && (
+                <div className="flex items-center animate-fadeIn" style={{animationDelay: "1.2s"}}>
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 ml-4">
                     <MapPinned size={18} />
                   </div>
@@ -458,24 +370,18 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                       {getAreaName(profileUser.area)}
                     </p>
                   </div>
-                </motion.div>
-              )} */}
+                </div>
+              )}
             </div>
-          </motion.div>
+          </div>
           
           {/* Action Buttons */}
-          <motion.div 
-            className="px-6 py-6 border-t border-gray-100"
-            variants={itemVariants}
-          >
+          <div className="px-6 py-6 border-t border-gray-100 animate-fadeIn" style={{animationDelay: "1.3s"}}>
             <div className="flex flex-col space-y-3">
               {/* Share Button (always visible) */}
-              <motion.button
+              <button
                 onClick={handleShare}
                 className="flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                whileHover="hover"
-                whileTap="tap"
-                variants={buttonVariants}
               >
                 {copied ? (
                   <>
@@ -488,58 +394,46 @@ export default function BusinessCardClient({ profileUser, viewer }) {
                     שתף כרטיס ביקור
                   </>
                 )}
-              </motion.button>
+              </button>
               
               {/* Conditional buttons based on viewer role and profile user role */}
               {viewer.role === 'supplier' && profileUser.role === 'client' && (
                 !viewer.isRelated ? (
-                  <motion.button
+                  <button
                     onClick={handleAddClient}
                     disabled={isAddingClient}
                     className="px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                    whileHover="hover"
-                    whileTap="tap"
-                    variants={buttonVariants}
                   >
                     {isAddingClient ? 'מוסיף לקוח...' : 'הוסף לקוח'}
-                  </motion.button>
+                  </button>
                 ) : (
-                  <motion.button
+                  <button
                     onClick={() => router.push(`/supplier/${viewer.id}/client/${profileUser._id}`)}
                     className="px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 shadow-md"
-                    whileHover="hover"
-                    whileTap="tap"
-                    variants={buttonVariants}
                   >
                     צפה בכרטיס לקוח
-                  </motion.button>
+                  </button>
                 )
               )}
               
               {profileUser.role === 'supplier' && (
-                <motion.button
+                <button
                   onClick={navigateToCatalogPreview}
                   className="px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 shadow-md flex items-center justify-center"
-                  whileHover="hover"
-                  whileTap="tap"
-                  variants={buttonVariants}
                 >
                   <ExternalLink size={18} className="ml-2" />
                   צפה בקטלוג
-                </motion.button>
+                </button>
               )}
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
         
         {/* Footer */}
-        <motion.div 
-          className="text-center mt-6 text-gray-500 text-sm"
-          variants={itemVariants}
-        >
+        <div className="text-center mt-6 text-gray-500 text-sm animate-fadeIn" style={{animationDelay: "1.4s"}}>
           <p>© {new Date().getFullYear()} כרטיס ביקור דיגיטלי</p>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }
