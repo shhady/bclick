@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import { Camera, SwitchCamera, Pencil, LogOut, View ,MessageCircle,Copy  } from 'lucide-react';
+import { Camera, SwitchCamera, Pencil, LogOut, View, MessageCircle, Copy, Share2 } from 'lucide-react';
 import { useState } from 'react';
 import { SignOutButton } from '@clerk/nextjs';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import { SlHandbag } from "react-icons/sl";
 import { FaWhatsapp } from "react-icons/fa";
 import { useRouter } from 'next/navigation';
 import { useClerk } from '@clerk/nextjs';
-
+import { useToast } from '@/hooks/use-toast';
 import { useUserContext } from "@/app/context/UserContext";
 
 export default function ProfileMenu({onEdit}) {
@@ -17,6 +17,7 @@ export default function ProfileMenu({onEdit}) {
     const { globalUser, setGlobalUser, logout } = useUserContext();
     const router = useRouter();
     const { signOut } = useClerk();
+    const { toast } = useToast();
 
     const handleSignOut = async () => {
       try {
@@ -32,6 +33,39 @@ export default function ProfileMenu({onEdit}) {
         console.error('Error during sign out:', error);
       }
     };
+
+  const handleShareBusinessCard = async () => {
+    // Close the menu
+    setOpenMenu(false);
+    
+    // Generate the business card URL
+    const businessCardUrl = `${window.location.origin}/business-card/${globalUser?.businessName || globalUser?._id}`;
+    
+    // Use Web Share API if available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `כרטיס ביקור - ${globalUser?.name}`,
+          text: `כרטיס ביקור של ${globalUser?.name} ${globalUser?.businessName ? `(${globalUser.businessName})` : ''}`,
+          url: businessCardUrl,
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+      }
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      try {
+        await navigator.clipboard.writeText(businessCardUrl);
+        toast({
+          title: "הקישור הועתק",
+          description: "הקישור לכרטיס הביקור הועתק ללוח",
+          variant: "default",
+        });
+      } catch (error) {
+        console.error('Failed to copy:', error);
+      }
+    }
+  };
 
   const renderShareButtonsMobile = () => {
    // if (pathName === '/profile' && globalUser?.role === 'client' || pathName === '/orders' && globalUser?.role === 'client')  {
@@ -66,6 +100,11 @@ export default function ProfileMenu({onEdit}) {
       {globalUser.role === 'supplier' && <Link href={`/supplier/${globalUser._id}/supplier-preview`}> <div className='p-3 border-b-2 flex justify-between items-center hover:bg-customGray rounded-lg'><div>תצוגה מקדימה</div> <div><View color='#908E8E' size={18}/></div></div></Link>}
       {globalUser.role === 'supplier' &&   <div className='p-3 flex justify-between items-center hover:bg-customGray rounded-lg'><div>העתק קישור קטלוג</div> <div><Copy color='#908E8E' size={18}/></div></div>}
       {globalUser.role === 'supplier' ?  (<div className='p-3 border-b-2 flex justify-between items-center hover:bg-customGray rounded-lg'><div>שלח קישור לוואטסאפ</div> <div><MessageCircle color='#908E8E' size={18}/></div></div>) :(<div className='hover:bg-customGray rounded-lg'>{renderShareButtonsMobile()}</div>)}
+
+      <div onClick={handleShareBusinessCard} className='p-3 border-b-2 flex justify-between items-center hover:bg-customGray rounded-lg cursor-pointer'>
+        <div>שתף כרטיס ביקור</div>
+        <div><Share2 color='#908E8E' size={18}/></div>
+      </div>
 
         <button
 onClick={onEdit}

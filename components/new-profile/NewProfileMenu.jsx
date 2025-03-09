@@ -3,14 +3,16 @@ import { useState } from 'react';
 import { useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useNewUserContext } from '@/app/context/NewUserContext';
-import { MoreVertical, Edit, LogOut } from 'lucide-react';
+import { MoreVertical, Edit, LogOut, Share2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function NewProfileMenu({ onEdit }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { signOut } = useClerk();
   const router = useRouter();
-  const { logout } = useNewUserContext();
+  const { logout, newUser } = useNewUserContext();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const { toast } = useToast();
 
   const handleSignOut = async () => {
     try {
@@ -27,6 +29,39 @@ export default function NewProfileMenu({ onEdit }) {
     }
   };
 
+  const handleShareBusinessCard = async () => {
+    // Close the menu
+    setIsMenuOpen(false);
+    
+    // Generate the business card URL
+    const businessCardUrl = `${window.location.origin}/business-card/${newUser?.businessName || newUser?._id}`;
+    
+    // Use Web Share API if available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `כרטיס ביקור - ${newUser?.name}`,
+          text: `כרטיס ביקור של ${newUser?.name} ${newUser?.businessName ? `(${newUser.businessName})` : ''}`,
+          url: businessCardUrl,
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+      }
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      try {
+        await navigator.clipboard.writeText(businessCardUrl);
+        toast({
+          title: "הקישור הועתק",
+          description: "הקישור לכרטיס הביקור הועתק ללוח",
+          variant: "default",
+        });
+      } catch (error) {
+        console.error('Failed to copy:', error);
+      }
+    }
+  };
+
   const renderShareButtonsMobile = () => {
     return (
       <div className="flex flex-col gap-2 p-2 bg-white rounded-md shadow-md w-48">
@@ -36,6 +71,13 @@ export default function NewProfileMenu({ onEdit }) {
         >
           <Edit size={16} />
           <span>ערוך פרופיל</span>
+        </button>
+        <button
+          onClick={handleShareBusinessCard}
+          className="flex items-center gap-2 p-3 hover:bg-gray-100 rounded-md w-full"
+        >
+          <Share2 size={16} />
+          <span>שתף כרטיס ביקור</span>
         </button>
         <button
           onClick={() => setShowLogoutConfirm(true)}

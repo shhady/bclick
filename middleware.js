@@ -41,7 +41,7 @@ function rateLimit(request) {
 }
 
 // Route matchers
-const PUBLIC_ROUTES = ['/sign-in(.*)', '/sign-up(.*)', '/sign-out(.*)', '/'];
+const PUBLIC_ROUTES = ['/sign-in(.*)', '/sign-up(.*)', '/sign-out(.*)', '/', '/catalog-preview(.*)', '/business-card(.*)'];
 const ADMIN_ROUTES = ['/admin(.*)'];
 const isPublicRoute = createRouteMatcher(PUBLIC_ROUTES);
 const isAdminRoute = createRouteMatcher(ADMIN_ROUTES);

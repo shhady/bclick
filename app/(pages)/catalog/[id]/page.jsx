@@ -7,6 +7,7 @@ import Product from '@/models/product';
 import Favourite from '@/models/favourite';
 import Cart from '@/models/cart';
 import { ClientCatalogWrapper, SupplierCatalogWrapper } from './ClientWrapper';
+import { redirect } from 'next/navigation';
 
 export default async function page({ params }) {
     await connectToDB();
@@ -23,11 +24,38 @@ export default async function page({ params }) {
     
     // Fetch supplier details
     const supplier = await User.findById(id)
-      .select('name email phone address logo coverImage businessName city country role')
+      .select('name email phone address logo coverImage businessName city country role relatedUsers')
       .lean();
     
     if (!supplier) {
       return <h1>Supplier Not Found</h1>;
+    }
+    
+    // Check if the user is a related client of this supplier
+    let isRelatedClient = false;
+    if (userRole === 'client' && userId) {
+      isRelatedClient = supplier.relatedUsers?.some(
+        relation => relation.user?.toString() === userId && relation.status === 'active'
+      );
+      
+      // If the user is not a related client, redirect to the public catalog page
+      if (!isRelatedClient) {
+        redirect(`/catalog-preview/${supplier.businessName}`);
+      }
+    } else if (!dbUser && userRole !== 'supplier') {
+      // If no user is logged in and not a supplier, redirect to public catalog
+      redirect(`/catalog-preview/${supplier.businessName}`);
+    }
+    
+    // Conditional rendering based on user role
+    if (userRole === 'supplier' && dbUser?._id.toString() === id) {
+      // Supplier viewing their own catalog - continue with supplier view
+    } else if (userRole === 'client' && !isRelatedClient) {
+      // Client not related to this supplier - redirect to public catalog
+      redirect(`/catalog-preview/${supplier.businessName}`);
+    } else if (!dbUser) {
+      // No user logged in - redirect to public catalog
+      redirect(`/catalog-preview /${supplier.businessName}`);
     }
     
     // Fetch categories
@@ -92,7 +120,7 @@ export default async function page({ params }) {
       );
     }
     
-    // Default to client view
+    // Default to client view (only for related clients at this point)
     return (
       <ClientCatalogWrapper 
         supplier={serializedSupplier}

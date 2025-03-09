@@ -16,9 +16,9 @@ export default function BackButton() {
   // Check if the current path is one of the hidden paths
   const shouldHideButton =
     hiddenPaths.includes(pathname) || 
-    pathname.startsWith("/supplier/") && pathname.endsWith("/catalog") ||    pathname.startsWith("/supplier/") && pathname.endsWith("/clients") 
+    pathname.startsWith("/supplier/") && pathname.endsWith("/catalog") ||    pathname.startsWith("/supplier/") && pathname.endsWith("/clients") || pathname.includes("/business-card/")
 
-  if (shouldHideButton) return <div className="bg-gray-300 border-b border-gray-300 h-12 flex justify-start items-center px-4 md:hidden sticky top-0 left-0 w-full z-50"></div>;
+  if (shouldHideButton) return <div></div>;
 
   return (
     <div className="bg-gray-300 h-12 flex justify-start items-center px-4 md:hidden sticky top-0 left-0 w-full z-50">

@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import { useNewUserContext } from "@/app/context/NewUserContext";
 import { toast } from '@/hooks/use-toast';
-import { Camera, ImagePlus, MapPin, Phone, Building2, Mail, Edit, X, LogOut } from 'lucide-react';
+import { Camera, ImagePlus, MapPin, Phone, Building2, Mail, Edit, X, LogOut, CreditCard } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import NewProfileMenu from './NewProfileMenu';
 import { useClerk } from '@clerk/nextjs';
@@ -248,6 +248,11 @@ export default function NewProfile({ formData, onEdit }) {
     }
   };
 
+  const navigateToBusinessCard = () => {
+    const businessCardUrl = `/business-card/${displayData?.businessName || displayData?._id}`;
+    router.push(businessCardUrl);
+  };
+
   // Use displayData for rendering, with fallbacks
   const cityToDisplay = displayData?.city?.trim() || 'לא צוין';
   const businessNameToDisplay = displayData?.businessName || 'משתמש';
@@ -403,9 +408,17 @@ export default function NewProfile({ formData, onEdit }) {
             
             <div className="flex-1 text-center sm:text-right">
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">{businessNameToDisplay}</h1>
-              <p className="text-blue-600 font-medium mb-2">{businessNumberToDisplay}</p>
+              <p className="text-blue-600 font-medium mb-2 hidden md:block">{businessNumberToDisplay}</p>
               
               <div className="flex flex-col sm:flex-row gap-2 mt-2 justify-center sm:justify-end">
+                <button 
+                  onClick={navigateToBusinessCard}
+                  className="inline-flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-600 px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                >
+                  <CreditCard size={16} />
+                  כרטיס ביקור
+                </button>
+                
                 <button 
                   onClick={onEdit}
                   className="inline-flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-medium transition-colors"
