@@ -397,7 +397,7 @@ export default function HomePageComponent() {
                       <div className="font-medium">פריט</div>
                       <div className="flex space-x-8 space-x-reverse">
                         <div className="font-medium">כמות</div>
-                        {/* <div className="font-medium">מחיר יחידה</div> */}
+                        <div className="font-medium hidden md:block">מחיר יחידה</div>
                         <div className="font-medium">סה&quot;כ</div>
                       </div>
                     </div>
@@ -410,9 +410,9 @@ export default function HomePageComponent() {
                                           <div key={idx} className="flex justify-between items-center">
                                             <div>{item.name}</div>
                                             <div className="flex space-x-8 space-x-reverse">
-                                              <div className="w-12 text-center">{item.qty}</div>
-                                              {/* <div className="w-24 text-left">₪{item.price.toFixed(2)}</div> */}
-                                              <div className="w-24 text-left font-medium">₪{(item.qty * item.price).toFixed(2)}</div>
+                                              <div className="text-center">{item.qty}</div>
+                                              <div className="w-20 text-center hidden md:block">₪{item.price}</div>
+                                              <div className="text-left font-medium">₪{item.qty * item.price}</div>
                                             </div>
                                           </div>
                                         ))}
