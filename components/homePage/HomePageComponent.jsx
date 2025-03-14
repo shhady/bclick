@@ -258,7 +258,7 @@ export default function HomePageComponent() {
                 </div>
                 {[1, 2, 3, 4, 5].map((item, idx) => (
                   <div key={idx} className="grid grid-cols-5 gap-4 p-4 border-b border-gray-100">
-                    <div className="font-medium">מוצר לדוגמה {item}</div>
+                    <div className="font-medium">מוצר {item}</div>
                     <div>12</div>
                     <div>250 גרם</div>
                     {/* <div className="text-green-600">במלאי</div> */}
@@ -403,9 +403,9 @@ export default function HomePageComponent() {
                     </div>
                     {[
                                         
-                                          { name: "מוצר לדוגמה 1", qty: 2, price: 75 },
-                                          { name: "מוצר לדוגמה 2", qty: 1, price: 120 },
-                                          { name: "מוצר לדוגמה 3", qty: 3, price: 45 }
+                                          { name: "מוצר 1", qty: 2, price: 75 },
+                                          { name: "מוצר 2", qty: 1, price: 120 },
+                                          { name: "מוצר 3", qty: 3, price: 45 }
                                         ].map((item, idx) => (
                                           <div key={idx} className="flex justify-between items-center">
                                             <div>{item.name}</div>
