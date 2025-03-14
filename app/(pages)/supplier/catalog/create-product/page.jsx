@@ -252,7 +252,7 @@ export default function CreateProduct() {
               className="w-1/3 p-2 border border-gray-300 rounded h-[42px]"
             >
               <option value="גרם">גרם</option>
-              <option value="קילוגרם">ק"ג</option>
+              <option value="קילוגרם">ק&quot;ג</option>
               <option value="ליטר">ליטר</option>
               <option value='מ"ל'>מ&quot;ל</option>
             </select>
