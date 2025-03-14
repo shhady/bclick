@@ -215,12 +215,12 @@ export default function BusinessCardClient({ profileUser, viewer }) {
             
             {/* Name and Business */}
             <h1 className="text-3xl font-bold text-gray-900 mt-2 mb-1 animate-fadeIn" style={{animationDelay: "0.3s"}}>
-              {profileUser.name}
+              {profileUser.businessName}
             </h1>
             
             {profileUser.businessName && (
               <p className="text-xl text-gray-600 mb-3 animate-fadeIn" style={{animationDelay: "0.4s"}}>
-                {profileUser.businessName}
+                {profileUser.name}
               </p>
             )}
             
