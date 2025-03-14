@@ -191,7 +191,7 @@ export default function HomePageComponent() {
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-3 text-center md:text-right">ניתוח נתונים חכם</h3>
               <p className="text-gray-600 text-center md:text-right">
-                קבלו תובנות עסקיות חשובות באמצעות דו"חות מפורטים וניתוח מגמות מכירה.
+                קבלו תובנות עסקיות חשובות באמצעות דו&quot;חות מפורטים וניתוח מגמות מכירה.
               </p>
             </div>
           </div>
@@ -398,7 +398,7 @@ export default function HomePageComponent() {
                       <div className="flex space-x-8 space-x-reverse">
                         <div className="font-medium">כמות</div>
                         {/* <div className="font-medium">מחיר יחידה</div> */}
-                        <div className="font-medium">סה"כ</div>
+                        <div className="font-medium">סה&quot;כ</div>
                       </div>
                     </div>
                     {[
@@ -418,7 +418,7 @@ export default function HomePageComponent() {
                                         ))}
                                       </div>
                                       <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between">
-                                        <div className="font-bold text-lg">סה"כ:</div>
+                                        <div className="font-bold text-lg">סה&quot;כ:</div>
                                         <div className="font-bold text-lg text-green-600">₪435.00</div>
                                       </div>
                                       <div className="mt-6">
@@ -443,7 +443,7 @@ export default function HomePageComponent() {
                             <div className="container mx-auto px-4">
                               <div className="text-center mb-16">
                                 <h2 className="text-3xl md:text-4xl font-bold text-gray-800">
-                                  דו"חות וניתוחים חכמים
+                                  דו&quot;חות וניתוחים חכמים
                                 </h2>
                                 <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
                                   מעקב אחרי ביצועים וסטטיסטיקות בלחיצה אחת
@@ -453,7 +453,7 @@ export default function HomePageComponent() {
                               <div className="bg-white p-6 rounded-xl shadow-xl">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                                   <div className="bg-blue-50 p-4 rounded-lg">
-                                    <div className="text-sm text-customBlue mb-1">סה"כ הזמנות</div>
+                                    <div className="text-sm text-customBlue mb-1">סה&quot;כ הזמנות</div>
                                     <div className="text-2xl font-bold">1,248</div>
                                     <div className="text-xs text-green-600 mt-2 flex items-center">
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -583,7 +583,7 @@ export default function HomePageComponent() {
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
                                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                       </svg>
-                                      <span>דו"חות בסיסיים</span>
+                                      <span>דו&quot;חות בסיסיים</span>
                                     </li>
                                     <li className="flex items-center">
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -625,7 +625,7 @@ export default function HomePageComponent() {
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
                                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                       </svg>
-                                      <span>דו"חות מתקדמים</span>
+                                      <span>דו&quot;חות מתקדמים</span>
                                     </li>
                                     <li className="flex items-center">
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -672,7 +672,7 @@ export default function HomePageComponent() {
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
                                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                       </svg>
-                                      <span>דו"חות מותאמים אישית</span>
+                                      <span>דו&quot;חות מותאמים אישית</span>
                                     </li>
                                     <li className="flex items-center">
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
