@@ -24,17 +24,16 @@ export async function GET(req, { params }) {
     currentProducts.forEach(product => {
       stockInfo[product._id.toString()] = {
         stock: product.stock,
-        available: product.stock
       };
     });
 
     // Add current order quantities to available stock since we're updating
-    order.items.forEach(item => {
-      const productId = item.productId._id.toString();
-      if (stockInfo[productId]) {
-        stockInfo[productId].available += item.quantity;
-      }
-    });
+    // order.items.forEach(item => {
+    //   const productId = item.productId._id.toString();
+    //   if (stockInfo[productId]) {
+    //     stockInfo[productId].available += item.quantity;
+    //   }
+    // });
 
     return Response.json(stockInfo);
   } catch (error) {

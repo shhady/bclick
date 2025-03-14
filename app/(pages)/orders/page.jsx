@@ -30,7 +30,7 @@ export default async function NewOrdersPage() {
     .populate('clientId', 'businessName')
     .populate('supplierId', 'businessName')
     .sort({ createdAt: -1 })
-    .limit(10)
+    .limit(20)
     .lean();
 
     // Format orders for client consumption with proper serialization

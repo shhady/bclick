@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { useUserContext } from '@/app/context/UserContext';
+import { useNewUserContext } from '@/app/context/NewUserContext';
 import MyClientOrders from './MyClientOrders';
 
 // Update the print styles at the top
@@ -61,7 +61,7 @@ export default function ClientCard({ client, supplierId }) {
   const { toast } = useToast();
   const router = useRouter()
     const [openDeletePopup, setOpenDeletePopup] = useState(false);
-    const { globalUser, setGlobalUser } = useUserContext(); // Get the globalUser from the context
+    const { newUser, setNewUser } = useNewUserContext(); // Get the newUser from the context
 
   const toggleStatus = async () => {
     try {
@@ -80,8 +80,8 @@ export default function ClientCard({ client, supplierId }) {
       if (response.ok) {
         setStatus(newStatus);
         
-        // Update the globalUser context to reflect the new status
-        setGlobalUser((prev) => {
+        // Update the newUser context to reflect the new status
+        setNewUser((prev) => {
           if (!prev) return prev;
           
       
@@ -144,8 +144,8 @@ export default function ClientCard({ client, supplierId }) {
       if (response.ok) {
         setOpenDeletePopup(false);
         
-        // Update the globalUser context correctly
-        setGlobalUser((prev) => {
+        // Update the newUser context correctly
+        setNewUser((prev) => {
           if (!prev) return prev;
           
           // Filter out the removed client using proper comparison

@@ -38,17 +38,15 @@ export async function POST(req) {
         const newUser = await User.create({
             ...data,
             clientNumber: nextClientNumber,
-        }).populate({
-            path: 'relatedUsers.user',
-            select: 'name email phone address role profileImage coverImage', // Populate related users
-          })
-          .populate({
-            path: 'orders', // Populate orders array
-            select: 'status _id', // Fetch only the status and _id fields
-          })
-          .lean();
+        });
 
-        return new Response(JSON.stringify(newUser), { status: 201 });
+        // If you need to populate fields, you need to fetch the user after creation
+        const populatedUser = await User.findById(newUser._id)
+            .populate('orders')
+            .populate('products')
+            .populate('relatedUsers');
+
+        return new Response(JSON.stringify(populatedUser), { status: 201 });
     } catch (error) {
         console.error('Error in add-user:', error.message);
         return new Response(

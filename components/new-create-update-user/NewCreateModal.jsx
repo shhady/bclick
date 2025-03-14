@@ -103,6 +103,7 @@ export default function NewCreateModal({ formData, setFormData, onSubmit, isOpen
       }, 0);
     }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -131,7 +132,7 @@ export default function NewCreateModal({ formData, setFormData, onSubmit, isOpen
       setErrors(newErrors);
       return;
     }
-
+    console.log('currentFormData', currentFormData);
     try {
       const response = await fetch('/api/users/add-user', {
         method: 'POST',

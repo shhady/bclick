@@ -4,7 +4,7 @@
 import React, { useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useUserContext } from "@/app/context/UserContext";
+import { useNewUserContext } from "@/app/context/NewUserContext";
 import { ShoppingBag, AlertCircle, ArrowLeft, Phone, MapPin } from 'lucide-react';
 // import SupplierCover from '@/app/(pages)/client/[clientId]/supplier-catalog/[id]/SupplierCover';
 
@@ -84,10 +84,10 @@ export default function PublicCatalogComponent({
   products
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState('all-products');
-  const { globalUser } = useUserContext();
+  const { newUser } = useNewUserContext();
 
   return (
-    <div className='mb-20 bg-[#f8f8ff]'>
+    <div className='mb-20 bg-[#f8f8ff]'>  
       {isRelatedClient && (
         <RelatedClientBanner supplierId={supplierId} />
       )}

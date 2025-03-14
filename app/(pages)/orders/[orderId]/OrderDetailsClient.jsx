@@ -3,7 +3,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUserContext } from '@/app/context/UserContext';
+// import { useUserContext } from '@/app/context/UserContext';
 import { useNewUserContext } from '@/app/context/NewUserContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowRight } from 'lucide-react';
@@ -122,29 +122,15 @@ export default function OrderDetailsClient({ initialOrder }) {
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [stockInfo, setStockInfo] = useState(null);
   const [loadingAction, setLoadingAction] = useState(null);
-  const { globalUser } = useUserContext();
+  const { newUser,updateNewUser } = useNewUserContext();
   const router = useRouter();
   const { toast } = useToast();
   const printRef = useRef(null);
   
-  // Try to use NewUserContext if available
-  let newUser = null;
-  let updateNewUser = null;
-  
-  try {
-    const newUserContext = useNewUserContext();
-    if (newUserContext) {
-      newUser = newUserContext.newUser;
-      updateNewUser = newUserContext.updateNewUser;
-    }
-  } catch (error) {
-    console.log('NewUserContext not available in OrderDetailsClient component');
-    // NewUserContext not available, we'll continue without it
-  }
-
+ 
   // Permission checks
-  const isSupplier = globalUser?.role === 'supplier' && order.supplierId._id === globalUser._id;
-  const isClient = globalUser?.role === 'client' && order.clientId._id === globalUser._id;
+  const isSupplier = newUser?.role === 'supplier' && order.supplierId._id === newUser._id;
+  const isClient = newUser?.role === 'client' && order.clientId._id === newUser._id;
   const canModifyOrder = isClient && order.status === 'pending';
 
   const handleUpdateOrderStatus = async (status) => {
@@ -165,8 +151,8 @@ export default function OrderDetailsClient({ initialOrder }) {
           orderId: order._id,
           status,
           note: note.trim() || `סטטוס הזמנה עודכן ל${statusText[status]}`,
-          userId: globalUser._id,
-          userRole: globalUser.role
+            userId: newUser._id,
+          userRole: newUser.role
         }),
       });
 
@@ -227,7 +213,7 @@ export default function OrderDetailsClient({ initialOrder }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           orderId: order._id,
-          userRole: globalUser.role 
+          userRole: newUser.role 
         }),
       });
 
@@ -312,8 +298,8 @@ export default function OrderDetailsClient({ initialOrder }) {
           orderId: order._id,
           items: updatedItems,
           note: 'עודכנו כמויות בהזמנה',
-          userId: globalUser._id,
-          userRole: globalUser.role
+          userId: newUser._id,
+          userRole: newUser.role
         }),
       });
 

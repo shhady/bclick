@@ -1,25 +1,41 @@
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
+'use client';
 
-// Dynamically import Navbar with loading state
-const Navbar = dynamic(() => import("./Navbar"), {
-  loading: () => <div className="w-full h-16 bg-white shadow animate-pulse" />
-});
+import React from 'react';
+import Navbar from './Navbar';
+import NavbarSkeleton from './NavbarSkeleton'; // Create this component for the loading state
+import { useNewUserContext } from '@/app/context/NewUserContext';
 
-export default async function NavbarWrapper({params}) {
-  // Safely extract ID from params if available
-  let id = null;
-  if (params) {
-    try {
-      id = params.id;
-    } catch (error) {
-      console.error("Error extracting ID from params:", error);
+class NavbarErrorBoundary extends React.Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Navbar Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <NavbarSkeleton />;
     }
+    return this.props.children;
+  }
+}
+
+// Wrap your Navbar component
+export default function NavbarWrapper() {
+  const { newUser, loading } = useNewUserContext();
+  
+  // Show skeleton while loading or if user data isn't available yet
+  if (loading || !newUser) {
+    return <NavbarSkeleton />;
   }
   
   return (
-    <Suspense fallback={<div className="w-full h-16 bg-white shadow animate-pulse" />}>
-      <Navbar id={id} />
-    </Suspense>
+    <NavbarErrorBoundary>
+      <Navbar />
+    </NavbarErrorBoundary>
   );
 } 

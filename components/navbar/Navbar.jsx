@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { FaShoppingCart, FaUser, FaTags, FaList} from 'react-icons/fa';
 import { SlHandbag } from 'react-icons/sl';
@@ -45,6 +45,26 @@ const NavbarSkeleton = () => (
   </div>
 );
 
+// Add this function at the top of your file, outside the component
+const getLocalStorageCount = () => {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const count = localStorage.getItem('pendingOrdersCount');
+    return count ? parseInt(count, 10) : 0;
+  } catch (e) {
+    return 0;
+  }
+};
+
+const setLocalStorageCount = (count) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('pendingOrdersCount', count.toString());
+  } catch (e) {
+    console.error('Error saving count to localStorage:', e);
+  }
+};
+
 const Navbar = () => {
   const { id } = useParams();
   const pathName = usePathname();
@@ -53,58 +73,153 @@ const Navbar = () => {
   const { itemCount } = useCartContext();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showCartTooltip, setShowCartTooltip] = useState(false);
-  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [supplierId, setSupplierId] = useState();
-  const {newUser} = useNewUserContext();
+  const { newUser } = useNewUserContext();
+  const { globalUser } = useUserContext();
+  
+  // Initialize with the stored count from localStorage
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(getLocalStorageCount());
+  const pendingCountRef = useRef(getLocalStorageCount());
+  const lastApiCallTime = useRef(0);
+  const isDebugMode = false; // Set to true only when debugging
+  
+  // Add a flag to track first mount
+  const isFirstMount = useRef(true);
+  
+  // Function to log only in debug mode
+  const debugLog = useCallback((...args) => {
+    if (isDebugMode) {
+      console.log(...args);
+    }
+  }, []);
+  
+  // Function to update the count in all places
+  const updateCount = useCallback((newCount, source) => {
+    debugLog(`Updating pending orders count to: ${newCount} (source: ${source})`);
+    
+    // Always update on first mount, otherwise only if different
+    if ((isFirstMount.current || pendingCountRef.current !== newCount) && 
+        typeof newCount === 'number' && newCount >= 0) {
+      setPendingOrdersCount(newCount);
+      pendingCountRef.current = newCount;
+      setLocalStorageCount(newCount);
+      
+      // Also store the last update time
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingCountLastUpdated', Date.now().toString());
+      }
+      
+      // If this was the first mount, clear the flag
+      if (isFirstMount.current) {
+        isFirstMount.current = false;
+      }
+    }
+  }, [debugLog]);
+  
+  // Function to calculate pending orders count from user data
+  const calculatePendingOrders = useCallback(() => {
+    debugLog('Calculating pending orders from user data');
+    
+    // First try to use newUser if available
+    if (newUser?.orders && Array.isArray(newUser.orders)) {
+      const count = newUser.orders.filter(order => order.status === 'pending').length;
+      
+      // Only update if count is different from current count
+      if (count !== pendingCountRef.current) {
+        updateCount(count, 'calculated');
+      }
+      return;
+    }
+    
+    // Fall back to globalUser if newUser is not available
+    if (globalUser?.orders && Array.isArray(globalUser.orders)) {
+      const count = globalUser.orders.filter(order => order.status === 'pending').length;
+      
+      // Only update if count is different from current count
+      if (count !== pendingCountRef.current) {
+        updateCount(count, 'calculated');
+      }
+    }
+  }, [newUser?.orders, globalUser?.orders, updateCount, debugLog]);
+  
+  // Function to fetch the latest orders count from the API with better rate limiting
+  const fetchLatestOrdersCount = useCallback(async (userId, force = false) => {
+    if (!userId) return;
+    
+    // Get the last update time from localStorage
+    const lastUpdateTime = typeof window !== 'undefined' 
+      ? parseInt(localStorage.getItem('pendingCountLastUpdated') || '0', 10)
+      : 0;
+    
+    const now = Date.now();
+    
+    // Rate limit API calls - only fetch if:
+    // 1. It's forced, OR
+    // 2. It's been more than 5 minutes since the last update, OR
+    // 3. It's been more than 2 minutes since the last API call
+    if (!force && 
+        now - lastUpdateTime < 300000 && // 5 minutes
+        now - lastApiCallTime.current < 120000) { // 2 minutes
+      debugLog('Skipping API call due to rate limiting');
+      return;
+    }
+    
+    lastApiCallTime.current = now;
+    
+    try {
+      debugLog('Fetching latest orders count for user:', userId);
+      const response = await fetch(`/api/orders/pending-count?clerkId=${userId}`);
+      if (!response.ok) throw new Error('Failed to fetch pending orders count');
+      
+      const data = await response.json();
+      
+      // Only update if count is different from current count
+      if (data.count !== pendingCountRef.current) {
+        updateCount(data.count, 'api');
+      }
+    } catch (error) {
+      console.error('Error fetching pending orders count:', error);
+    }
+  }, [updateCount, debugLog]);
+  
+  // Initial calculation when component mounts - IMPORTANT: use layout effect
+  useLayoutEffect(() => {
+    // Force immediate calculation from user data
+    if (newUser?.orders && Array.isArray(newUser.orders)) {
+      const count = newUser.orders.filter(order => order.status === 'pending').length;
+      updateCount(count, 'initial-mount');
+    }
+    
+    // Then fetch from API to ensure we have the latest data
+    if (newUser?._id) {
+      fetchLatestOrdersCount(newUser._id, true);
+    }
+    
+    // Set up interval to refresh count every 5 minutes
+    const intervalId = setInterval(() => {
+      if (newUser?._id) {
+        fetchLatestOrdersCount(newUser._id, false);
+      }
+    }, 300000); // Every 5 minutes
+    
+    return () => clearInterval(intervalId);
+  }, [newUser?._id, newUser?.orders, fetchLatestOrdersCount, updateCount]);
   
   useEffect(() => {
     if (id) {
       setSupplierId(id);
     }
-  }, [id]); 
-  // Try to use NewUserContext if available
-  useEffect(()=>{
-    if(newUser){
-      setPendingOrdersCount(newUser?.orders?.filter((order) => order.status === 'pending').length || 0);
-    }
-  },[newUser]) 
- 
+  }, [id]);
+
   // Check if user is currently viewing a supplier catalog, favorites, or cart
   const isInSupplierCatalog = pathName.includes('/catalog/') || 
                              pathName.includes('/favourites') || 
                              pathName.includes('/cart/');
   
-
   // Define pathParts at the component level
   const pathParts = pathName ? pathName.split('/') : [];
   const currentSupplierId = isInSupplierCatalog && pathParts.length > 0 ? pathParts[pathParts.length - 1] : null;
-  // Fetch pending orders count for suppliers
-  useEffect(() => {
-    const fetchPendingOrders = async () => {
-      if (!newUser || newUser.role !== 'supplier' || !newUser._id) return;
-      
-      // If NewUserContext is available and has the user data, use that count
-      if (newUser && newUser._id === newUser._id) {
-        setPendingOrdersCount(newUser?.orders?.filter((order) => order.status === 'pending').length || 0);
-        return;
-      }
-      
-      try {
-        // Fallback: Fetch orders with pending status for this supplier from API
-        const response = await fetch(`/api/orders?userId=${newUser._id}&role=supplier&status=pending`);
-        if (response.ok) {
-          const data = await response.json();
-          setPendingOrdersCount(data.orders.length);
-         
-        }
-      } catch (error) {
-        console.error('Error fetching pending orders:', error);
-      }
-    };
-
-    fetchPendingOrders();
-  }, [newUser, pendingOrdersCount]);
-
+  
   // Use pathname changes to track navigation
   useEffect(() => {
     setIsTransitioning(false);
@@ -228,7 +343,7 @@ const Navbar = () => {
           }
           className={`flex flex-col items-center ${getIconColor('catalog')}`}
         >
-          <FaTags  className="text-[20px] md:text-[28px]"/>
+          <FaTags className="text-[20px] md:text-[28px]"/>
           <span className="text-xs md:text-base mt-1">קטלוג</span>
         </Link>
 
@@ -238,36 +353,27 @@ const Navbar = () => {
             href={`/supplier/${newUser._id}/clients`}
             className={`flex flex-col items-center ${getIconColor('client')}`}
           >
-            <FaList  className="text-[20px] md:text-[28px]" />
+            <FaList className="text-[20px] md:text-[28px]" />
             <span className="text-xs md:text-base mt-1">לקוחות</span>
           </Link>
         )}
 
         {/* Orders */}
         <Link href="/orders" className={`flex flex-col items-center relative ${getIconColor('orders')}`}>
-          <FaShoppingCart  className="text-[20px] md:text-[28px]"  />
-          <span className="text-xs md:text-base mt-1">הזמנות </span>
+          <FaShoppingCart className="text-[20px] md:text-[28px]" />
+          <span className="text-xs md:text-base mt-1">הזמנות</span>
           
           {/* Badge for pending orders */}
-          {!isOrdersPage && (
-            <>
-              {newUser && newUser.role === 'supplier' && pendingOrdersCount > 0 ? (
-                <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
-                  {pendingOrdersCount}
-                </span>
-              ) : (
-                newUser?.orders?.filter((order) => order.status === 'pending').length > 0 && (
-                  <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
-                    {newUser?.orders?.filter((order) => order.status === 'pending').length}
-                  </span>
-                )
-              )}
-            </>
+          {!isOrdersPage && pendingCountRef.current > 0 && (
+            <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
+              {pendingCountRef.current}
+            </span>
           )}
         </Link>
+        
         {/* Profile */}
         <Link href="/newprofile" className={`flex flex-col items-center ${getIconColor('profile')}`}>
-          <FaUser  className="text-[20px] md:text-[28px]" />
+          <FaUser className="text-[20px] md:text-[28px]" />
           <span className="text-xs md:text-base mt-1">פרופיל</span>
         </Link>
       </>

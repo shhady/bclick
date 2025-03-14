@@ -1,12 +1,14 @@
 // app/client/supplier/[id]/SupplierDetails.jsx
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from "next/image";
 import Link from 'next/link';
 import { MapPin, Phone, Building2, Star } from 'lucide-react';
     
-import { useUserContext } from "@/app/context/UserContext";
+import { useNewUserContext } from "@/app/context/NewUserContext";
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SupplierDetails({ 
   supplier, 
@@ -14,7 +16,64 @@ export default function SupplierDetails({
   setShowAll,
   clientId
 }) {
-  const { globalUser, setGlobalUser, setError } = useUserContext();
+  const { newUser } = useNewUserContext();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleContactSupplier = async () => {
+    if (!newUser) {
+      toast({
+        title: "שגיאה",
+        description: "עליך להתחבר כדי ליצור קשר עם הספק",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/clients/add-supplier', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clientId: newUser._id,
+          supplierId: supplier._id,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "הצלחה",
+          description: "הספק נוסף בהצלחה",
+        });
+        router.push(`/client/${newUser._id}/supplier/${supplier._id}`);
+      } else {
+        const error = await response.json();
+        toast({
+          title: "שגיאה",
+          description: error.error || "אירעה שגיאה בהוספת הספק",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding supplier:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בהוספת הספק",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatPhone = (phone) => {
+    if (!phone) return '';
+    return phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+  };
 
   return (
     <div>
@@ -39,13 +98,13 @@ export default function SupplierDetails({
               </div>
               <div className="flex gap-2 items-center text-gray-600 mt-1">
                 <Phone className="h-4 w-4 mr-1" />
-                <p>{supplier?.phone || 'טלפון לא הוזן'}</p>
+                <p>{formatPhone(supplier?.phone)}</p>
               </div>
             </div>
           </div>
           
           <div className="flex flex-col items-end">
-            {globalUser?.role === 'client' ? (
+            {newUser?.role === 'client' ? (
               <Link 
                 href={`/favourites/${supplier._id}`}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all bg-amber-100 text-amber-700 hover:bg-amber-200"
@@ -55,10 +114,14 @@ export default function SupplierDetails({
               </Link>
             ) : (
               <button 
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all bg-amber-100 text-amber-700 hover:bg-amber-200"
+                onClick={handleContactSupplier}
+                disabled={isLoading}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all bg-amber-100 text-amber-700 hover:bg-amber-200 ${
+                  isLoading ? 'bg-gray-400' : ''
+                }`}
               >
                 <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                <span>מועדפים</span>
+                <span>{isLoading ? 'מוסיף ספק...' : 'צור קשר עם הספק'}</span>
               </button>
             )}
           </div>

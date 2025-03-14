@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useUserContext } from "@/app/context/UserContext";
+import { useNewUserContext } from "@/app/context/NewUserContext";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/catalog/Header";
 import FilterSection from "@/components/catalog/FilterSection";
@@ -31,8 +31,8 @@ const ProductSkeleton = () => (
 );
 
 export default function CatalogPage({sProducts, sCategories}) {
-  const { globalUser } = useUserContext();
-  const [products, setProducts] = useState([]);
+  const { newUser } = useNewUserContext();
+  const [products, setProducts] = useState([]); 
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [categories, setCategories] = useState(sCategories || []);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -117,7 +117,7 @@ export default function CatalogPage({sProducts, sCategories}) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: updatedProduct._id,
-          supplierId: globalUser._id,
+          supplierId: newUser._id,
           updates: updatedProduct,
         }),
       });
@@ -155,7 +155,7 @@ export default function CatalogPage({sProducts, sCategories}) {
       const response = await fetch("/api/products/delete-supplier-product", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, supplierId: globalUser._id }),
+        body: JSON.stringify({ productId, supplierId: newUser._id }),
       });
 
       if (response.ok) {
@@ -204,7 +204,7 @@ export default function CatalogPage({sProducts, sCategories}) {
         handleStatusChange={handleStatusChange}
         lowStockNotification={lowStockNotification}
         categories={categories}
-        supplierId={globalUser?._id}
+        supplierId={newUser?._id}
       />
        <div className="grid grid-cols-6 gap-4 items-center pb-2 border-b-2 border-gray-500 md:p-2">
                   <div className="text-center font-semibold col-span-2 md:col-span-1"></div>

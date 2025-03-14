@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import OrderDetailsPage from './OrderDetailsPage';
 import { useUserContext } from "@/app/context/UserContext";
 import { useNewUserContext } from "@/app/context/NewUserContext";
 import Image from 'next/image';
@@ -13,6 +12,22 @@ import OrderStatusUpdate from '@/app/components/OrderStatusUpdate';
 import { OrderUpdateDialog } from '@/components/OrderUpdateDialog';
 import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog';
 import { RejectConfirmationDialog } from '@/components/RejectConfirmationDialog';
+
+
+function useDebouncedValue(value, delay = 300) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -79,7 +94,9 @@ export default function Orders({ initialOrders }) {
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [orderToReject, setOrderToReject] = useState(null);
-  
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 250);
+  const searchInputRef = useRef(null);
+
   // Try to use NewUserContext if available
   let newUser = null;
   let updateNewUser = null;
@@ -102,6 +119,32 @@ export default function Orders({ initialOrders }) {
     setStockInfo(null);
   }, []);
 
+  useEffect(() => {
+    console.log(`🔍 Searching for: "${debouncedSearchTerm}"`);
+
+    if (debouncedSearchTerm.trim() === '') {
+      console.log("🔄 Resetting orders...");
+      setOrders(initialOrders);
+      return;
+    }
+
+    const filtered = initialOrders.filter(order => {
+      const clientName = order.clientId?.businessName?.toLowerCase() || '';
+      const supplierName = order.supplierId?.businessName?.toLowerCase() || '';
+      const orderNumber = order.orderNumber?.toString() || '';
+
+      return (
+        clientName.includes(debouncedSearchTerm.toLowerCase()) ||
+        supplierName.includes(debouncedSearchTerm.toLowerCase()) ||
+        orderNumber.includes(debouncedSearchTerm)
+      );
+    });
+
+    console.log(`✅ Filtered orders count: ${filtered.length}`);
+    setOrders(filtered);
+  }, [debouncedSearchTerm, initialOrders]);
+
+  
   const handleUpdateClick = useCallback(async (order) => {
     if (!order || order.status !== 'pending') {
       toast({
@@ -269,6 +312,40 @@ export default function Orders({ initialOrders }) {
       setIsFetching(false);
     }
   }, [page, isFetching, hasMore, globalUser, isSearching, buildSearchParams, toast]);
+  
+useEffect(() => {
+  const handleSearch = () => {
+    const currentSearchTerm = searchInputRef.current?.value || '';
+
+    if (currentSearchTerm.trim() === '') {
+      console.log("🔄 Search term cleared, resetting orders...");
+      setOrders(initialOrders);
+      return;
+    }
+
+    console.log(`🔍 Filtering with searchTerm: ${currentSearchTerm}`);
+
+    const filtered = initialOrders.filter(order => {
+      const clientName = order.clientId?.businessName?.toLowerCase() || '';
+      const supplierName = order.supplierId?.businessName?.toLowerCase() || '';
+      const orderNumber = order.orderNumber?.toString() || '';
+
+      return (
+        clientName.includes(currentSearchTerm.toLowerCase()) ||
+        supplierName.includes(currentSearchTerm.toLowerCase()) ||
+        orderNumber.includes(currentSearchTerm)
+      );
+    });
+
+    console.log(`✅ Filtered orders count: ${filtered.length}`);
+    setOrders(filtered);
+  };
+
+  // Listen for changes to the input field
+  const debounceTimeout = setTimeout(handleSearch, 250); // Debounce to prevent rapid re-renders
+
+  return () => clearTimeout(debounceTimeout);
+}, [searchTerm, initialOrders]);
 
   // Reset pagination when filters change
   useEffect(() => {
@@ -276,7 +353,7 @@ export default function Orders({ initialOrders }) {
 
     setPage(1);
     setHasMore(true);
-    
+   
     // Only reset orders if we need to fetch from server
     if (searchTerm || statusFilter !== 'all') {
       setIsLoading(true);
@@ -564,7 +641,7 @@ export default function Orders({ initialOrders }) {
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <input 
             type="text"
-            placeholder="חיפוש לפי שם לקוח או מספר הזמנה..."
+            placeholder="חיפוש לפי שם לקוח..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="flex-1 p-2 border border-gray-400 rounded"

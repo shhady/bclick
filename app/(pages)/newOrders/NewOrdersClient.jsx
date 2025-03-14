@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useUserContext } from '@/app/context/UserContext';
+import { useNewUserContext } from '@/app/context/NewUserContext';
 import Loader from '@/components/loader/Loader';
 
 export default function NewOrdersClient({ initialOrders }) {
@@ -10,17 +10,17 @@ export default function NewOrdersClient({ initialOrders }) {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const loader = useRef(null);
-  const { globalUser } = useUserContext();
+  const { newUser } = useNewUserContext();
 
  
 
   const loadMoreOrders = useCallback(async () => {
-    if (isLoading || !hasMore || !globalUser) return;
+    if (isLoading || !hasMore || !newUser) return;
 
     try {
       setIsLoading(true);
       const response = await fetch(
-        `/api/generalOrders?page=${page + 1}&limit=15&clerkId=${globalUser.clerkId}`
+        `/api/generalOrders?page=${page + 1}&limit=15&clerkId=${newUser.clerkId}`
       );
       const data = await response.json();
 
@@ -42,7 +42,7 @@ export default function NewOrdersClient({ initialOrders }) {
     } finally {
       setIsLoading(false);
     }
-  }, [page, isLoading, hasMore, globalUser]);
+    }, [page, isLoading, hasMore, newUser]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

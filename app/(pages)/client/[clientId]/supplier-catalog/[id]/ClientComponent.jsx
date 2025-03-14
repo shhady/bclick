@@ -4,7 +4,7 @@
 import React, { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useUserContext } from "@/app/context/UserContext";
+import { useNewUserContext } from "@/app/context/NewUserContext";
 import { ShoppingBag, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useCartContext } from "@/app/context/CartContext";
 
@@ -41,12 +41,12 @@ export default function ClientComponent({
 }) {
   const [favorites] = useState(initialFavorites);
   const [selectedCategoryId, setSelectedCategoryId] = useState('all-products');
-  const { globalUser } = useUserContext();
+  const { newUser } = useNewUserContext();
   const { itemCount } = useCartContext();
 
   return (
     <div className='mb-20 bg-[#f8f8ff]'>
-      {globalUser?.role === 'supplier' && (
+      {newUser?.role === 'supplier' && (
         <SupplierWarningBanner />
       )}
 

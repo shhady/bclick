@@ -1,6 +1,5 @@
 import localFont from "next/font/local";
 import { ClerkProvider } from '@clerk/nextjs';
-import { UserProvider } from '@/app/context/UserContext';
 import { CartProvider } from '@/app/context/CartContext';
 import { NewUserProvider } from '@/app/context/NewUserContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -10,7 +9,8 @@ import Head from "next/head";
 import "./globals.css";
 import BackButton  from "@/components/BackButton"; // Import the new component
 import ScrollToTop from "@/components/ScrollToTop";
-
+import { OrdersProvider } from './context/OrdersContext';
+import { UserProvider } from './context/UserContext';
 const rubik = Rubik({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
@@ -93,12 +93,14 @@ export default function RootLayout({ children }) {
        
           <ErrorBoundary>
           
-              <UserProvider>
+                <UserProvider>
               <NewUserProvider>
-                <CartProvider>
-                  <BackButton /> {/* Renders the button unless pathname is "/profile" */}
-                  {children}
-                </CartProvider>
+                <OrdersProvider>
+                  <CartProvider>
+                    <BackButton /> {/* Renders the button unless pathname is "/profile" */}
+                    {children}
+                  </CartProvider>
+                </OrdersProvider>
               </NewUserProvider>
             </UserProvider>
            

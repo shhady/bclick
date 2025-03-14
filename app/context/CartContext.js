@@ -3,8 +3,7 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getCart, deleteCart } from '@/app/actions/cartActions';
 import { usePathname, useParams } from 'next/navigation';
-import { useUserContext } from "@/app/context/UserContext";
-
+import { useNewUserContext } from "@/app/context/NewUserContext";
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
@@ -13,7 +12,7 @@ export const CartProvider = ({ children }) => {
   const [currentSupplierId, setCurrentSupplierId] = useState(null);
   const pathName = usePathname();
   const params = useParams(); // <-- useParams hook now
-  const { globalUser } = useUserContext();
+  const { newUser } = useNewUserContext();
 
   // Check if user is on profile or orders page
   const isProfileOrOrders =
@@ -33,7 +32,7 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     const fetchCart = async () => {
       // Don't fetch cart for supplier users
-      if (globalUser?.role === 'supplier') return;
+      if (newUser?.role === 'supplier') return;
       
       const pathParts = pathName ? pathName.split('/') : [];
       let clientId = null;
@@ -41,7 +40,7 @@ export const CartProvider = ({ children }) => {
       
       if (isInSupplierCatalog) {
         // For /catalog/[supplierId], use the logged-in user's ID as clientId
-        clientId = globalUser?._id;
+        clientId = newUser?._id;
         supplierId = pathParts[pathParts.length - 1];
         
         if (supplierId) {
@@ -49,7 +48,7 @@ export const CartProvider = ({ children }) => {
         }
       } else if (isInFavorites) {
         // Handle favorites page - format: /client/[clientId]/favourites/[supplierId]
-        clientId = globalUser?._id;
+        clientId = newUser?._id;
         supplierId = pathParts[pathParts.length - 1];
         
         if (supplierId) {
@@ -60,7 +59,7 @@ export const CartProvider = ({ children }) => {
         const supplierIdFromParams = params?.id;
         if (supplierIdFromParams) {
           supplierId = supplierIdFromParams;
-          clientId = globalUser?._id;
+          clientId = newUser?._id;
         }
       }
       
@@ -110,8 +109,8 @@ export const CartProvider = ({ children }) => {
     isInSupplierCatalog,
     isInFavorites,
     isCartPage,
-    globalUser?.role,
-    globalUser?._id,
+    newUser?.role,
+    newUser?._id,
     currentSupplierId,
     params
   ]);
@@ -119,13 +118,13 @@ export const CartProvider = ({ children }) => {
   // The rest of your provider (fetchCartAgain, clearCart, addItemToCart) remains unchanged
   const fetchCartAgain = async () => {
     // Don't fetch cart for supplier users
-    if (globalUser?.role === 'supplier') return;
+    if (newUser?.role === 'supplier') return;
     
     // Prevent multiple simultaneous fetches
     if (isFetchingRef.current) return;
     
     // Only fetch cart if we have both clientId and supplierId
-    if (globalUser?._id && currentSupplierId) {
+    if (newUser?._id && currentSupplierId) {
       try {
         isFetchingRef.current = true;
         
@@ -136,7 +135,7 @@ export const CartProvider = ({ children }) => {
         }
         
         const response = await getCart({ 
-          clientId: globalUser._id, 
+          clientId: newUser._id, 
           supplierId: currentSupplierId 
         });
         

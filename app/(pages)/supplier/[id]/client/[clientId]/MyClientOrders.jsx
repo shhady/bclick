@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { useUserContext } from "@/app/context/UserContext";
+import { useNewUserContext } from "@/app/context/NewUserContext";
 import Loader from '@/components/loader/Loader';
 import { FiEye } from 'react-icons/fi';
 import Link from 'next/link';
@@ -26,7 +26,7 @@ export default function MyClientOrders() {
   const { clientId, id: supplierId } = params;
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
-  const { globalUser } = useUserContext();
+  const { newUser } = useNewUserContext();
   const [isLoading, setIsLoading] = useState(true);
   const [searchInput, setSearchInput] = useState('');
   const router = useRouter();
@@ -35,10 +35,10 @@ export default function MyClientOrders() {
     const fetchClientOrders = async () => {
       try {
         // Verify supplier permission
-        if (globalUser?.role !== 'supplier' || globalUser?._id !== supplierId) {
+        if (newUser?.role !== 'supplier' || newUser?._id !== supplierId) {
           router.push('/orders');
           return;
-        }
+        } 
 
         const response = await fetch(`/api/orders/client/${clientId}?supplierId=${supplierId}`);
         if (response.ok) {
@@ -52,10 +52,10 @@ export default function MyClientOrders() {
       }
     };
 
-    if (clientId && supplierId && globalUser) {
+    if (clientId && supplierId && newUser) {
       fetchClientOrders();
     }
-  }, [clientId, supplierId, globalUser, router]);
+  }, [clientId, supplierId, newUser, router]);
 
   // Filter orders based on status and search
   const filteredOrders = useMemo(() => {

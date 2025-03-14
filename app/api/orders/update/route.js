@@ -1,128 +1,146 @@
 import { connectToDB } from '@/utils/database';
 import Order from '@/models/order';
 import Product from '@/models/product';
-import { sendOrderUpdateEmail, sendOrderStatusEmail } from '@/utils/emails';
-import { NextResponse } from 'next/server';
+import User from '@/models/user';
+import { revalidatePath } from 'next/cache';
 
 export async function PUT(req) {
+  await connectToDB();
+
   try {
-    await connectToDB();
-    const body = await req.json();
-    const { orderId, items, status, note, userId, userRole } = body;
+    const { orderId, items, status, note, userId, userRole } = await req.json();
+
+    // Validate required fields
+    if (!orderId) {
+      return Response.json({ error: 'Order ID is required' }, { status: 400 });
+    }
 
     // Find the original order
     const originalOrder = await Order.findById(orderId).populate('items.productId');
     if (!originalOrder) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      return Response.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Validate permissions based on role and status
-    if (userRole === 'client' && status) {
-      return NextResponse.json({ error: 'Clients cannot update order status' }, { status: 403 });
-    }
-
-    if (userRole === 'supplier' && originalOrder.status !== 'pending' && originalOrder.status !== 'processing') {
-      return NextResponse.json({ error: 'Cannot update completed or rejected orders' }, { status: 400 });
-    }
-
-    // If updating items (only allowed for pending orders)
-    if (Array.isArray(items) && items.length > 0) {
-      if (originalOrder.status !== 'pending') {
-        return NextResponse.json({ error: 'Can only update items for pending orders' }, { status: 400 });
-      }
-      
-      // First, restore the original  quantities
-      for (const originalItem of originalOrder.items) {
-        await Product.findByIdAndUpdate(originalItem.productId._id, {
-          $inc: { stock: -originalItem.quantity }
-        });
-      }
-
-      // Then, validate and reserve the new quantities
-      for (const newItem of items) {
-        const product = await Product.findById(newItem.productId);
-        if (!product) {
-          throw new Error(`Product not found: ${newItem.productId}`);
+    // Prepare update object
+    const updateData = {
+      $set: {
+        updatedAt: new Date()
+      },
+      $push: {
+        history: {
+          action: items ? 'update_items' : 'update_status',
+          note: note || (items ? 'Items updated' : `Status updated to ${status}`),
+          timestamp: new Date(),
+          userId: userId || null,
+          userRole: userRole || null
         }
-
-        // Calculate available stock
-        const originalItem = originalOrder.items.find(
-          item => item.productId._id.toString() === newItem.productId.toString()
-        );
-        const originalQuantity = originalItem ? originalItem.quantity : 0;
-        const availableStock = product.stock  + originalQuantity;
-
-        if (availableStock < newItem.quantity) {
-          throw new Error(`Not enough stock for product: ${product.name}`);
-        }
-
-        // Update quantity
-        await Product.findByIdAndUpdate(newItem.productId, {
-          $inc: { stock: newItem.quantity }
-        });
       }
+    };
 
-      // Calculate new total
-      const total = items.reduce((sum, item) => sum + item.total, 0);
-
-      // Update the order
-      const updatedOrder = await Order.findByIdAndUpdate(
-        orderId,
-        {
-          items,
-          total,
-          status: 'pending', // Reset to pending if items are updated
-          $push: {
-            notes: {
-              message: note || 'Order items updated',
-              date: new Date(),
-              userId
-            }
-          }
-        },
-        { new: true, runValidators: true }
-      ).populate(['clientId', 'supplierId', 'items.productId']);
-
-      return NextResponse.json({ order: updatedOrder });
+    // Handle status update
+    if (status) {
+      updateData.$set.status = status;
     }
 
-    // If updating status (supplier only)
-    if (status && userRole === 'supplier') {
-      // Handle stock updates based on status change
-      if (status === 'approved') {
-        // Reduce actual stock 
-        // do nothing
-      } else if (status === 'rejected') {
-        for (const item of originalOrder.items) {
-          await Product.findByIdAndUpdate(item.productId._id, {
-            $inc: { stock: item.quantity }
+    // Handle items update
+    if (items && Array.isArray(items)) {
+      // Create a map of original order items for easy lookup
+      const originalItemsMap = {};
+      originalOrder.items.forEach(item => {
+        originalItemsMap[item.productId._id.toString()] = {
+          quantity: item.quantity,
+          product: item.productId
+        };
+      });
+
+      // Create a map of updated items for easy lookup
+      const updatedItemsMap = {};
+      items.forEach(item => {
+        updatedItemsMap[item.productId] = item.quantity;
+      });
+
+      // Process stock updates
+      const stockUpdates = [];
+
+      // 1. Handle items that were in the original order
+      for (const [productId, originalItem] of Object.entries(originalItemsMap)) {
+        const newQuantity = updatedItemsMap[productId] || 0;
+        const quantityDifference = newQuantity - originalItem.quantity;
+
+        if (quantityDifference !== 0) {
+          // If quantity decreased, add back to stock
+          // If quantity increased, reduce from stock
+          stockUpdates.push({
+            productId,
+            stockChange: -quantityDifference, // Negative because we're adjusting stock in opposite direction
+            product: originalItem.product
           });
         }
+
+        // If item was removed completely, add all quantity back to stock
+        if (!updatedItemsMap[productId]) {
+          console.log(`Item ${productId} was removed, adding ${originalItem.quantity} back to stock`);
+        }
       }
 
-      // Update order status
-      const updatedOrder = await Order.findByIdAndUpdate(
-        orderId,
-        {
-          status,
-          $push: {
-            notes: {
-              message: note || `Order status updated to ${status}`,
-              date: new Date(),
-              userId
-            }
-          }
-        },
-        { new: true }
-      ).populate(['clientId', 'supplierId', 'items.productId']);
+      // 2. Handle new items that weren't in the original order (should not happen in this flow)
+      for (const productId of Object.keys(updatedItemsMap)) {
+        if (!originalItemsMap[productId]) {
+          console.warn(`New item ${productId} was added in update - this should not happen`);
+        }
+      }
 
-      return NextResponse.json({ order: updatedOrder });
+      // Update product stock levels
+      for (const update of stockUpdates) {
+        const product = await Product.findById(update.productId);
+        if (product) {
+          product.stock += update.stockChange;
+          await product.save();
+          console.log(`Updated stock for ${product.name}: ${update.stockChange > 0 ? '+' : ''}${update.stockChange} (new stock: ${product.stock})`);
+        }
+      }
+
+      // Calculate new order total
+      let orderTotal = 0;
+      const updatedItems = items.map(item => {
+        const itemTotal = item.price * item.quantity;
+        orderTotal += itemTotal;
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+          total: itemTotal
+        };
+      });
+
+      // Add items and total to update data
+      updateData.$set.items = updatedItems;
+      updateData.$set.total = orderTotal;
     }
 
-    return NextResponse.json({ error: 'Invalid update request' }, { status: 400 });
+    // Update the order
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      updateData,
+      { new: true, runValidators: true }
+    ).populate(['items.productId', 'clientId', 'supplierId']);
+
+    // Add a log to verify the status was updated
+    console.log('Updated order status:', updatedOrder.status);
+
+    // Revalidate related paths
+    revalidatePath('/orders');
+    revalidatePath(`/orders/${orderId}`);
+
+    console.log('Sending updated order to client:', updatedOrder);
+
+    return Response.json({ 
+      message: 'Order updated successfully', 
+      order: updatedOrder 
+    });
   } catch (error) {
     console.error('Error updating order:', error);
-    return NextResponse.json(
+    return Response.json(
       { error: error.message || 'Failed to update order' },
       { status: 500 }
     );

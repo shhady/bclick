@@ -1,25 +1,43 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo,loadingAction }) {
+export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo, loadingAction }) {
   const [editedItems, setEditedItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
-    if (order) {
-      setEditedItems(order.items.map(item => {
-        const available = stockInfo?.[item.productId._id]?.available || 0;
-        const totalAvailable = available + item.quantity;
-        return {
-          ...item,
-          productId: item.productId,
-          availableStock: totalAvailable,
-          originalQuantity: item.quantity,
-          quantity: item.quantity,
-          hasError: false,
-          isEmpty: false
-        };
-      }));
+    if (order && stockInfo) {
+      // Make sure stockInfo exists and has the necessary data
+      try {
+        setEditedItems(order.items.map(item => {
+          const productId = item.productId._id.toString();
+          // Check if stockInfo has data for this product
+          if (!stockInfo[productId]) {
+            console.warn(`No stock info for product ${productId}`);
+            return {
+              ...item,
+              productId: item.productId,
+              availableStock: 0, // Default to 0 if no stock info
+              originalQuantity: item.quantity,
+              quantity: item.quantity,
+              hasError: true,
+              isEmpty: false
+            };
+          }
+          
+          return {
+            ...item,
+            productId: item.productId,
+            availableStock: stockInfo[productId].stock,
+            originalQuantity: item.quantity,
+            quantity: item.quantity,
+            hasError: false,
+            isEmpty: false
+          };
+        }));
+      } catch (error) {
+        console.error("Error setting edited items:", error);
+      }
       setLoading(false);
     }
   }, [order, stockInfo]);
@@ -56,8 +74,10 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
     onConfirm(updatedItems);
   };
 
+  // If dialog is not open or still loading, don't render anything
   if (!isOpen || loading) return null;
 
+  // Check if any items have errors or empty values
   const hasInvalidInputs = editedItems.some(item => item.hasError || item.isEmpty);
 
   return (
@@ -66,7 +86,11 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">עדכון הזמנה</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <button 
+              onClick={onClose} 
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="Close"
+            >
               <span className="text-2xl">×</span>
             </button>
           </div>
@@ -146,19 +170,18 @@ export function OrderUpdateDialog({ isOpen, onClose, onConfirm, order, stockInfo
             </button>
             <button
               onClick={handleConfirm}
-              disabled={hasInvalidInputs || loadingAction === 'updating'|| editedItems.length === 0 }
+              disabled={hasInvalidInputs || loadingAction === 'updating' || editedItems.length === 0}
               className="px-4 py-2 bg-customBlue text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingAction === 'updating' ? 'מעדכן...' : 'עדכן הזמנה'}
-              
             </button>
-          
           </div>
+          
           {editedItems.length === 0 && (
-  <p className="text-center text-red-500 mt-4">
-    לא ניתן לעדכן הזמנה ללא פריטים
-  </p>
-)}
+            <p className="text-center text-red-500 mt-4">
+              לא ניתן לעדכן הזמנה ללא פריטים
+            </p>
+          )}
         </div>
       </div>
     </div>
