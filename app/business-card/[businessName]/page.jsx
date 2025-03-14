@@ -3,6 +3,7 @@ import User from '@/models/user';
 import { currentUser } from '@clerk/nextjs/server';
 import BusinessCardClient from './BusinessCardClient';
 import { notFound } from 'next/navigation';
+import mongoose from 'mongoose';
 
 export async function generateMetadata({ params }) {
   await connectToDB();
@@ -43,10 +44,20 @@ export default async function BusinessCardPage({ params }) {
   const viewerRole = dbViewer?.role || 'guest'; // Default to guest if not found
   const viewerId = dbViewer?._id?.toString();
   
+  // Decode the business name
+  const decodedBusinessName = decodeURIComponent(businessName);
+  
   // Fetch the profile user details by businessName
-  const profileUser = await User.findOne({ businessName })
+  let profileUser = await User.findOne({
+    businessName: { $regex: new RegExp(`^${decodedBusinessName}$`, 'i') }
+  })
     .select('name email phone address logo coverImage profileImage businessName city country role relatedUsers area')
     .lean();
+  
+  // If not found by business name, try by ID
+  if (!profileUser && mongoose.Types.ObjectId.isValid(decodedBusinessName)) {
+    profileUser = await User.findById(decodedBusinessName);
+  }
   
   if (!profileUser) {
     return notFound();

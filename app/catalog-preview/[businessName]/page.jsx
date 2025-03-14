@@ -4,30 +4,39 @@ import User from '@/models/user';
 import Category from '@/models/category';
 import { currentUser } from '@clerk/nextjs/server';
 import Product from '@/models/product';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import PublicCatalogPage from './PublicCatalogPage';
 import Link from 'next/link';
+import mongoose from 'mongoose';
 
 export default async function PublicCatalogByBusinessName({ params }) {
     await connectToDB();
-    const { businessName } = await params;
+    
+    // Decode the business name parameter
+    const decodedBusinessName = decodeURIComponent(params.businessName);
     
     // Get the current user from Clerk
     const user = await currentUser();
     const clerkId = user?.id;
     
-    // Fetch the user from our database to get their role and ID
-    const dbUser = clerkId ? await User.findOne({ clerkId }).lean() : null;
-    const userRole = dbUser?.role || 'guest'; // Default to guest if not found
-    const userId = dbUser?._id?.toString();
+    // Fetch the viewer from our database to get their role and ID
+    const dbViewer = clerkId ? await User.findOne({ clerkId }).lean() : null;
+    const viewerRole = dbViewer?.role || 'guest'; // Default to guest if not found
+    const viewerId = dbViewer?._id?.toString();
     
-    // Find supplier by businessName
-    const supplier = await User.findOne({ 
-      businessName: businessName,
+    // First try to find supplier by business name (case insensitive)
+    let supplier = await User.findOne({
+      businessName: { $regex: new RegExp(`^${decodedBusinessName}$`, 'i') },
       role: 'supplier'
-    })
-      .select('name email phone address logo coverImage businessName city country role relatedUsers _id')
-      .lean();
+    }).lean();
+    
+    // If not found by business name, try by ID
+    if (!supplier && mongoose.Types.ObjectId.isValid(decodedBusinessName)) {
+      supplier = await User.findOne({
+        _id: decodedBusinessName,
+        role: 'supplier'
+      }).lean();
+    }
     
     if (!supplier) {
       // If supplier not found, show 404
@@ -44,26 +53,14 @@ export default async function PublicCatalogByBusinessName({ params }) {
     
     const supplierId = supplier._id.toString();
     
-    // Check if the current user is a related client of this supplier
-    let isRelatedClient = false;
-    let isInactiveClient = false;
-
-    if (userRole === 'client' && userId) {
-      isRelatedClient = supplier.relatedUsers?.some(
-        relation => relation.user?.toString() === userId && relation.status === 'active'
+    // Check if the viewer is related to the supplier
+    let isRelated = false;
+    if (viewerRole === 'client' && viewerId) {
+      isRelated = supplier.relatedUsers?.some(
+        relation => relation.user?.toString() === viewerId
       );
-      isInactiveClient = supplier.relatedUsers?.some(
-        relation => relation.user?.toString() === userId && relation.status !== 'active'
-      );
-      // If the user is a related client, redirect to the full catalog
-      if (isRelatedClient) {
-        redirect(`/catalog/${supplierId}`);
-      }
     }
     
-
-
-
     // Fetch categories
     const categories = await Category.find({ 
       supplierId: supplierId, 
@@ -93,8 +90,8 @@ export default async function PublicCatalogByBusinessName({ params }) {
         supplier={serializedSupplier}
         categories={serializedCategories}
         initialProducts={serializedProducts}
-        clientId={userId}
-        isRelatedClient={isRelatedClient}
+        clientId={viewerId}
+        isRelatedClient={isRelated}
         supplierId={supplierId}
       />
     );

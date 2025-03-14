@@ -33,8 +33,10 @@ export default function NewProfileMenu({ onEdit }) {
     // Close the menu
     setIsMenuOpen(false);
     
-    // Generate the business card URL
-    const businessCardUrl = `${window.location.origin}/business-card/${newUser?.businessName || newUser?._id}`;
+    // Generate the business card URL with proper encoding
+    const businessName = newUser?.businessName || newUser?._id;
+    const encodedBusinessName = encodeURIComponent(businessName);
+    const businessCardUrl = `${window.location.origin}/business-card/${encodedBusinessName}`;
     
     // Use Web Share API if available
     if (navigator.share) {

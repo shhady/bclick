@@ -249,7 +249,10 @@ export default function NewProfile({ formData, onEdit }) {
   };
 
   const navigateToBusinessCard = () => {
-    const businessCardUrl = `/business-card/${displayData?.businessName || displayData?._id}`;
+    // Properly encode the business name for URL safety
+    const businessName = displayData?.businessName || displayData?._id;
+    const encodedBusinessName = encodeURIComponent(businessName);
+    const businessCardUrl = `/business-card/${encodedBusinessName}`;
     router.push(businessCardUrl);
   };
 
