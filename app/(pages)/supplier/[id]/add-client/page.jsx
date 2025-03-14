@@ -195,9 +195,9 @@ export default function AddClientPage() {
 
           {searchPerformed && !client && searchInput && !isSearching && (
             <div className="p-4 border rounded-lg bg-gray-50 text-center">
-              <p className="text-gray-600">No results found for "{searchInput}"</p>
+              <p className="text-gray-600">לא נמצאו תוצאות</p>
               <p className="text-gray-500 text-sm mt-2">
-                Try searching with a different term or check spelling.
+                נסה חיפוש עם מושג אחר או בדק את הכתובות
               </p>
             </div>
           )}

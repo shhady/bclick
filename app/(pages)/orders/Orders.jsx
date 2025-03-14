@@ -568,16 +568,7 @@ useEffect(() => {
     setShowDeleteDialog(true);
   };
 
-  if (selectedOrder) {
-    return (
-      <OrderDetailsPage
-        order={selectedOrder}
-        onClose={() => setSelectedOrder(null)}
-        onOrderUpdate={handleOrderUpdate}
-        onOrderDelete={handleDeleteOrder}
-      />
-    );
-  }
+ 
 
   const renderOrderActions = (order) => (
     <div className="flex items-center gap-2">
