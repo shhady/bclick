@@ -16,8 +16,9 @@ export default function HomePageComponent() {
     reports: false,
     pricing: false
   });
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
   
   // Refs for sections
   const heroRef = useRef(null);
@@ -28,52 +29,74 @@ export default function HomePageComponent() {
   const reportsRef = useRef(null);
   const pricingRef = useRef(null);
 
-  // Move the redirect logic to useEffect
+  // Handle user authentication and redirect
   useEffect(() => {
-    if (user) {
+    if (isLoaded && user) {
+      setIsRedirecting(true);
       router.push('/newprofile');
     }
-  }, [user, router]);
+  }, [user, isLoaded, router]);
 
   // Handle scroll events
   useEffect(() => {
-    const handleScroll = () => {
-      // Navbar background change on scroll
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+    if (isLoaded && !user && !isRedirecting) {
+      const handleScroll = () => {
+        // Navbar background change on scroll
+        if (window.scrollY > 50) {
+          setIsScrolled(true);
+        } else {
+          setIsScrolled(false);
+        }
 
-      // Check if sections are in viewport
-      const isInViewport = (element) => {
-        if (!element) return false;
-        const rect = element.getBoundingClientRect();
-        return (
-          rect.top <= (window.innerHeight || document.documentElement.clientHeight) * 0.8 &&
-          rect.bottom >= 0
-        );
+        // Check if sections are in viewport
+        const isInViewport = (element) => {
+          if (!element) return false;
+          const rect = element.getBoundingClientRect();
+          return (
+            rect.top <= (window.innerHeight || document.documentElement.clientHeight) * 0.8 &&
+            rect.bottom >= 0
+          );
+        };
+
+        // Update visible sections
+        setVisibleSections({
+          hero: isInViewport(heroRef.current),
+          features: isInViewport(featuresRef.current),
+          catalog: isInViewport(catalogRef.current),
+          mobile: isInViewport(mobileRef.current),
+          clients: isInViewport(clientsRef.current),
+          reports: isInViewport(reportsRef.current),
+          pricing: isInViewport(pricingRef.current)
+        });
       };
 
-      // Update visible sections
-      setVisibleSections({
-        hero: isInViewport(heroRef.current),
-        features: isInViewport(featuresRef.current),
-        catalog: isInViewport(catalogRef.current),
-        mobile: isInViewport(mobileRef.current),
-        clients: isInViewport(clientsRef.current),
-        reports: isInViewport(reportsRef.current),
-        pricing: isInViewport(pricingRef.current)
-      });
-    };
+      // Initial check
+      handleScroll();
 
-    // Initial check
-    handleScroll();
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, [isLoaded, user, isRedirecting]);
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Show loading state until we know if user is authenticated
+  if (!isLoaded || isRedirecting) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Image 
+            src="/bclick-logo.jpg" 
+            alt="BClick Logo" 
+            width={150} 
+            height={150} 
+            className="mx-auto mb-6"
+          />
+          {/* <div className="mt-4 text-gray-600">טוען...</div> */}
+        </div>
+      </div>
+    );
+  }
 
+  // If user is loaded and not authenticated, show the homepage
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-customBlue">
       {/* Navbar */}
@@ -88,7 +111,7 @@ export default function HomePageComponent() {
                   alt="BClick Logo" 
                   width={100} 
                   height={50} 
-                  className=" w-auto object-contain"
+                  className="w-auto object-contain"
                 />
               </Link>
             </div>
