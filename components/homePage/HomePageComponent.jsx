@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 
 export default function HomePageComponent() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -15,7 +17,9 @@ export default function HomePageComponent() {
     pricing: false
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  const { user } = useUser();
+  const router = useRouter();
+  
   // Refs for sections
   const heroRef = useRef(null);
   const featuresRef = useRef(null);
@@ -24,6 +28,13 @@ export default function HomePageComponent() {
   const clientsRef = useRef(null);
   const reportsRef = useRef(null);
   const pricingRef = useRef(null);
+
+  // Move the redirect logic to useEffect
+  useEffect(() => {
+    if (user) {
+      router.push('/newprofile');
+    }
+  }, [user, router]);
 
   // Handle scroll events
   useEffect(() => {
