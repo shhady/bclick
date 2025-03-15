@@ -156,11 +156,11 @@ export default function AddClientPage() {
               <div className="relative w-full">
                 <input
                   type="text"
-                  placeholder="Enter search term"
+                  placeholder="חפש לקוח"
                   value={searchInput}
                   onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
-                  className="border rounded-md px-4 py-2 w-full"
+                  className="border rounded-md px-8 py-2 w-full"
                 />
                 {searchInput && (
                   <button
@@ -177,7 +177,7 @@ export default function AddClientPage() {
               <button
                 onClick={handleSearch}
                 disabled={isSearching}
-                className={`${isSearching ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white px-4 py-2 rounded-lg flex-1`}
+                className={`${isSearching ? 'bg-gray-400' : 'bg-customBlue hover:bg-blue-700'} text-white px-4 py-2 rounded-lg flex-1`}
               >
                 {isSearching ? 'מחפש לקוח...' : 'חפש לקוח'}
               </button>
