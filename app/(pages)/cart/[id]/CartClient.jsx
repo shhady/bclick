@@ -379,7 +379,7 @@ export default function CartClient({id}) {
     
     return '/no-image.jpg';
   };
-
+ 
   if (loading) {
     return (
       <div className="container mx-auto p-4 pb-24 md:pb-16">

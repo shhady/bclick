@@ -6,9 +6,12 @@ import { useRouter } from 'next/navigation';
 // import { useUserContext } from '@/app/context/UserContext';
 import { useNewUserContext } from '@/app/context/NewUserContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ShoppingCart, Loader2 } from 'lucide-react';
 import { FiPrinter, FiCheck, FiX, FiClock } from 'react-icons/fi';
 import { OrderUpdateDialog } from '@/components/OrderUpdateDialog';
+import { useCartContext } from '@/app/context/CartContext';
+import { addToCart } from '@/app/actions/cartActions';
+import ConfirmationModal from '@/app/components/ConfirmationModal';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -126,7 +129,16 @@ export default function OrderDetailsClient({ initialOrder }) {
   const router = useRouter();
   const { toast } = useToast();
   const printRef = useRef(null);
-  
+  const [reordering, setReordering] = useState(false);
+  const { setCart, fetchCartAgain, addItemToCart, clearCart } = useCartContext();  
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [modalData, setModalData] = useState({
+    title: '',
+    description: '',
+    confirmAction: null,
+    confirmText: '',
+    confirmVariant: 'primary'
+  });
  
   // Permission checks
   const isSupplier = newUser?.role === 'supplier' && order.supplierId._id === newUser._id;
@@ -288,6 +300,7 @@ export default function OrderDetailsClient({ initialOrder }) {
     }
   };
 
+  
   const handleUpdateConfirm = async (updatedItems) => {
     setLoadingAction('updating');
     try {
@@ -327,6 +340,237 @@ export default function OrderDetailsClient({ initialOrder }) {
     }
   };
 
+  const handleReorder = async () => {
+    if (!isClient) return;
+    
+    setReordering(true);
+    try {
+      // Get the supplier ID in the correct format
+      const supplierId = typeof order.supplierId === 'object' ? order.supplierId._id : order.supplierId;
+      
+      // Prepare items for stock validation
+      const itemsForValidation = order.items.map(item => ({
+        productId: {
+          _id: typeof item.productId === 'object' ? item.productId._id : item.productId
+        },
+        quantity: item.quantity
+      }));
+      
+      // Validate stock for all products at once
+      const validateResponse = await fetch('/api/products/validate-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsForValidation })
+      });
+      
+      if (!validateResponse.ok) {
+        throw new Error('Failed to validate stock');
+      }
+      
+      const stockData = await validateResponse.json();
+      
+      // Check if all products have enough stock
+      if (!stockData.hasEnoughStock) {
+        // Create lists of products with and without stock
+        const productsWithStock = [];
+        const productsWithoutStock = [];
+        
+        for (const item of order.items) {
+          const productId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+          const productName = typeof item.productId === 'object' ? item.productId.name : 'מוצר';
+          
+          const stockInfo = stockData.stockInfo[productId];
+          
+          if (stockInfo && stockInfo.hasEnough) {
+            productsWithStock.push({
+              id: productId,
+              name: productName,
+              quantity: item.quantity
+            });
+          } else {
+            productsWithoutStock.push({
+              id: productId,
+              name: productName,
+              quantity: item.quantity,
+              availableStock: stockInfo ? stockInfo.available : 0
+            });
+          }
+        }
+        
+        // If no products have stock, show message and return
+        if (productsWithStock.length === 0) {
+          toast({
+            title: 'לא ניתן ליצור הזמנה חוזרת',
+            description: 'כל המוצרים בהזמנה זו אינם זמינים במלאי כעת',
+            variant: 'destructive',
+          });
+          
+          // Show modal instead of window.confirm
+          setModalData({
+            title: 'אין מלאי זמין',
+            description: 'כל המוצרים בהזמנה זו אינם זמינים במלאי. האם ברצונך לעבור לקטלוג הספק?',
+            confirmAction: () => router.push(`/catalog/${supplierId}`),
+            confirmText: 'עבור לקטלוג',
+            confirmVariant: 'primary'
+          });
+          setShowStockModal(true);
+          
+          setReordering(false);
+          return;
+        }
+        
+        // If some products have stock and some don't, show a confirmation dialog
+        if (productsWithoutStock.length > 0) {
+          // Format the out-of-stock products as a numbered list
+          const outOfStockList = productsWithoutStock.map((item, index) => 
+            `${index + 1}. ${item.name}`
+          ).join('\n');
+          
+          // Show modal instead of window.confirm
+          setModalData({
+            title: 'חלק מהמוצרים אינם זמינים',
+            description: `המוצרים הבאים אינם זמינים במלאי:\n\n${outOfStockList}\n\nהאם ברצונך להמשיך עם המוצרים הזמינים?`,
+            confirmAction: async () => {
+              // Continue with the reorder process for available products
+              await clearCart(newUser._id, supplierId);
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              // Add only the products that have stock
+              let lastCartResponse = null;
+              const successfulItems = [];
+              
+              for (const item of productsWithStock) {
+                console.log(`Adding product ${item.id} with quantity ${item.quantity}`);
+                
+                // Use the addToCart server action
+                const response = await addToCart({
+                  clientId: newUser._id,
+                  supplierId: supplierId,
+                  productId: item.id,
+                  quantity: item.quantity
+                });
+                
+                if (response.success) {
+                  lastCartResponse = response;
+                  console.log(`Successfully added product ${item.id}`);
+                  successfulItems.push(item);
+                } else {
+                  console.error(`Failed to add product ${item.id}: ${response.message}`);
+                }
+                
+                // Add a delay between adding items
+                await new Promise(resolve => setTimeout(resolve, 300));
+              }
+              
+              // If we have a successful response, update the cart context
+              if (lastCartResponse && lastCartResponse.success && lastCartResponse.cart) {
+                console.log("Setting cart with:", lastCartResponse.cart);
+                setCart(lastCartResponse.cart);
+              }
+              
+              // Add a delay before fetching the cart again
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              // Update the cart context to ensure UI updates immediately
+              await fetchCartAgain();
+              
+              // Show appropriate message based on results
+              toast({
+                title: 'הזמנה חוזרת נוצרה חלקית',
+                description: `נוספו ${successfulItems.length} מוצרים לעגלה. ${productsWithoutStock.length} מוצרים אינם זמינים במלאי.`,
+                variant: 'warning',
+              });
+              
+              // Show which items were out of stock
+              const outOfStockNames = productsWithoutStock.map(item => item.name).join(', ');
+              toast({
+                title: 'מוצרים שאינם זמינים במלאי:',
+                description: outOfStockNames,
+                variant: 'warning',
+              });
+              
+              // Add a final delay before redirecting
+              await new Promise(resolve => setTimeout(resolve, 300));
+              
+              // Redirect to cart page
+              router.push(`/cart/${supplierId}`);
+            },
+            confirmText: 'המשך עם המוצרים הזמינים',
+            confirmVariant: 'warning'
+          });
+          setShowStockModal(true);
+          
+          setReordering(false);
+          return;
+        }
+        
+      } else {
+        // All products have enough stock, proceed with reorder
+        
+        // Clear any existing cart for this supplier
+        await clearCart(newUser._id, supplierId);
+        
+        // Add a delay to ensure the cart is cleared
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Add all items to cart
+        let lastCartResponse = null;
+        
+        for (const item of order.items) {
+          const productId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+          
+          // Use the addToCart server action
+          const response = await addToCart({
+            clientId: newUser._id,
+            supplierId: supplierId,
+            productId: productId,
+            quantity: item.quantity
+          });
+          
+          if (response.success) {
+            lastCartResponse = response;
+          }
+          
+          // Add a delay between adding items
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        
+        // If we have a successful response, update the cart context
+        if (lastCartResponse && lastCartResponse.success && lastCartResponse.cart) {
+          setCart(lastCartResponse.cart);
+        }
+        
+        // Add a delay before fetching the cart again
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Update the cart context to ensure UI updates immediately
+        await fetchCartAgain();
+        
+        // Show success message
+        toast({
+          title: 'הזמנה חוזרת נוצרה בהצלחה',
+          description: 'כל המוצרים נוספו לעגלת הקניות',
+        });
+      }
+      
+      // Add a final delay before redirecting
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Redirect to cart page
+      router.push(`/cart/${supplierId}`);
+      
+    } catch (error) {
+      console.error('Error creating reorder:', error);
+      toast({
+        title: 'שגיאה ביצירת הזמנה חוזרת',
+        description: error.message || 'אירעה שגיאה בלתי צפויה',
+        variant: 'destructive',
+      });
+    } finally {
+      setReordering(false);
+    }
+  };
+
   return (
     <div className="p-4" dir="rtl">
       {/* Back Button */}
@@ -347,17 +591,35 @@ export default function OrderDetailsClient({ initialOrder }) {
               {new Date(order.createdAt).toLocaleString('he-IL')}
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <span className={`px-3 py-1 rounded-full text-sm ${statusColors[order.status]}`}>
-              {statusText[order.status]}
-            </span>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200"
-            >
-              <FiPrinter className="w-4 h-4" />
-              הדפס
-            </button>
+          <div className="flex flex-col items-end gap-4">
+            {/* Add Reorder button here, only for clients and when status is approved or rejected */}
+            {isClient && (order.status === 'approved' || order.status === 'rejected') && (
+              <button
+                onClick={handleReorder}
+                disabled={reordering}
+                className="flex items-center justify-center gap-2 bg-blue-100 text-blue-600 px-4 py-2 rounded hover:bg-blue-200 disabled:opacity-50 w-full"
+              >
+                {reordering ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ShoppingCart className="h-4 w-4" />
+                )}
+                <span>הזמן שוב</span>
+              </button>
+            )}
+            
+            <div className="flex items-center gap-4">
+              <span className={`px-3 py-1 rounded-full text-sm ${statusColors[order.status]}`}>
+                {statusText[order.status]}
+              </span>
+              <button
+                onClick={handlePrint}
+                className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                <FiPrinter className="w-4 h-4" />
+                הדפס
+              </button>
+            </div>
           </div>
         </div>
 
@@ -603,6 +865,22 @@ export default function OrderDetailsClient({ initialOrder }) {
         order={order}
         stockInfo={stockInfo}
         loadingAction={loadingAction}
+      />
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showStockModal}
+        onClose={() => setShowStockModal(false)}
+        onConfirm={() => {
+          setShowStockModal(false);
+          if (modalData.confirmAction) {
+            modalData.confirmAction();
+          }
+        }}
+        title={modalData.title}
+        description={modalData.description}
+        confirmText={modalData.confirmText}
+        confirmVariant={modalData.confirmVariant}
       />
     </div>
   );
