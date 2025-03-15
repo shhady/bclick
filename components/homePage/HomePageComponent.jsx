@@ -16,7 +16,6 @@ export default function HomePageComponent() {
     reports: false,
     pricing: false
   });
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useUser();
   const router = useRouter();
   
