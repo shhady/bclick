@@ -1,7 +1,7 @@
 import { connectToDB } from '@/utils/database';
 import Order from '@/models/order';
 import Product from '@/models/product';
-import { sendOrderUpdateEmail, sendOrderStatusEmail } from '@/utils/emails';
+// import { sendOrderUpdateEmail, sendOrderStatusEmail } from '@/utils/emails';
 import { NextResponse } from 'next/server';
 
 export async function PUT(req) {

@@ -4,6 +4,7 @@ import Cart from '@/models/cart';
 import Order from '@/models/order';
 import Product from '@/models/product';
 import User from '@/models/user';
+import { sendNewOrderEmail } from '@/app/utils/emails';
 
 export async function POST(request) {
   try {
@@ -86,6 +87,23 @@ export async function POST(request) {
 
     // Delete the cart
     await Cart.findOneAndDelete({ clientId, supplierId });
+
+    // Fetch client and supplier details for the email
+    const client = await User.findById(clientId);
+    const supplier = await User.findById(supplierId);
+
+    // Send email notification to supplier
+    if (supplier.email) {
+      // Populate product details for the email
+      const populatedOrder = await Order.findById(savedOrder._id).populate('items.productId');
+      
+      try {
+        await sendNewOrderEmail(populatedOrder, client, supplier);
+      } catch (emailError) {
+        console.error('Error sending order email:', emailError);
+        // Continue even if email fails
+      }
+    }
 
     return NextResponse.json({
       success: true,

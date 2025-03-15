@@ -3,6 +3,7 @@ import Order from '@/models/order';
 import Product from '@/models/product';
 import User from '@/models/user';
 import { revalidatePath } from 'next/cache';
+import { sendOrderStatusEmail } from '@/app/utils/emails';
 
 export async function PUT(req) {
   await connectToDB();
@@ -124,7 +125,22 @@ export async function PUT(req) {
       updateData,
       { new: true, runValidators: true }
     ).populate(['items.productId', 'clientId', 'supplierId']);
+ // Send email notification to client when status changes
+ if (updatedOrder.clientId.email && status !== 'pending') {
+  try {
+    await sendOrderStatusEmail(
+      updatedOrder, 
+      updatedOrder.clientId, 
+      updatedOrder.supplierId,
+      note
+    );
+  } catch (emailError) {
+    console.error('Error sending status update email:', emailError);
+    // Continue even if email fails
+  }
+}
 
+console.log(`API: Order updated successfully, new status: ${updatedOrder.status}`);
     // Add a log to verify the status was updated
     console.log('Updated order status:', updatedOrder.status);
 
