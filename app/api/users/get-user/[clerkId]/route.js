@@ -7,8 +7,13 @@ export async function GET(req, { params }) {
     const { clerkId } = await params;
 
     if (!clerkId) {
-      return new Response(JSON.stringify({ error: 'Clerk ID is missing.' }), { status: 400 });
+      return new Response(JSON.stringify({ error: 'Clerk ID is missing.' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' } 
+      });
     }
+
+    console.log(`API: Fetching user data for clerkId: ${clerkId}`);
 
     // Connect to the database
     await connectToDB();
@@ -29,19 +34,36 @@ export async function GET(req, { params }) {
       });
 
     if (!user) {
-      return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
+      console.error(`API: User not found for clerkId: ${clerkId}`);
+      return new Response(JSON.stringify({ 
+        error: 'User not found',
+        message: `No user found with Clerk ID: ${clerkId}` 
+      }), { 
+        status: 404,
+        headers: { 'Content-Type': 'application/json' } 
+      });
     }
 
     // Convert to plain JSON-safe format
     const userData = JSON.parse(JSON.stringify(user));
+    console.log(`API: Successfully fetched user data for ${clerkId}`);
 
-
-    return new Response(JSON.stringify(userData), { status: 200 });
+    return new Response(JSON.stringify(userData), { 
+      status: 200,
+      headers: { 'Content-Type': 'application/json' } 
+    });
   } catch (error) {
-    console.error('Error fetching user:', error.message);
+    console.error('API Error fetching user:', error.message);
     return new Response(
-      JSON.stringify({ error: 'Failed to fetch user', details: error.message }),
-      { status: 500 }
+      JSON.stringify({ 
+        error: 'Failed to fetch user', 
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+      }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' } 
+      }
     );
   }
 }

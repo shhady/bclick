@@ -280,7 +280,7 @@ export default function ClientCard({ client, supplierId }) {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">טלפון</p>
-                  <p className="font-medium text-gray-800 dir-ltr text-left">{client.phone}</p>
+                  <p className="font-medium text-gray-800 dir-ltr text-left" dir="ltr">{client.phone}</p>
                 </div>
               </div>
 

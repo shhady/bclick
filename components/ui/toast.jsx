@@ -41,11 +41,11 @@ const toastVariants = cva(
   }
 )
 
-const Toast = React.forwardRef(({ className, variant,duration = 5000, ...props }, ref) => {
+const Toast = React.forwardRef(({ className, variant,duration = 2000, ...props }, ref) => {
   return (
     <ToastPrimitives.Root
       ref={ref}
-      duration={duration} // Automatically remove after 5 seconds
+      duration={duration} // Automatically remove after 2 seconds
 
       className={cn(
         toastVariants({ variant }),

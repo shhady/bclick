@@ -66,6 +66,7 @@ export default function PhotosUpload({ setFormData, formData }) {
         title: 'סוג קובץ לא נתמך',
         description: 'אנא העלה תמונה בפורמט PNG או JPEG',
         variant: 'destructive',
+        duration: 2000,
       });
       return;
     }
@@ -76,6 +77,7 @@ export default function PhotosUpload({ setFormData, formData }) {
         title: 'קובץ גדול מדי',
         description: 'גודל הקובץ המקסימלי הוא 5MB',
         variant: 'destructive',
+        duration: 2000,
       });
       return;
     }
@@ -101,6 +103,7 @@ export default function PhotosUpload({ setFormData, formData }) {
         toast({
           title: 'התמונה הועלתה בהצלחה',
           variant: 'default',
+          duration: 2000,
         });
       }
     } catch (error) {
@@ -108,6 +111,7 @@ export default function PhotosUpload({ setFormData, formData }) {
         title: 'שגיאה',
         description: 'העלאת התמונה נכשלה',
         variant: 'destructive',
+        duration: 2000,
       });
     } finally {
       setIsUploading(false);
@@ -155,12 +159,14 @@ export default function PhotosUpload({ setFormData, formData }) {
           title: 'התמונה נמחקה בהצלחה',
           description: '' ,
           variant: 'destructive',
+          duration: 2000,
         });
       } else {
         toast({
           title: 'שגיאה',
           description: 'מחיקת התמונה נכשלה',
           variant: 'destructive',
+          duration: 2000,
         });
       }
     } catch (error) {
@@ -168,6 +174,7 @@ export default function PhotosUpload({ setFormData, formData }) {
         title: 'שגיאה',
         description: 'An error occurred while deleting the image.',
         variant: 'destructive',
+        duration: 2000,
       });
     }
   };

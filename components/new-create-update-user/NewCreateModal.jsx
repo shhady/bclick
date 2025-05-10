@@ -296,7 +296,10 @@ export default function NewCreateModal({ formData, setFormData, onSubmit, isOpen
                 onChange={handleChange}
                 className={`border ${
                   errors[field.name] ? 'border-red-500' : 'border-gray-300'
-                } rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-customBlue`}
+                } rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-customBlue ${
+                  field.name === 'phone' ? 'text-left direction-ltr' : ''
+                }`}
+                dir={field.name === 'phone' ? 'ltr' : 'rtl'}
                 placeholder={field.placeholder || ''}
               />
               {errors[field.name] && (

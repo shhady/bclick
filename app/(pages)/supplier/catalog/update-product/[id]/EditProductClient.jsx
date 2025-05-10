@@ -86,6 +86,7 @@ export default function EditProductClient({ product, categories }) {
         toast({
           title: 'עדכון',
           description: 'פרטי המוצר עודכנו בהצלחה',
+          duration: 2000,
         });
         router.push(`/supplier/${product.supplierId}/catalog`);
       }
@@ -94,6 +95,7 @@ export default function EditProductClient({ product, categories }) {
         title: 'שגיאה',
         description: 'שגיאה בעדכון מוצר, תנסה מחדש',
         variant: 'destructive',
+        duration: 2000,
       });
     } finally {
       setUpdating(false);
@@ -113,6 +115,7 @@ export default function EditProductClient({ product, categories }) {
           title: 'המוצר נמחק',
           description: '',
           variant: 'destructive',
+          duration: 2000,
         });
         router.push(`/supplier/${product.supplierId}/catalog`);
       } else {
@@ -123,6 +126,7 @@ export default function EditProductClient({ product, categories }) {
         title: 'שגיאה',
         description: 'שגיאה קרתה במהלך המחיקה, תנסה שוב',
         variant: 'destructive',
+        duration: 2000,
       });
     }
   };
@@ -172,6 +176,7 @@ export default function EditProductClient({ product, categories }) {
         title: 'סוג קובץ לא נתמך',
         description: 'אנא העלה תמונה בפורמט PNG או JPEG',
         variant: 'destructive',
+        duration: 2000,
       });
       return;
     }
@@ -182,6 +187,7 @@ export default function EditProductClient({ product, categories }) {
         title: 'קובץ גדול מדי',
         description: 'גודל הקובץ המקסימלי הוא 5MB',
         variant: 'destructive',
+        duration: 2000,
       });
       return;
     }
@@ -207,6 +213,7 @@ export default function EditProductClient({ product, categories }) {
         toast({
           title: 'התמונה הועלתה בהצלחה',
           variant: 'default',
+          duration: 2000,
         });
       }
     } catch (error) {
@@ -214,6 +221,7 @@ export default function EditProductClient({ product, categories }) {
         title: 'שגיאה',
         description: 'העלאת התמונה נכשלה',
         variant: 'destructive',
+        duration: 2000,
       });
     } finally {
       setIsUploading(false);
@@ -233,6 +241,7 @@ export default function EditProductClient({ product, categories }) {
       title: 'מחיקה',
       description: 'התמונה נמחקה בהצלחה',
       variant: 'destructive',
+      duration: 2000,
     });
   };
 

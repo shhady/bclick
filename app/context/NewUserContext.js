@@ -8,6 +8,8 @@ const NewUserContext = createContext();
 const USER_STORAGE_KEY = 'bclick_new_user_data';
 const USER_TIMESTAMP_KEY = 'bclick_new_user_timestamp';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+const FAILED_REQUEST_KEY = 'bclick_failed_requests';
+const MAX_RETRIES = 3; // Maximum number of retries
 
 const getStoredUserData = () => {
   if (typeof window === 'undefined') return null;
@@ -39,7 +41,6 @@ const storeUserData = (userData) => {
   if (typeof window === 'undefined') return;
   
   try {
-    
     // Ensure we're storing a complete copy with all nested objects
     const dataToStore = JSON.stringify(userData);
     
@@ -67,6 +68,42 @@ const clearStoredUserData = () => {
   }
 };
 
+// Track failed requests to avoid repeated failures
+const getFailedRequests = () => {
+  if (typeof window === 'undefined') return {};
+  
+  try {
+    const failedData = window.sessionStorage.getItem(FAILED_REQUEST_KEY);
+    return failedData ? JSON.parse(failedData) : {};
+  } catch (error) {
+    console.error('Error reading failed requests:', error);
+    return {};
+  }
+};
+
+const updateFailedRequest = (userId, increment = true) => {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const failedRequests = getFailedRequests();
+    
+    if (increment) {
+      // Add or increment retry count
+      failedRequests[userId] = {
+        count: (failedRequests[userId]?.count || 0) + 1,
+        timestamp: Date.now()
+      };
+    } else {
+      // Reset on success
+      delete failedRequests[userId];
+    }
+    
+    window.sessionStorage.setItem(FAILED_REQUEST_KEY, JSON.stringify(failedRequests));
+  } catch (error) {
+    console.error('Error updating failed requests:', error);
+  }
+};
+
 export function NewUserProvider({ children }) {
   const { isLoaded: isClerkLoaded, user: clerkUser } = useUser();
   const [newUser, setNewUserState] = useState(null);
@@ -74,7 +111,6 @@ export function NewUserProvider({ children }) {
   const [error, setError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
- 
   // Initialize user data from storage on mount (client-side only)
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -95,15 +131,53 @@ export function NewUserProvider({ children }) {
       return;
     }
     
+    // Check if this request has failed too many times
+    const failedRequests = getFailedRequests();
+    const failedRequest = failedRequests[clerkId];
+    
+    if (failedRequest) {
+      // If we've tried too many times, back off
+      if (failedRequest.count >= MAX_RETRIES) {
+        const backoffTime = 60 * 1000; // 1 minute
+        const elapsed = Date.now() - failedRequest.timestamp;
+        
+        if (elapsed < backoffTime) {
+          console.warn(`Backing off fetch for user ${clerkId} - too many failed attempts`);
+          setLoading(false);
+          return;
+        }
+        
+        // Reset count after backoff period
+        failedRequest.count = 0;
+      }
+    }
+    
     setLoading(true);
+    console.log(`Fetching user data for ${clerkId}...`);
     
     try {
       const response = await fetch(`/api/users/get-user/${clerkId}`);
       
+      if (response.status === 404) {
+        console.error(`User not found in database: ${clerkId}`);
+        updateFailedRequest(clerkId);
+        setError('User not found in the database. Please contact support.');
+        setLoading(false);
+        return;
+      }
+      
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          errorData = { error: errorText || 'Unknown error' };
+        }
+        
         console.error('Error fetching user data:', errorData);
-        setError(errorData.message || 'Failed to fetch user data');
+        updateFailedRequest(clerkId);
+        setError(errorData.message || `Failed to fetch user data: ${response.status}`);
         setLoading(false);
         return;
       }
@@ -112,10 +186,14 @@ export function NewUserProvider({ children }) {
       
       if (!userData) {
         console.error('No user data returned from API');
+        updateFailedRequest(clerkId);
         setError('No user data found');
         setLoading(false);
         return;
       }
+      
+      // Reset failed request count on success
+      updateFailedRequest(clerkId, false);
       
       // Directly set the state with the received data
       setNewUserState(userData);
@@ -125,8 +203,10 @@ export function NewUserProvider({ children }) {
       
       // Reset error state
       setError(null);
+      console.log(`Successfully fetched user data for ${clerkId}`);
     } catch (error) {
       console.error('Error in fetchUserData:', error);
+      updateFailedRequest(clerkId);
       setError(error.message || 'An error occurred while fetching user data');
     } finally {
       setLoading(false);
@@ -135,7 +215,6 @@ export function NewUserProvider({ children }) {
 
   // Function to handle user changes
   const processUserChange = useCallback((user) => {
-    
     if (!user) {
       setNewUserState(null);
       clearStoredUserData();
@@ -160,10 +239,20 @@ export function NewUserProvider({ children }) {
     // Process the current user
     processUserChange(clerkUser);
 
-    // Set up periodic background refresh
+    // Set up periodic background refresh with better error handling
     const refreshInterval = setInterval(() => {
+      // Only refresh if:
+      // 1. We have a logged in user
+      // 2. We're not currently loading data
+      // 3. There are no active errors OR it's been at least 1 minute since the last retry
       if (clerkUser?.id && !loading) {
-        processUserChange(clerkUser);
+        const shouldRetryDespiteError = error && 
+          getFailedRequests()[clerkUser.id]?.timestamp && 
+          (Date.now() - getFailedRequests()[clerkUser.id].timestamp) > 60000;
+        
+        if (!error || shouldRetryDespiteError) {
+          processUserChange(clerkUser);
+        }
       }
     }, CACHE_DURATION / 2);
 
@@ -173,11 +262,10 @@ export function NewUserProvider({ children }) {
         clearStoredUserData();
       }
     };
-  }, [isClerkLoaded, clerkUser, loading, processUserChange]);
+  }, [isClerkLoaded, clerkUser, loading, processUserChange, error]);
 
   // Enhanced setNewUser function with proper state management
   const setNewUser = useCallback((userData) => {
-    
     if (userData) {
       // Don't use JSON.parse/stringify as it can lose complex object references
       // Instead, set the state directly to preserve all references
@@ -197,7 +285,6 @@ export function NewUserProvider({ children }) {
 
   // Enhanced update functions with cache management
   const updateNewUser = useCallback((updatedData) => {
-    
     setNewUserState((prev) => {
       if (!prev) return null;
       const newData = { ...prev, ...updatedData };

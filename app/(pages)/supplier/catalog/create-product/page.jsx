@@ -119,6 +119,7 @@ export default function CreateProduct() {
           title: `${isDraft ? 'הטיוטה נשמרה בהצלחה' : 'המוצר נוצר בהצלחה'}`,
           description: '',
           variant: 'default',
+          duration: 2000,
         });
         
         // Navigate back to catalog after successful creation
@@ -164,12 +165,12 @@ export default function CreateProduct() {
       {/* Header with back button */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
         <div className="flex items-center">
-          <button 
+          {/* <button 
             onClick={() => router.back()} 
             className="mr-4 p-2 rounded-full hover:bg-gray-100 transition-colors"
           >
             <ArrowLeft className="h-5 w-5 text-gray-600" />
-          </button>
+          </button> */}
           <h1 className="text-2xl font-bold text-gray-800">יצירת מוצר חדש</h1>
         </div>
         
