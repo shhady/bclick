@@ -531,7 +531,7 @@ export default function EditProductClient({ product, categories }) {
                 <AlertCircle className="h-8 w-8 text-red-600" />
               </div>
               <h2 className="text-xl font-bold text-gray-800 mb-2">האם אתה בטוח?</h2>
-              <p className="text-gray-600">פעולה זו תמחק לצמיתות את המוצר "{updatedProduct.name}"</p>
+              <p className="text-gray-600">פעולה זו תמחק לצמיתות את המוצר &ldquo;{updatedProduct.name}&ldquo;</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <button

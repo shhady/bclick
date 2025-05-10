@@ -20,7 +20,7 @@ export default function DeleteCategoryPopup({
               <h2 className="text-xl font-bold text-gray-800 mb-2">לא ניתן למחוק קטגוריה עם מוצרים</h2>
               <div className="text-gray-600 space-y-2">
                 <p>
-                  הקטגוריה "<span className="font-semibold">{category.name}</span>" מכילה <span className="font-semibold">{category.productCount}</span> מוצרים.
+                  הקטגוריה &quot;<span className="font-semibold">{category.name}</span>&quot; מכילה <span className="font-semibold">{category.productCount}</span> מוצרים.
                 </p>
                 <div className="bg-amber-50 border-r-4 border-amber-500 text-amber-800 p-3 rounded-lg mt-3 text-right">
                   <p className="font-bold mb-1">שים לב:</p>
@@ -43,7 +43,7 @@ export default function DeleteCategoryPopup({
               </div>
               <h2 className="text-xl font-bold text-gray-800 mb-2">האם אתה בטוח?</h2>
               <p className="text-gray-600">
-                האם ברצונך למחוק את הקטגוריה "{category.name}"? פעולה זו אינה ניתנת לביטול.
+                האם ברצונך למחוק את הקטגוריה &quot;{category.name}&quot;? פעולה זו אינה ניתנת לביטול.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
