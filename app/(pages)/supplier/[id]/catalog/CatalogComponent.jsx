@@ -3,28 +3,28 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNewUserContext } from "@/app/context/NewUserContext";
 import { useToast } from "@/hooks/use-toast";
-import Header from "@/components/catalog/Header";
 import FilterSection from "@/components/catalog/FilterSection";
-// import ProductList from "@/components/catalog/ProductList";
-import EditProductPopup from "@/components/catalog/EditProductPopup";
 import dynamic from 'next/dynamic';
 import { Suspense } from "react";
 import Loader from "@/components/loader/Loader";
 import Link from "next/link";
+import { PlusCircle } from "lucide-react";
 
 const ProductList = dynamic(() => import('@/components/catalog/ProductList'))
 
 // Add ProductSkeleton for better loading states
 const ProductSkeleton = () => (
-  <div className="animate-pulse space-y-4">
+  <div className="animate-pulse space-y-4 mt-4">
     {[...Array(5)].map((_, i) => (
-      <div key={i} className="grid grid-cols-6 gap-4 p-4 bg-white rounded-lg">
-        <div className="col-span-2 md:col-span-1 h-16 bg-gray-200 rounded"></div>
-        <div className="col-span-2 md:col-span-1 h-4 bg-gray-200 rounded"></div>
-        <div className="hidden md:block h-4 bg-gray-200 rounded"></div>
-        <div className="hidden md:block h-4 bg-gray-200 rounded"></div>
-        <div className="h-4 bg-gray-200 rounded"></div>
-        <div className="h-4 bg-gray-200 rounded"></div>
+      <div key={i} className="bg-white rounded-xl p-4 shadow-sm">
+        <div className="grid grid-cols-6 gap-4">
+          <div className="col-span-2 md:col-span-1 h-24 bg-gray-200 rounded-lg"></div>
+          <div className="col-span-2 md:col-span-1 h-5 bg-gray-200 rounded-lg"></div>
+          <div className="hidden md:block h-5 bg-gray-200 rounded-lg"></div>
+          <div className="hidden md:block h-5 bg-gray-200 rounded-lg"></div>
+          <div className="h-5 bg-gray-200 rounded-lg"></div>
+          <div className="h-5 bg-gray-200 rounded-lg"></div>
+        </div>
       </div>
     ))}
   </div>
@@ -39,7 +39,6 @@ export default function CatalogPage({sProducts, sCategories}) {
   const [selectedStatus, setSelectedStatus] = useState("active");
   const [lowStockNotification, setLowStockNotification] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [isScrolled, setIsScrolled] = useState(false);
   const { toast } = useToast();
 
   // Memoize the low stock check
@@ -65,41 +64,20 @@ export default function CatalogPage({sProducts, sCategories}) {
     setFilteredProducts(filteredProductsMemo);
   }, [filteredProductsMemo]);
 
-  // Optimize scroll handling with useCallback
-  const handleScroll = useCallback(() => {
-    const scrolled = window.scrollY > 0;
-    setIsScrolled(scrolled);
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
-
   const handleStatusChange = useCallback((status) => {
     if (status === "low_stock") setLowStockNotification(false);
     
-    // First update the states
+    // Update the states
     setSelectedStatus(status);
     setSelectedCategory('');
     
-    // Use requestAnimationFrame to ensure DOM updates before scrolling
-    requestAnimationFrame(() => {
-      // Force scroll position to top immediately
-      window.scrollTo(0, 0);
-      
-      // Then set the new scroll position without animation
-      document.documentElement.style.scrollBehavior = 'auto';
+    // Use setTimeout to ensure DOM updates before scrolling
+    setTimeout(() => {
       window.scrollTo({
         top: 0,
         behavior: 'auto'
       });
-      
-      // Reset scroll behavior after the scroll
-      setTimeout(() => {
-        document.documentElement.style.scrollBehavior = '';
-      }, 0);
-    });
+    }, 10);
   }, []);
 
   // Optimize product updates with optimistic updates
@@ -149,7 +127,6 @@ export default function CatalogPage({sProducts, sCategories}) {
     }
   };
   
-
   const handleDeleteProduct = async (productId) => {
     try {
       const response = await fetch("/api/products/delete-supplier-product", {
@@ -179,51 +156,77 @@ export default function CatalogPage({sProducts, sCategories}) {
   };
 
   return (
-    <div className="w-full px-4 md:p-0">
-        <div className="w-full max-w-5xl mx-auto">
+    <div className="p-2 sm:p-4 max-w-5xl mx-auto">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 sm:p-6">
+        {/* Fixed header section - no longer sticky */}
+        <div className="w-full bg-white pb-4">
+          {/* Header Section */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">קטלוג המוצרים</h1>
+            <Link href="/supplier/catalog/create-product">
+              <button className="bg-customBlue text-white px-4 py-2.5 rounded-lg hover:bg-blue-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2 w-full sm:w-auto">
+                <PlusCircle size={18} />
+                הוסף מוצר
+              </button>
+            </Link>
+          </div>
 
-        
-        <div 
-          className={`sticky md:top-20 top-12 z-10 transition-all duration-200 ease-in-out
-            ${isScrolled ? 'bg-white shadow-md' : 'bg-[#f8f8ff]'} 
-            w-full px-1 pt-6 pb-1`}
-        >
-       <div className="flex justify-between items-center mb-6 sticky top-12 z-10">
-      <h1 className="text-2xl font-bold">קטלוג</h1>
-      <Link href="/supplier/catalog/create-product">
+          {/* Filter Section */}
+          <FilterSection
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            selectedStatus={selectedStatus}
+            handleStatusChange={handleStatusChange}
+            lowStockNotification={lowStockNotification}
+            categories={categories}
+            supplierId={newUser?._id}
+          />
 
-        <button className="bg-customBlue text-white px-4 py-2 rounded-md hover:bg-hoveredBlue">
-          הוסף מוצר +
-        </button>
-      </Link>
-    </div>
-      <FilterSection
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        selectedStatus={selectedStatus}
-        handleStatusChange={handleStatusChange}
-        lowStockNotification={lowStockNotification}
-        categories={categories}
-        supplierId={newUser?._id}
-      />
-       <div className="grid grid-cols-6 gap-4 items-center pb-2 border-b-2 border-gray-500 md:p-2">
-                  <div className="text-center font-semibold col-span-2 md:col-span-1"></div>
-                    <div className="text-start font-semibold col-span-2 md:col-span-1 md:flex md:justify-center">שם</div>
-                    <div className="text-center font-semibold hidden md:flex md:justify-center ">יחידות</div>
-                    <div className="text-center font-semibold hidden md:flex md:justify-center">משקל יחידה</div>
-                    <div className="text-center font-semibold">מלאי</div>
-                    <div className="text-center font-semibold">מחיר</div>
-                  </div>
+          {/* Table Header */}
+          <div className="hidden sm:grid grid-cols-7 gap-4 items-center pb-3 border-b border-gray-200 mb-4 font-medium text-gray-600 text-sm">
+            <div className="text-center col-span-1"></div>
+            <div className="text-center col-span-1">שם</div>
+            <div className="text-center">יחידות</div>
+            <div className="text-center">משקל יחידה</div>
+            <div className="text-center">מלאי</div>
+            <div className="text-center">מחיר</div>
+            <div className="text-center">פעולות</div>
+          </div>
         </div>
-     <Suspense fallback={<ProductSkeleton />}>
-     <ProductList
-        products={filteredProducts}
-        onEdit={(product) => setEditingProduct(product)}
-      />
-     </Suspense>
-    
+
+        {/* Product List - Scrollable content */}
+        <div className="overflow-y-auto">
+          <Suspense fallback={<ProductSkeleton />}>
+            <ProductList
+              products={filteredProducts}
+              onEdit={(product) => setEditingProduct(product)}
+            />
+          </Suspense>
+
+          {/* Empty State */}
+          {filteredProducts.length === 0 && (
+            <div className="text-center py-12 rounded-xl mt-6 bg-gray-50 border border-gray-100">
+              <svg 
+                className="mx-auto h-12 w-12 text-gray-400 mb-4" 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+              <p className="text-gray-500 text-lg mb-2">
+                {selectedCategory ? "אין מוצרים בקטגוריה זו" : 
+                selectedStatus === "low_stock" ? "אין מוצרים חסרים במלאי" : 
+                "אין מוצרים להצגה"}
+              </p>
+              <p className="text-gray-400 text-sm">
+                נסה לשנות את הסינון או להוסיף מוצרים חדשים
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-     
     </div>
   );
 }

@@ -77,7 +77,7 @@ export default function SupplierDetails({
 
   return (
     <div>
-      <div className="bg-white shadow-md rounded-lg p-4  transform -translate-y-6 mx-auto max-w-3xl">
+      <div className="bg-white shadow-md rounded-lg p-4  transform -translate-y-6 mx-auto max-w-6xl">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4">
             {supplier?.logo && (

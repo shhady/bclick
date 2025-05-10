@@ -187,77 +187,140 @@ export default function ClientCard({ client, supplierId }) {
     <>
       <style>{printStyles}</style>
       
-      <div className="p-4 border rounded-lg my-4 bg-white">
-        <div className="no-print flex justify-between items-center">
-          {/* <button
-            onClick={() => router.back()}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors duration-200 flex items-center gap-2 font-medium shadow-sm"
-          >
-            <ArrowRight />
-            חזור
-          </button> */}
-          <div   className="px-4 py-2 "
-          ></div>
-          <button
-            onClick={() => window.print()}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors duration-200 flex items-center gap-2 font-medium shadow-sm mr-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd" />
-            </svg>
-            הדפס
-          </button>
-        </div>
-
-        <div className='flex justify-between items-center my-4'>
-          <h2 className='text-2xl'>כרטיס לקוח</h2>
-          <div className='flex justify-center items-center gap-2'>
+      <div className="p-4 max-w-5xl mx-auto">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <div className="no-print flex justify-between items-center mb-6">
+            <div className="text-xl sm:text-2xl font-bold text-gray-800">כרטיס לקוח</div>
             <button
-              onClick={toggleStatus}
-              className={`px-2 py-1 rounded-lg text-white ${
-                status === 'active'
-                  ? 'bg-customRed hover:bg-red-600'
-                  : 'bg-customGreen hover:bg-customGreen-600'
-              }`}
+              onClick={() => window.print()}
+              className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 rounded-lg transition-all duration-300 flex items-center gap-2 border border-gray-200 shadow-sm hover:shadow-md"
             >
-              {status === 'active' ? 'תהפוך ללא פעיל' : 'תהפוך לפעיל'}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-customBlue" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clipRule="evenodd" />
+              </svg>
+              הדפס
             </button>
-            {status === 'inactive' && (
+          </div>
+
+          <div className='flex flex-row justify-end items-end sm:items-center mb-6 border-b border-gray-200 pb-4'>
+            <div className='flex flex-col gap-1'>
+              {/* <h2 className='text-xl sm:text-2xl font-bold text-gray-800 mb-2'>פרטי לקוח</h2> */}
               <button
-                onClick={() => setOpenDeletePopup(true)}
-                className="px-2 py-1 hover:bg-customGray text-white rounded-lg bg-red-500"
+                onClick={toggleStatus}
+                className={`px-4 py-2 rounded-lg text-white font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
+                  status === 'active'
+                    ? 'bg-red-500 hover:bg-red-600'
+                    : 'bg-green-500 hover:bg-green-600'
+                }`}
               >
-                מחק לקוח
+                {status === 'active' ? 'תהפוך ללא פעיל' : 'תהפוך לפעיל'}
               </button>
-            )}
-          </div>
-        </div>
-
-        {/* Print content */}
-        <div className="print-content">
-          <div className='p-2 rounded-lg text-lg'>
-            <p>שם לקוח: {client.name}</p>
-            <p>שם עסק: {client.businessName}</p>
-            <p>מספר לקוח: {client.clientNumber}</p>
-            <p>טלפון: {client.phone}</p>
-            <p>סטטוס: {status === "active" ? "פעיל" : "לא פעיל"}</p>
-          </div>
-          <MyClientOrders />
-        </div>
-
-        {/* Delete popup */}
-        {openDeletePopup && (
-          <div className="no-print z-50 fixed w-full min-h-screen flex justify-center items-center inset-0 bg-black bg-opacity-50">
-            <div className="bg-white p-8 rounded-xl">
-              <div>{client.name}</div>
-              <div>בטוח רוצה למחוק ? </div>
-              <div className="w-full flex justify-between items-center mt-8 gap-8">
-                <button className="bg-customRed px-4 py-2 rounded-lg text-white" onClick={handleRemove}>מחק</button>
-                <button className="bg-gray-500 px-4 py-2 rounded-lg text-white" onClick={() => setOpenDeletePopup(false)}>ביטול</button>
-              </div>
+            </div>
+            <div className='flex items-center gap-3'>
+              {status === 'inactive' && (
+                <button
+                  onClick={() => setOpenDeletePopup(true)}
+                  className="px-4 mr-2 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2"
+                >
+                  <Trash2 size={18} />
+                  מחק לקוח
+                </button>
+              )}
             </div>
           </div>
-        )}
+
+          {/* Print content */}
+          <div className="print-content">
+            <div className='rounded-xl bg-gray-50 p-6 mb-8 grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-100'>
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <svg className="h-5 w-5 text-customBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">שם לקוח</p>
+                  <p className="font-medium text-gray-800">{client.name}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <svg className="h-5 w-5 text-customBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">שם עסק</p>
+                  <p className="font-medium text-gray-800">{client.businessName}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <svg className="h-5 w-5 text-customBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">מספר לקוח</p>
+                  <p className="font-medium text-gray-800">
+                    <span className="bg-blue-100 text-customBlue py-1 px-3 rounded-full text-sm">
+                      {client.clientNumber}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <svg className="h-5 w-5 text-customBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">טלפון</p>
+                  <p className="font-medium text-gray-800 dir-ltr text-left">{client.phone}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <svg className="h-5 w-5 text-customBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">סטטוס</p>
+                  <p className="font-medium">
+                    <span className={`py-1 px-3 rounded-full text-sm ${
+                      status === "active" 
+                        ? "bg-green-100 text-green-800" 
+                        : "bg-red-100 text-red-800"
+                    }`}>
+                      {status === "active" ? "פעיל" : "לא פעיל"}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <MyClientOrders />
+          </div>
+
+          {/* Delete popup */}
+          {openDeletePopup && (
+            <div className="no-print z-50 fixed w-full min-h-screen flex justify-center items-center inset-0 bg-black bg-opacity-50">
+              <div className="bg-white p-8 rounded-xl">
+                <div>{client.name}</div>
+                <div>בטוח רוצה למחוק ? </div>
+                <div className="w-full flex justify-between items-center mt-8 gap-8">
+                  <button className="bg-customRed px-4 py-2 rounded-lg text-white" onClick={handleRemove}>מחק</button>
+                  <button className="bg-gray-500 px-4 py-2 rounded-lg text-white" onClick={() => setOpenDeletePopup(false)}>ביטול</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

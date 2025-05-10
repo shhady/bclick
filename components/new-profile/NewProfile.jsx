@@ -355,7 +355,7 @@ export default function NewProfile({ formData, onEdit }) {
       </div>
       
       {/* Profile Content */}
-      <div className="relative px-6 pb-8 -mt-24">
+      <div className="relative -mt-24">
         {/* Profile Card */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           {/* Profile Header with Avatar */}
