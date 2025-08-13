@@ -30,7 +30,7 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  metadataBase: new URL('https://bclick-umber.vercel.app'),
+  metadataBase: new URL('https://bclick.co'),
   title: {
     default: 'BClick - ניהול ספקים ולקוחות',
     template: '%s | BClick'
@@ -40,7 +40,7 @@ export const metadata = {
   openGraph: {
     type: 'website',
     locale: 'he_IL',
-    url: 'https://bclick-umber.vercel.app',
+    url: 'https://bclick.co',
     siteName: 'BClick',
     images: [{
       url: '/og-image.jpg',
@@ -53,7 +53,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "BClick - Efficient Supplier and Client Management",
     description: "Streamline your business operations with BClick.",
-    images: ["https://bclick-umber.vercel.app/twitter-image.png"], 
+    images: ["https://bclick.co/twitter-image.png"], 
     site: "@your_twitter_handle", 
   },
   robots: {

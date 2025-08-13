@@ -5,7 +5,7 @@ Disallow: /api/*
 Disallow: /admin/*
 
 # Host
-Host: https://bclick-umber.vercel.app
+Host: https://bclick.co
 
 # Sitemaps
-Sitemap: https://bclick-umber.vercel.app/sitemap.xml
+Sitemap: https://bclick.co/sitemap.xml
