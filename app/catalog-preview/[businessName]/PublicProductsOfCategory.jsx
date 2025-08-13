@@ -114,14 +114,14 @@ function PublicProductDetailModal({ product, isVisible, onClose }) {
             )}
             
             {/* Stock information */}
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-700">מלאי זמין:</span>
                 <span className={`text-sm font-medium ${product.stock === 0 ? 'text-red-500' : 'text-green-600'}`}>
                   {product.stock === 0 ? 'אזל מהמלאי' : `${product.stock} יחידות`}
                 </span>
               </div>
-            </div>
+            </div> */}
             
             {/* Note about ordering */}
             <div className="mt-6 p-3 bg-gray-50 rounded-lg border border-gray-200">

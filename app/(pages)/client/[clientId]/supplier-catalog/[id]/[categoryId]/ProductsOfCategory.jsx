@@ -288,9 +288,15 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
             </div>
           ))
         ) : (
-          <div className="text-center mt-4">
-            <p className="text-gray-600">טוען מוצרים...</p>
-          </div>
+          <>
+            {!loadingState.initialFetchDone ? (
+              <div className="flex justify-center mt-4"><Loader /></div>
+            ) : (
+              <div className="text-center mt-4">
+                <p className="text-gray-600">אין מוצרים להצגה</p>
+              </div>
+            )}
+          </>
         )}
 
         {loadingState.error && (
@@ -524,14 +530,14 @@ export default function ProductsOfCategory({ cart, favorites: initialFavorites, 
             )}
             
             {/* Stock information */}
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-700">מלאי זמין:</span>
                 <span className={`text-sm font-medium ${product.stock === 0 ? 'text-red-500' : 'text-green-600'}`}>
                   {product.stock === 0 ? 'אזל מהמלאי' : `${availableStock} יחידות`}
                 </span>
               </div>
-            </div>
+            </div> */}
             
             {/* Quantity selector */}
             {product.stock > 0 && existingItem && (

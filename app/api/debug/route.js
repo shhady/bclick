@@ -15,7 +15,7 @@ export async function GET() {
     return NextResponse.json({
       totalOrders: count,
       latestOrders: latestOrders,
-      databaseHost: process.env.MONGODB_URI?.split('@')[1]?.split('/')[0],
+      databaseHost: process.env.DATABASE_URL?.split('@')[1]?.split('/')[0],
       timestamp: new Date().toISOString()
     });
   } catch (error) {
