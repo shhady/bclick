@@ -19,6 +19,7 @@ export default function AboutUs() {
         <h1 className="text-3xl font-bold">אודות</h1>
       </div>
 
+      {/* we are */}
       <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-2">מי אנחנו?</h2>
         <p className="text-lg leading-relaxed">
