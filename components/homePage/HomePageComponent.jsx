@@ -795,9 +795,21 @@ export default function HomePageComponent() {
                               </div>
                               
                               <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                                <div>
                                 <p className="text-gray-400 text-sm">
                                   © {new Date().getFullYear()} BClick. כל הזכויות שמורות.
                                 </p>
+                                <div>
+          <Link 
+  href="https://fikranova.com" 
+  target="_blank" 
+  rel="noopener noreferrer"
+>
+   פותח על ידי <span className="text-blue-500">Fikranova</span>
+</Link>
+          </div>
+                                </div>
+                               
                                 <div className="flex space-x-4 mt-4 md:mt-0">
                                   <a href="#" className="text-gray-400 hover:text-white transition-colors">
                                     <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
