@@ -51,13 +51,19 @@ export async function POST(request) {
       };
     });
 
+    // Calculate tax and totalAfterTax (rounded to 2 decimals)
+    const taxRate = 0.18;
+    const taxAmount = Number((total * taxRate).toFixed(2));
+    const totalAfterTax = Number((total + taxAmount).toFixed(2));
+
     // Create a new order
     const newOrder = new Order({
       clientId,
       supplierId,
       items: orderItems,
       total: total,
-      tax: 0.18, // 18% tax
+      totalAfterTax: totalAfterTax,
+      tax: taxRate, // 18% tax
       orderNumber: orderNumber,
       status: 'pending',
       notes: [{ message: 'הזמנה חדשה נוצרה' }]

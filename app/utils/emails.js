@@ -25,6 +25,15 @@ export async function sendNewOrderEmail(order, client, supplier) {
     `;
   }).join('');
 
+  // Totals breakdown
+  const subtotal = Number(order.total ?? 0);
+  const taxRate = typeof order.tax === 'number' ? order.tax : 0.18;
+  const taxPercent = Math.round(taxRate * 100);
+  const taxAmount = Number((subtotal * taxRate).toFixed(2));
+  const totalAfterTax = typeof order.totalAfterTax === 'number'
+    ? Number(order.totalAfterTax.toFixed(2))
+    : Number((subtotal + taxAmount).toFixed(2));
+
   const emailHtml = `
     <div dir="rtl">
       <h2>הזמנה חדשה התקבלה</h2>
@@ -51,8 +60,16 @@ export async function sendNewOrderEmail(order, client, supplier) {
         </tbody>
         <tfoot>
           <tr>
+            <td colspan="3" style="border: 1px solid black; padding: 8px; text-align: left;"><strong>סה"כ לפני מע"מ:</strong></td>
+            <td style="border: 1px solid black; padding: 8px; text-align: center;"><strong>₪${subtotal.toFixed(2)}</strong></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="border: 1px solid black; padding: 8px; text-align: left;"><strong>מע"מ (${taxPercent}%):</strong></td>
+            <td style="border: 1px solid black; padding: 8px; text-align: center;"><strong>₪${taxAmount.toFixed(2)}</strong></td>
+          </tr>
+          <tr>
             <td colspan="3" style="border: 1px solid black; padding: 8px; text-align: left;"><strong>סה"כ לתשלום:</strong></td>
-            <td style="border: 1px solid black; padding: 8px; text-align: center;"><strong>₪${order.total.toFixed(2)}</strong></td>
+            <td style="border: 1px solid black; padding: 8px; text-align: center;"><strong>₪${totalAfterTax.toFixed(2)}</strong></td>
           </tr>
         </tfoot>
       </table>
@@ -91,6 +108,15 @@ export async function sendOrderStatusEmail(order, client, supplier, note) {
     rejected: 'נדחתה'
   };
   
+  // Totals breakdown
+  const subtotal = Number(order.total ?? 0);
+  const taxRate = typeof order.tax === 'number' ? order.tax : 0.18;
+  const taxPercent = Math.round(taxRate * 100);
+  const taxAmount = Number((subtotal * taxRate).toFixed(2));
+  const totalAfterTax = typeof order.totalAfterTax === 'number'
+    ? Number(order.totalAfterTax.toFixed(2))
+    : Number((subtotal + taxAmount).toFixed(2));
+  
   try {
     const emailHtml = `
       <div dir="rtl">
@@ -119,7 +145,11 @@ export async function sendOrderStatusEmail(order, client, supplier, note) {
             `).join('')}
           </tbody>
         </table>
-        <p><strong>סה"כ להזמנה: ₪${order.total.toFixed(2)}</strong></p>
+        <div style="margin-top: 10px;">
+          <p><strong>סה"כ לפני מע"מ: ₪${subtotal.toFixed(2)}</strong></p>
+          <p><strong>מע"מ (${taxPercent}%): ₪${taxAmount.toFixed(2)}</strong></p>
+          <p><strong>סה"כ לתשלום: ₪${totalAfterTax.toFixed(2)}</strong></p>
+        </div>
         <div style="margin-top: 20px;">
           <a href="${process.env.NEXT_PUBLIC_APP_URL}/orders/${order._id}" style="background-color: #4a90e2; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">צפה בהזמנה</a>
         </div>

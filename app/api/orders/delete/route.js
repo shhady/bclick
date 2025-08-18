@@ -44,11 +44,11 @@ export async function DELETE(request) {
       );
     }
 
-    // Revert  stock for each product
+    // Revert stock for each product (add back the ordered quantities)
     const stockUpdatePromises = order.items.map(item => 
       Product.findByIdAndUpdate(
         item.productId._id,
-          { $inc: { stock: -item.quantity } },
+        { $inc: { stock: item.quantity } },
         { new: true }
       )
     );

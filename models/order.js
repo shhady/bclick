@@ -52,6 +52,10 @@ const OrderSchema = new Schema(
       type: Number,
       required: true,
     },
+    totalAfterTax: {
+      type: Number,
+      required: true,
+    },
     tax: {
       type: Number,
       required: true,
