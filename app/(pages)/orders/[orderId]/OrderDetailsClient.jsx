@@ -735,9 +735,9 @@ export default function OrderDetailsClient({ initialOrder }) {
         <h2 className="text-lg font-semibold mb-4">מוצרים</h2>
         <OrderTable items={order.items} />
         <div className="mt-6 text-left">
-          <p className="text-lg font-bold">סך הכל ללא מע"מ: ₪{order.total.toFixed(2)}</p>
-          <p className="text-lg font-bold">מע"מ: {order.tax * 100}%</p>
-          <p className="text-lg font-bold">סך הכל עם מע"מ: ₪{order.totalAfterTax.toFixed(2)}</p>
+          <p className="text-lg font-bold">סך הכל ללא מע&quot;מ: ₪{order.total.toFixed(2)}</p>
+          <p className="text-lg font-bold">מע&quot;מ: {order.tax * 100}%</p>
+          <p className="text-lg font-bold">סך הכל עם מע&quot;מ: ₪{order.totalAfterTax.toFixed(2)}</p>
         </div>
       </div>
 
