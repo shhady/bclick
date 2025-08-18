@@ -583,9 +583,18 @@ export default function CartClient({id}) {
                 <span>{totalItems}</span>
               </div>
               {carts.length > 0 && (
-                <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                  <span>סה&quot;כ לתשלום:</span>
-                  <span>₪{calculateCartTotal(carts[0])}</span>
+                <div className="font-bold text-lg pt-2 border-t gap-2">
+                  <div className="flex gap-2">
+                  <div>סה&quot;כ ללא מע&quot;מ:</div>
+                  <div>₪{calculateCartTotal(carts[0])}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div>מע&quot;מ: {0.18 * 100}%</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div>סה&quot;כ עם מע&quot;מ:</div>
+                    <div>₪{calculateCartTotal(carts[0]) * (1 + 0.18)}</div>
+                  </div>
                 </div>
               )}
             </div>
