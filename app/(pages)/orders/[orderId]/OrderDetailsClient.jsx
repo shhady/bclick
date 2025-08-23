@@ -113,7 +113,12 @@ const PrintContent = ({ order }) => (
 
     <div className="text-left">
       <h2 className="text-xl font-bold mb-2">סיכום</h2>
-      <p className="text-2xl font-bold">סה״כ לתשלום: ₪{order.total.toFixed(2)}</p>
+      <div className="space-y-1">
+        <p className="text-lg font-bold">סך הכל ללא מע&quot;מ: ₪{order.total.toFixed(2)}</p>
+        <p className="text-lg font-bold">מע&quot;מ: {order.tax * 100}% (₪{(order.total * order.tax).toFixed(2)})</p>
+        <p className="text-2xl font-bold">סה״כ לתשלום: ₪{order.totalAfterTax.toFixed(2)}</p>
+      </div>
+      
     </div>
   </div>
 );
