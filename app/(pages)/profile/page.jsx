@@ -20,18 +20,17 @@ export default async function Page() {
    
   let userFetched = null;
   try {
-    userFetched = userId ? await User.findById(userId)
-  .lean()
-  .populate({
-    path: 'relatedUsers.user',
-    select: 'name email phone address role profileImage businessName coverImage', // Specify fields to include
-  })
-  .populate({
-    path: 'orders', // Populate orders
-    select: '_id status', // Only include id and status
-  });
-    if (!userFetched) {
-        userFetched= null;
+    if (userId) {
+      userFetched = await User.findById(userId)
+        .populate({
+          path: 'relatedUsers.user',
+          select: 'name email phone address role profileImage businessName coverImage',
+        })
+        .populate({
+          path: 'orders',
+          select: '_id status',
+        })
+        .lean();
     }
   } catch (err) {
     console.error('Error fetching user:', err);

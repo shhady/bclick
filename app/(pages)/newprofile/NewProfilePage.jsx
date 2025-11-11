@@ -23,7 +23,6 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
     
     const requiredFields = [
       'businessName',
-      'businessNumber',
       'address',
       'country',
       'area',
