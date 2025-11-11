@@ -23,11 +23,8 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
     
     const requiredFields = [
       'businessName',
-      'address',
-      'country',
-      'area',
-      'city',
       'phone',
+      'city',
     ];
     
     return requiredFields.every((field) => userData[field] && userData[field].trim() !== '');

@@ -115,13 +115,12 @@ export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen
     };
 
     const newErrors = {};
-    ['businessName', 'businessNumber', 'address', 'country', 'area', 'city', 'phone'].forEach(
-      (field) => {
-        if (!currentFormData[field]) {
-          newErrors[field] = 'חובה';
-        }
+    // Required only: businessName, phone, city
+    ['businessName', 'phone', 'city'].forEach((field) => {
+      if (!currentFormData[field]) {
+        newErrors[field] = 'חובה';
       }
-    );
+    });
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -140,13 +139,16 @@ export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen
       <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
         <h2 className="text-2xl font-semibold text-center mb-4">עדכן פרופיל</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Regular form fields */}
+          {/* Regular required fields (ordered): businessName, phone */}
           {[
             { label: 'שם עסק', name: 'businessName' },
-            { label: 'ח.פ. / ע.מ', name: 'businessNumber' },
+            { label: 'טלפון', name: 'phone' },
           ].map((field) => (
             <div className="flex flex-col" key={field.name}>
-              <label className="block text-sm font-medium text-gray-700">{field.label}</label>
+              <label className="block text-sm font-medium text-gray-700">
+                <span className="ml-1 text-red-500">*</span>
+                <span>{field.label}</span>
+              </label>
               <input
                 type="text"
                 name={field.name}
@@ -154,7 +156,10 @@ export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen
                 onChange={handleChange}
                 className={`border ${
                   errors[field.name] ? 'border-red-500' : 'border-gray-300'
-                } rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-customBlue`}
+                } rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-customBlue ${
+                  field.name === 'phone' ? 'text-left direction-ltr' : ''
+                }`}
+                dir={field.name === 'phone' ? 'ltr' : 'rtl'}
                 placeholder={field.placeholder || ''}
               />
               {errors[field.name] && (
@@ -163,9 +168,12 @@ export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen
             </div>
           ))}
 
-          {/* City dropdown */}
+          {/* City dropdown (required) */}
           <div className="flex flex-col relative" ref={dropdownRef}>
-            <label className="block text-sm font-medium text-gray-700">עיר</label>
+            <label className="block text-sm font-medium text-gray-700">
+              <span className="ml-1 text-red-500">*</span>
+              <span>עיר</span>
+            </label>
             <div className="relative">
               <input
                 ref={inputRef}
@@ -227,7 +235,7 @@ export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen
             )}
           </div>
 
-          {/* Area dropdown */}
+          {/* Area dropdown (optional) */}
           <div className="flex flex-col relative" ref={areaDropdownRef}>
             <label className="block text-sm font-medium text-gray-700">אזור</label>
             <div className="relative">
@@ -247,16 +255,13 @@ export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen
                 ))}
               </select>
             </div>
-            {errors.area && (
-              <p className="text-red-500 text-sm mt-1">{errors.area}</p>
-            )}
+            {/* area is optional; do not show error */}
           </div>
 
-          {/* Remaining form fields */}
+          {/* Optional fields in desired order: address, businessNumber */}
           {[
             { label: 'כתובת', name: 'address' },
-            { label: 'טלפון', name: 'phone' },
-            { label: 'מדינה', name: 'country' },
+            { label: 'ח.פ. / ע.מ', name: 'businessNumber' },
           ].map((field) => (
             <div className="flex flex-col" key={field.name}>
               <label className="block text-sm font-medium text-gray-700">{field.label}</label>
@@ -273,9 +278,7 @@ export default function NewUpdateModal({ formData, setFormData, onSubmit, isOpen
                 dir={field.name === 'phone' ? 'ltr' : 'rtl'}
                 placeholder={field.placeholder || ''}
               />
-              {errors[field.name] && (
-                <p className="text-red-500 text-sm mt-1">{errors[field.name]}</p>
-              )}
+              {/* optional fields; no error display */}
             </div>
           ))}
 

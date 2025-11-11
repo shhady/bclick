@@ -466,8 +466,17 @@ export default function NewProfile({ formData, onEdit }) {
                 <MapPin size={18} className="text-green-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">כתובת</p>
-                <p className="font-medium">{addressToDisplay}, {cityToDisplay}</p>
+                {displayData?.address?.trim() ? (
+                  <>
+                    <p className="text-xs text-gray-500">כתובת</p>
+                    <p className="font-medium">{displayData.address.trim()}, {cityToDisplay}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-500">עיר</p>
+                    <p className="font-medium">{cityToDisplay}</p>
+                  </>
+                )}
               </div>
             </div>
             
