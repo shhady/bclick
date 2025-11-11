@@ -15,6 +15,7 @@ export default function SignUp() {
     isSupplier: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [info, setInfo] = useState({ type: '', text: '' });
   
   const router = useRouter();
   const { toast } = useToast();
@@ -34,11 +35,13 @@ export default function SignUp() {
     
     if (!name || !email || !password || !confirmPassword) {
       toast({ title: 'אנא מלא את כל השדות', variant: 'destructive' });
+      setInfo({ type: 'error', text: 'אנא מלא את כל השדות המסומנים.' });
       return;
     }
     
     if (password !== confirmPassword) {
       toast({ title: 'הסיסמאות אינן תואמות', variant: 'destructive' });
+      setInfo({ type: 'error', text: 'הסיסמאות אינן תואמות.' });
       return;
     }
     
@@ -55,11 +58,13 @@ export default function SignUp() {
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         toast({ title: data.error || 'יצירת החשבון נכשלה', variant: 'destructive' });
+        setInfo({ type: 'error', text: data.error || 'יצירת החשבון נכשלה. ייתכן שכבר קיים חשבון עם האימייל הזה.' });
         setIsLoading(false);
         return;
       }
       
       toast({ title: 'החשבון נוצר בהצלחה!' });
+      setInfo({ type: 'success', text: 'החשבון נוצר בהצלחה. נכנסים לחשבון...' });
       
       const signInResult = await signIn('credentials', {
         redirect: false,
@@ -69,6 +74,7 @@ export default function SignUp() {
       
       if (signInResult?.error) {
         toast({ title: 'התחברות לאחר הרשמה נכשלה', variant: 'destructive' });
+        setInfo({ type: 'error', text: 'התחברות לאחר הרשמה נכשלה. נסה להתחבר ידנית.' });
         setIsLoading(false);
         return;
       }
@@ -76,6 +82,7 @@ export default function SignUp() {
       router.push('/newprofile');
     } catch (error) {
       toast({ title: 'משהו השתבש. אנא נסה שוב.', variant: 'destructive' });
+      setInfo({ type: 'error', text: 'משהו השתבש. אנא נסה שוב.' });
     } finally {
       setIsLoading(false);
     }
@@ -97,6 +104,11 @@ export default function SignUp() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {info.text ? (
+            <div className={`mb-4 rounded-md p-3 text-sm ${info.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
+              {info.text}
+            </div>
+          ) : null}
           <div className="mb-6">
             <button
               type="button"

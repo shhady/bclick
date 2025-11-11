@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +11,8 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const [info, setInfo] = useState({ type: '', text: '' });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,6 +24,7 @@ export default function LoginPage() {
     const { email, password } = formData;
     if (!email || !password) {
       toast({ title: 'אנא הזן אימייל וסיסמה', variant: 'destructive' });
+      setInfo({ type: 'error', text: 'אנא הזן אימייל וסיסמה.' });
       return;
     }
     setIsLoading(true);
@@ -29,10 +32,33 @@ export default function LoginPage() {
     setIsLoading(false);
     if (res?.error) {
       toast({ title: 'אימייל או סיסמה שגויים', variant: 'destructive' });
+      setInfo({ type: 'error', text: 'אימייל או סיסמה שגויים. נסה שוב או אפס סיסמה.' });
       return;
     }
+    setInfo({ type: 'success', text: 'התחברת בהצלחה. מעביר לפרופיל...' });
     router.push('/newprofile');
   };
+
+  // Map NextAuth error query param to friendly Hebrew text
+  useEffect(() => {
+    const err = searchParams?.get('error');
+    if (!err) return;
+    const messages = {
+      OAuthSignin: 'שגיאה בהתחברות דרך ספק חיצוני. נסה שוב.',
+      OAuthCallback: 'שגיאה בתהליך ההתחברות. נסה שוב.',
+      OAuthCreateAccount: 'שגיאה ביצירת חשבון דרך ספק חיצוני.',
+      EmailCreateAccount: 'לא ניתן ליצור חשבון עם האימייל שסופק.',
+      Callback: 'שגיאה בעת עיבוד ההתחברות.',
+      OAuthAccountNotLinked: 'האימייל כבר קיים אך לא מקושר לספק זה. התחבר עם השיטה המקורית.',
+      EmailSignin: 'שגיאה בשליחת דוא״ל התחברות.',
+      CredentialsSignin: 'אימייל או סיסמה שגויים.',
+      AccessDenied: 'הגישה נדחתה.',
+      Configuration: 'תצורת התחברות שגויה.',
+      Default: 'אירעה שגיאה לא צפויה בהתחברות.',
+    };
+    const text = messages[err] || messages.Default;
+    setInfo({ type: 'error', text });
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -48,6 +74,11 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {info.text ? (
+            <div className={`mb-4 rounded-md p-3 text-sm ${info.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
+              {info.text}
+            </div>
+          ) : null}
           <div className="mb-6">
             <button
               type="button"
