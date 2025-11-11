@@ -176,3 +176,39 @@ export async function sendOrderStatusEmail(order, client, supplier, note) {
     return { success: false, error };
   }
 } 
+
+// Send email to supplier when a client requests to join
+export async function sendJoinRequestEmail(supplier, client, searchValue, redirectUrl) {
+  try {
+    const emailHtml = `
+      <div dir="rtl">
+        <h2>בקשת הצטרפות חדשה</h2>
+        <p>לקוח ביקש להצטרף כספק שלך.</p>
+        <h3>פרטי הלקוח:</h3>
+        <ul>
+          <li><strong>שם:</strong> ${client.name || '-'}</li>
+          <li><strong>שם עסק:</strong> ${client.businessName || '-'}</li>
+          <li><strong>אימייל:</strong> ${client.email || '-'}</li>
+          <li><strong>טלפון:</strong> ${client.phone || '-'}</li>
+        </ul>
+        <p>לחיפוש ואישור מהיר, לחץ על הכפתור הבא. שדה החיפוש יתמלא אוטומטית ב: ${searchValue || ''}</p>
+        <div style="margin-top: 20px;">
+          <a href="${redirectUrl}" style="background-color: #e11d48; color: white; padding: 10px 15px; text-decoration: none; border-radius: 6px;">
+            ניהול בקשה - הוסף לקוח
+          </a>
+        </div>
+      </div>
+    `;
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || `"B-Click" <${process.env.EMAIL_USER}>`,
+      to: supplier.email,
+      subject: `בקשת הצטרפות חדשה מאת ${client.businessName || client.name || 'לקוח'}`,
+      html: emailHtml,
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending join request email:', error);
+    return { success: false, error };
+  }
+}

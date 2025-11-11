@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUserCompat } from "@/hooks/useUserCompat";
 
 const NewUserContext = createContext();
 
@@ -19,6 +19,14 @@ const getStoredUserData = () => {
     const timestamp = window.sessionStorage.getItem(USER_TIMESTAMP_KEY);
     
     if (!userData || !timestamp) return null;
+
+    // Guard against invalid sentinel strings accidentally stored
+    const raw = typeof userData === 'string' ? userData.trim() : '';
+    if (!raw || raw === 'undefined' || raw === 'null') {
+      window.sessionStorage.removeItem(USER_STORAGE_KEY);
+      window.sessionStorage.removeItem(USER_TIMESTAMP_KEY);
+      return null;
+    }
     
     // Check if cache is still valid
     const isExpired = Date.now() - Number(timestamp) > CACHE_DURATION;
@@ -29,7 +37,13 @@ const getStoredUserData = () => {
     }
     
     // Parse the stored data
-    const parsedData = JSON.parse(userData);
+    // Only attempt parse if it looks like JSON
+    if (!(raw.startsWith('{') || raw.startsWith('['))) {
+      window.sessionStorage.removeItem(USER_STORAGE_KEY);
+      window.sessionStorage.removeItem(USER_TIMESTAMP_KEY);
+      return null;
+    }
+    const parsedData = JSON.parse(raw);
     return parsedData;
   } catch (error) {
     console.error('Error reading from session storage:', error);
@@ -105,7 +119,7 @@ const updateFailedRequest = (userId, increment = true) => {
 };
 
 export function NewUserProvider({ children }) {
-  const { isLoaded: isClerkLoaded, user: clerkUser } = useUser();
+  const { isLoaded: isClerkLoaded, user: clerkUser } = useUserCompat();
   const [newUser, setNewUserState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -123,9 +137,9 @@ export function NewUserProvider({ children }) {
   }, []);
 
   // Function to fetch fresh user data
-  const fetchUserData = useCallback(async (clerkId) => {
-    if (!clerkId) {
-      console.error('fetchUserData called without clerkId');
+  const fetchUserData = useCallback(async (identifier) => {
+    if (!identifier) {
+      console.error('fetchUserData called without identifier');
       setError('Missing user ID');
       setLoading(false);
       return;
@@ -133,7 +147,7 @@ export function NewUserProvider({ children }) {
     
     // Check if this request has failed too many times
     const failedRequests = getFailedRequests();
-    const failedRequest = failedRequests[clerkId];
+    const failedRequest = failedRequests[identifier];
     
     if (failedRequest) {
       // If we've tried too many times, back off
@@ -142,7 +156,7 @@ export function NewUserProvider({ children }) {
         const elapsed = Date.now() - failedRequest.timestamp;
         
         if (elapsed < backoffTime) {
-          console.warn(`Backing off fetch for user ${clerkId} - too many failed attempts`);
+          console.warn(`Backing off fetch for user ${identifier} - too many failed attempts`);
           setLoading(false);
           return;
         }
@@ -153,14 +167,14 @@ export function NewUserProvider({ children }) {
     }
     
     setLoading(true);
-    console.log(`Fetching user data for ${clerkId}...`);
+    console.log(`Fetching user data for ${identifier}...`);
     
     try {
-      const response = await fetch(`/api/users/get-user/${clerkId}`);
+      const response = await fetch(`/api/users/get-user/${identifier}`);
       
       if (response.status === 404) {
-        console.error(`User not found in database: ${clerkId}`);
-        updateFailedRequest(clerkId);
+        console.error(`User not found in database: ${identifier}`);
+        updateFailedRequest(identifier);
         setError('User not found in the database. Please contact support.');
         setLoading(false);
         return;
@@ -176,7 +190,7 @@ export function NewUserProvider({ children }) {
         }
         
         console.error('Error fetching user data:', errorData);
-        updateFailedRequest(clerkId);
+        updateFailedRequest(identifier);
         setError(errorData.message || `Failed to fetch user data: ${response.status}`);
         setLoading(false);
         return;
@@ -186,14 +200,14 @@ export function NewUserProvider({ children }) {
       
       if (!userData) {
         console.error('No user data returned from API');
-        updateFailedRequest(clerkId);
+        updateFailedRequest(identifier);
         setError('No user data found');
         setLoading(false);
         return;
       }
       
       // Reset failed request count on success
-      updateFailedRequest(clerkId, false);
+      updateFailedRequest(identifier, false);
       
       // Directly set the state with the received data
       setNewUserState(userData);
@@ -203,10 +217,10 @@ export function NewUserProvider({ children }) {
       
       // Reset error state
       setError(null);
-      console.log(`Successfully fetched user data for ${clerkId}`);
+      console.log(`Successfully fetched user data for ${identifier}`);
     } catch (error) {
       console.error('Error in fetchUserData:', error);
-      updateFailedRequest(clerkId);
+      updateFailedRequest(identifier);
       setError(error.message || 'An error occurred while fetching user data');
     } finally {
       setLoading(false);
@@ -222,14 +236,15 @@ export function NewUserProvider({ children }) {
       return;
     }
     
+    const email = user?.emailAddresses?.[0]?.emailAddress;
     // If we already have user data and it's the same user, don't refetch
-    if (newUser && newUser.clerkId === user.id) {
+    if (newUser && newUser.email?.toLowerCase() === email?.toLowerCase()) {
       setLoading(false);
       return;
     }
     
     // Fetch user data from the API
-    fetchUserData(user.id);
+    fetchUserData(email);
   }, [newUser, fetchUserData]);
 
   // Watch for user changes including logout
@@ -245,10 +260,11 @@ export function NewUserProvider({ children }) {
       // 1. We have a logged in user
       // 2. We're not currently loading data
       // 3. There are no active errors OR it's been at least 1 minute since the last retry
-      if (clerkUser?.id && !loading) {
+      if (clerkUser && !loading) {
+        const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
         const shouldRetryDespiteError = error && 
-          getFailedRequests()[clerkUser.id]?.timestamp && 
-          (Date.now() - getFailedRequests()[clerkUser.id].timestamp) > 60000;
+          getFailedRequests()[email]?.timestamp && 
+          (Date.now() - getFailedRequests()[email].timestamp) > 60000;
         
         if (!error || shouldRetryDespiteError) {
           processUserChange(clerkUser);

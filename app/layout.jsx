@@ -1,9 +1,8 @@
 import localFont from "next/font/local";
-import { ClerkProvider } from '@clerk/nextjs';
+
 import { CartProvider } from '@/app/context/CartContext';
 import { NewUserProvider } from '@/app/context/NewUserContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { heIL } from '@clerk/localizations';
 import { Rubik } from 'next/font/google';
 import Head from "next/head";
 import "./globals.css";
@@ -11,6 +10,7 @@ import BackButton  from "@/components/BackButton"; // Import the new component
 import ScrollToTop from "@/components/ScrollToTop";
 import { OrdersProvider } from './context/OrdersContext';
 import { UserProvider } from './context/UserContext';
+import AuthSessionProvider from './providers/AuthSessionProvider';
 const rubik = Rubik({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
@@ -89,8 +89,7 @@ export default function RootLayout({ children }) {
       </Head>
       <body className={`${rubik.className} bg-[#f8f8ff] mb-16 md:mb-0`}>
         <ScrollToTop />
-        <ClerkProvider localization={heIL}>
-       
+        <AuthSessionProvider>
           <ErrorBoundary>
           
                 <UserProvider>
@@ -105,8 +104,7 @@ export default function RootLayout({ children }) {
             </UserProvider>
            
           </ErrorBoundary>
-         
-        </ClerkProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

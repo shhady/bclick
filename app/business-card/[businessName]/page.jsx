@@ -1,6 +1,6 @@
 import { connectToDB } from '@/utils/database';
 import User from '@/models/user';
-import { currentUser } from '@clerk/nextjs/server';
+import { currentUser } from '@/utils/auth';
 import BusinessCardClient from './BusinessCardClient';
 import { notFound } from 'next/navigation';
 import mongoose from 'mongoose';
@@ -35,12 +35,12 @@ export default async function BusinessCardPage({ params }) {
   await connectToDB();
   const { businessName } = await params;
   
-  // Get the current user from Clerk
+  // Get the current authenticated user
   const user = await currentUser();
-  const clerkId = user?.id;
+  const sessionUserId = user?.id;
   
   // Fetch the viewer from our database to get their role and ID
-  const dbViewer = clerkId ? await User.findOne({ clerkId }).lean() : null;
+  const dbViewer = sessionUserId ? await User.findById(sessionUserId).lean() : null;
   const viewerRole = dbViewer?.role || 'guest'; // Default to guest if not found
   const viewerId = dbViewer?._id?.toString();
   

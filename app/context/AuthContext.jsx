@@ -1,13 +1,13 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { useUserCompat } from '@/hooks/useUserCompat';
 
 const AuthContext = createContext({});
 
 export function AuthProvider({ children }) {
-  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+  const { user: clerkUser, isLoaded: clerkLoaded } = useUserCompat();
   const [dbUser, setDbUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
         }
 
         try {
-          const response = await fetch(`/api/users/${clerkUser.id}`);
+          const response = await fetch(`/api/users/get-user/${clerkUser.id}`);
           if (response.ok) {
             const userData = await response.json();
             setDbUser(userData);
@@ -49,7 +49,7 @@ export function AuthProvider({ children }) {
       user: dbUser, 
       clerkUser,
       isLoading,
-      setDbUser, // Allow updating user data
+      setDbUser,
     }}>
       {children}
     </AuthContext.Provider>

@@ -5,23 +5,13 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema(
   {
-    // Clerk ID for syncing with Clerk authentication
-    clerkId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-
+ 
     // User role: Admin, Supplier, or Client
     role: {
       type: String,
       enum: ['admin', 'supplier', 'client'],
       required: true,
-    },
-    clientNumber: {
-      type: Number,
-      unique: true,
-      required: true,
+      default: 'client',
     },
     // Common fields
     name: {
@@ -30,7 +20,7 @@ const userSchema = new Schema(
     },
     phone: {
       type: String,
-      required: true,
+      required: false,
     },
     email: {
       type: String,
@@ -39,7 +29,11 @@ const userSchema = new Schema(
     },
     address: {
       type: String,
-      required: true,
+      required: false,
+    },
+    passwordHash: {
+      type: String,
+      required: false,
     },
     profileImage:{
       type: String, required: false
@@ -56,16 +50,16 @@ const userSchema = new Schema(
     // Area and location
     country: {
       type: String,
-      required: true,
+      required: false,
     },
     area: {
       type: String,
       default: 'all-areas',
-      required: true,
+      required: false,
     },
     city: {
       type: String,
-      required: true, 
+      required: false, 
     },
     // Related users (clients or suppliers)
     relatedUsers: [

@@ -1,13 +1,10 @@
-// import Clients from '@/components/supplierComponents/Clients';
+import Clients from '@/components/supplierComponents/Clients';
 import { connectToDB } from '@/utils/database';
 import User from '@/models/user';
 import Order from '@/models/order';
-import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import Loader from '@/components/loader/Loader';
 import mongoose from 'mongoose';
-
-const Clients = dynamic(() => import('@/components/supplierComponents/Clients'))
 
 export default async function SupplierPage({ params }) {
   const { id } = await params;

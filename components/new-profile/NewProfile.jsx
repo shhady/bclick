@@ -5,12 +5,11 @@ import { toast } from '@/hooks/use-toast';
 import { Camera, ImagePlus, MapPin, Phone, Building2, Mail, Edit, X, LogOut, CreditCard } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import NewProfileMenu from './NewProfileMenu';
-import { useClerk } from '@clerk/nextjs';
+import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 export default function NewProfile({ formData, onEdit }) {
   const { newUser, setNewUser, logout } = useNewUserContext();
-  const { signOut } = useClerk();
   const router = useRouter();
   const [displayData, setDisplayData] = useState(formData);
   const [isHovering, setIsHovering] = useState(false);
@@ -118,7 +117,7 @@ export default function NewProfile({ formData, onEdit }) {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          clerkId: newUser.clerkId,
+          email: newUser.email,
           coverImage: newImage,
         }),
       });
@@ -194,7 +193,7 @@ export default function NewProfile({ formData, onEdit }) {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          clerkId: newUser.clerkId,
+          email: newUser.email,
           profileImage: result.secure_url,
         }),
       });
@@ -238,11 +237,10 @@ export default function NewProfile({ formData, onEdit }) {
       // First clear the user context and session storage
       logout();
       
-      // Then sign out from Clerk
-      await signOut();
+      // Then sign out the session
+      await signOut({ callbackUrl: '/' });
       
-      // Finally navigate to home page
-      router.push('/');
+      // Navigation handled by callbackUrl
     } catch (error) {
       console.error('Error signing out:', error);
     }

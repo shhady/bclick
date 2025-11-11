@@ -1,5 +1,4 @@
 'use client';
-import { fetchProducts } from '@/app/actions/productActions';
 import Loader from '@/components/loader/Loader';
 import Image from 'next/image';
 import { useEffect, useState, useRef, useCallback, memo, useMemo } from 'react';
@@ -146,6 +145,10 @@ export default function PublicProductsOfCategory({ initialProducts = [], supplie
     page: 1,
     error: null
   });
+  const stateRef = useRef(loadingState);
+  useEffect(() => {
+    stateRef.current = loadingState;
+  }, [loadingState]);
   const observerRef = useRef();
   const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -157,7 +160,7 @@ export default function PublicProductsOfCategory({ initialProducts = [], supplie
 
   // Function to fetch products
   const fetchMoreProducts = useCallback(async (reset = false) => {
-    if (loadingState.loading) return;
+    if (stateRef.current.loading || (!reset && !stateRef.current.hasMore)) return;
     
     setLoadingState(prev => ({ 
       ...prev, 
@@ -167,14 +170,22 @@ export default function PublicProductsOfCategory({ initialProducts = [], supplie
     }));
     
     try {
-      const response = await fetchProducts({ 
-        supplierId, 
-        categoryId, 
-        page: reset ? 1 : loadingState.page,
-        limit 
+      const currentPage = reset ? 1 : stateRef.current.page;
+      const params = new URLSearchParams({
+        supplierId,
+        categoryId,
+        page: String(currentPage),
+        limit: String(limit),
       });
 
-      const { products: newProducts, pagination } = response;
+      const res = await fetch(`/api/products?${params.toString()}`, { method: 'GET' });
+      if (!res.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const data = await res.json();
+
+      const newProducts = data?.products || [];
+      const pagination = data?.pagination || { pages: 0, page: currentPage };
 
       if (!newProducts?.length) {
         setLoadingState(prev => ({ 
@@ -212,8 +223,7 @@ export default function PublicProductsOfCategory({ initialProducts = [], supplie
       });
 
       // Fix: Use the pagination data from the response to determine if there are more pages
-      const currentPage = reset ? 1 : loadingState.page;
-      const hasMorePages = currentPage < pagination.pages;
+      const hasMorePages = (pagination?.pages ?? 0) > currentPage;
 
       setLoadingState(prev => ({
         ...prev,
@@ -233,7 +243,7 @@ export default function PublicProductsOfCategory({ initialProducts = [], supplie
         hasMore: true
       }));
     }
-  }, [supplierId, categoryId, limit, loadingState.page, loadingState.loading]);
+  }, [supplierId, categoryId, limit]);
 
   // Initialize with initial products if provided
   useEffect(() => {
@@ -307,7 +317,7 @@ export default function PublicProductsOfCategory({ initialProducts = [], supplie
         currentObserver.unobserve(currentRef);
       }
     };
-  }, [loadingState.initialFetchDone, loadingState.loading, loadingState.hasMore, fetchMoreProducts]);
+  }, [loadingState.initialFetchDone, loadingState.loading, loadingState.hasMore]);
 
   const closeProductDetail = () => {
     setSelectedProduct(null);
@@ -337,7 +347,9 @@ export default function PublicProductsOfCategory({ initialProducts = [], supplie
           ))
         ) : (
           <div className="text-center mt-4">
-            <p className="text-gray-600">טוען מוצרים...</p>
+            <p className="text-gray-600">
+              {loadingState.loading ? 'טוען מוצרים...' : 'אין מוצרים להצגה'}
+            </p>
           </div>
         )}
 

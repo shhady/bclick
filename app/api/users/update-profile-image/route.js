@@ -6,19 +6,20 @@ export async function PUT(request) {
 
   try {
     const data = await request.json();
-    const { clerkId, profileImage } = data;
+    const { email, _id, profileImage } = data;
     
     
-    if (!clerkId) {
-      return new Response(JSON.stringify({ error: 'Clerk ID is required' }), { status: 400 });
+    if (!email && !_id) {
+      return new Response(JSON.stringify({ error: 'Email or _id is required' }), { status: 400 });
     }
     
     if (!profileImage) {
       return new Response(JSON.stringify({ error: 'Profile image is required' }), { status: 400 });
     }
 
+    const filter = email ? { email: email.toLowerCase() } : { _id };
     const updatedUser = await User.findOneAndUpdate(
-      { clerkId },
+      filter,
       { $set: { profileImage } },
       { new: true }
     ).populate({

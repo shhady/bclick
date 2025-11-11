@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('clerkId');
+    const id = searchParams.get('userId');
     
     if (!id) {
       return NextResponse.json({ error: 'Missing id parameter' }, { status: 400 });

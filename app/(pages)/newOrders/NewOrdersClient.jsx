@@ -20,7 +20,7 @@ export default function NewOrdersClient({ initialOrders }) {
     try {
       setIsLoading(true);
       const response = await fetch(
-        `/api/generalOrders?page=${page + 1}&limit=15&clerkId=${newUser.clerkId}`
+        `/api/generalOrders?page=${page + 1}&limit=15&userId=${newUser._id}`
       );
       const data = await response.json();
 

@@ -412,7 +412,7 @@ export default function CartClient({id}) {
               עליך להתחבר כדי לצפות בעגלת הקניות שלך ולהמשיך בתהליך הרכישה.
             </p>
             <Link
-              href="/sign-in"
+              href="/login"
               className="px-6 py-3 bg-customBlue text-white rounded-md hover:bg-blue-600 transition flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />

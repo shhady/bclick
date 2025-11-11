@@ -17,6 +17,10 @@ const ProductSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// Helpful indexes for catalog queries
+ProductSchema.index({ supplierId: 1, status: 1, createdAt: -1 });
+ProductSchema.index({ supplierId: 1, categoryId: 1 });
+
 const Product = mongoose.models?.Product || mongoose.model('Product', ProductSchema);
 export default Product;
 

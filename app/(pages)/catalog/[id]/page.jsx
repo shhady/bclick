@@ -2,7 +2,7 @@ import React from 'react';
 import { connectToDB } from '@/utils/database';
 import User from '@/models/user';
 import Category from '@/models/category';
-import { currentUser } from '@clerk/nextjs/server';
+import { currentUser } from '@/utils/auth';
 import Product from '@/models/product';
 import Favourite from '@/models/favourite';
 import Cart from '@/models/cart';
@@ -13,12 +13,12 @@ export default async function page({ params }) {
     await connectToDB();
     const { id } = await params;
     
-    // Get the current user from Clerk
+    // Get the current authenticated user (NextAuth)
     const user = await currentUser();
-    const clerkId = user?.id;
+    const sessionUserId = user?.id; // This is MongoDB _id string from NextAuth session
     
     // Fetch the user from our database to get their role and ID
-    const dbUser = clerkId ? await User.findOne({ clerkId }).lean() : null;
+    const dbUser = sessionUserId ? await User.findById(sessionUserId).lean() : null;
     const userRole = dbUser?.role || 'client'; // Default to client if not found
     const userId = dbUser?._id?.toString();
     
@@ -58,42 +58,29 @@ export default async function page({ params }) {
       redirect(`/catalog-preview /${supplier.businessName}`);
     }
     
-    // Fetch categories
-    const categories = await Category.find({ 
-      supplierId: id, 
-      status: 'shown' 
-    })
-      .select('name status order supplierId')
-      .lean();
-    
-    // Fetch initial products (first 20) - this is for server-side rendering
-    const initialProducts = await Product.find({ 
-      supplierId: id,
-      status: { $in: ['active', 'out_of_stock'] }
-    })
-      .populate('categoryId', 'name')
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .lean();
-    
-    // Initialize variables for client-specific data
-    let favorites = [];
-    let cart = null;
-    
-    // If the user is a client, fetch favorites and cart
-    if (userRole === 'client' && userId) {
-      // Fetch favorites
-      const favouritesDoc = await Favourite.findOne({ clientId: userId })
-        .populate('productIds', 'name price imageUrl categoryId supplierId stock')
-        .lean();
-      
-      favorites = favouritesDoc?.productIds || [];
-      
-      // Fetch cart
-      cart = await Cart.findOne({ clientId: userId, supplierId: id })
-        .populate('items.productId', 'name price stock imageUrl')
-        .lean();
-    }
+    // Fetch categories and products in parallel
+    const [categories, initialProducts, favouritesDoc, cart] = await Promise.all([
+      Category.find({ supplierId: id, status: 'shown' })
+        .select('name status order supplierId')
+        .lean(),
+      Product.find({ supplierId: id, status: { $in: ['active', 'out_of_stock'] } })
+        .populate('categoryId', 'name')
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .lean(),
+      userRole === 'client' && userId
+        ? Favourite.findOne({ clientId: userId })
+            .populate({ path: 'productIds', select: 'name price imageUrl categoryId supplierId stock', match: { supplierId: id } })
+            .lean()
+        : Promise.resolve(null),
+      userRole === 'client' && userId
+        ? Cart.findOne({ clientId: userId, supplierId: id })
+            .populate('items.productId', 'name price stock imageUrl')
+            .lean()
+        : Promise.resolve(null),
+    ]);
+
+    const favorites = favouritesDoc?.productIds || [];
     
     // Serialize the data
     const serializedSupplier = serializeSupplier(supplier);

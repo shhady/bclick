@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { useClerk } from '@clerk/nextjs';
+import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useNewUserContext } from '@/app/context/NewUserContext';
 import { MoreVertical, Edit, LogOut, Share2 } from 'lucide-react';
@@ -8,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function NewProfileMenu({ onEdit }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { signOut } = useClerk();
   const router = useRouter();
   const { logout, newUser } = useNewUserContext();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -19,11 +18,10 @@ export default function NewProfileMenu({ onEdit }) {
       // First clear the user context and session storage
       logout();
       
-      // Then sign out from Clerk
-      await signOut();
+      // Then sign out the session
+      await signOut({ callbackUrl: '/' });
       
-      // Finally navigate to home page
-      router.push('/');
+      // Navigation handled by callbackUrl
     } catch (error) {
       console.error('Error signing out:', error);
     }

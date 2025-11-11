@@ -89,14 +89,24 @@ export default function Clients({ clients, supplierId }) {
                 </p>
               )}
             </div>
-            <Link href={`/supplier/${supplierId}/add-client`} className="w-full md:w-auto">
-              <button 
-                className="w-full md:w-auto bg-customBlue text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-blue-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-sm sm:text-base"
-                suppressHydrationWarning
-              >
-                הוסף לקוח +
-              </button>
-            </Link>
+            <div className="flex gap-2 w-full md:w-auto">
+              <Link href={`/supplier/${supplierId}/add-client`} className="flex-1 md:flex-none">
+                <button 
+                  className="w-full md:w-auto bg-customBlue text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-blue-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-sm sm:text-base"
+                  suppressHydrationWarning
+                >
+                  הוסף לקוח +
+                </button>
+              </Link>
+              <Link href={`/supplier/${supplierId}/join-requests`} className="flex-1 md:flex-none">
+                <button 
+                  className="w-full md:w-auto bg-red-600 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-red-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-sm sm:text-base"
+                  suppressHydrationWarning
+                >
+                  בקשות הצטרפות
+                </button>
+              </Link>
+            </div>
           </div>
 
           {/* Enhanced Search Input */}

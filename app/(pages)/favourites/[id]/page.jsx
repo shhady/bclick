@@ -7,7 +7,7 @@ import Cart from '@/models/cart';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Loader from '@/components/loader/Loader';
-import { currentUser } from '@clerk/nextjs/server';
+import { currentUser } from '@/utils/auth';
 // Simple dynamic import without client-side only options
 const FavoriteProducts = dynamic(() => import('./FavoriteProducts'));
 
@@ -31,8 +31,8 @@ export default async function FavouritesPage({ params }) {
   try {
     await connectToDB();
 
-    // First, get the client's MongoDB ID from their Clerk ID
-    const client = await User.findOne({ clerkId: user.id });
+    // Get the client's MongoDB document by session user id
+    const client = await User.findById(user.id);
     if (!client) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4">

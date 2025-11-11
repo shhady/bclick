@@ -6,11 +6,13 @@ export async function PUT(request) {
 
   try {
     const data = await request.json();
-    const { clerkId, ...updateData } = data; // Use `clerkId` to identify the user
+    const { email, _id, ...updateData } = data; // Identify by email (preferred) or _id
     
     
+    const filter = email ? { email: email.toLowerCase() } : { _id };
+
     const updatedUser = await User.findOneAndUpdate(
-      { clerkId },
+      filter,
       { $set: updateData }, // Dynamically update provided fields
       { new: true } // Return the updated document
     ).populate({

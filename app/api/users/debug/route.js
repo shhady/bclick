@@ -8,7 +8,7 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const email = searchParams.get('email');
     const id = searchParams.get('id');
-    const clerkId = searchParams.get('clerkId');
+    const authId = searchParams.get('authId');
     
     let query = {};
     
@@ -16,11 +16,11 @@ export async function GET(req) {
       query.email = email;
     } else if (id) {
       query._id = id;
-    } else if (clerkId) {
-      query.clerkId = clerkId;
+    } else if (authId) {
+      query.authId = authId;
     } else {
       // If no specific query, return first 10 users for debugging
-      const users = await User.find().limit(10).select('_id name email phone clerkId role').lean();
+      const users = await User.find().limit(10).select('_id name email phone authId role').lean();
       return new Response(JSON.stringify({ 
         message: 'Showing first 10 users',
         count: users.length,
@@ -37,7 +37,7 @@ export async function GET(req) {
         // Try case-insensitive search
         const flexibleUsers = await User.find({ 
           email: { $regex: email, $options: 'i' } 
-        }).select('_id name email phone clerkId role').lean();
+        }).select('_id name email phone authId role').lean();
         
         return new Response(JSON.stringify({
           message: 'No exact match found, but found similar emails',

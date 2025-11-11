@@ -8,7 +8,7 @@ import Loader from '@/components/loader/Loader';
 // import SupplierProfile from '@/components/supplierComponents/SupplierProfile';
 // import ClientProfile from '@/components/clientComponents/ClientProfile';
 import { useUserContext } from "@/app/context/UserContext";
-import { useUser } from '@clerk/nextjs';
+import { useUserCompat as useUser } from '@/hooks/useUserCompat';
 import dynamic from 'next/dynamic';
 
 const Profile = dynamic(() => import('@/components/Profile'), {

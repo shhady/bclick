@@ -58,9 +58,8 @@ export default function NewProfilePage({ user, pendingOrdersCount, totalOrdersCo
     } else if (clerkUser) {
       // Create a new user object from Clerk if necessary
       const newUserData = {
-        clerkId: clerkUser.id,
-        name: clerkUser.fullName || '',
-        email: clerkUser.emailAddresses[0]?.emailAddress || '',
+        name: clerkUser.firstName || '',
+        email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
         role: 'client',
         profileImage: clerkUser.imageUrl || '',
         phone: '',

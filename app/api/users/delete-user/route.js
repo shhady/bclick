@@ -6,13 +6,13 @@ export async function DELETE(request) {
 
   try {
     const data = await request.json();
-    const { id, clerkId } = data;
+    const { id, email } = data;
 
-    if (!id && !clerkId) {
-      return new Response(JSON.stringify({ error: 'Either User ID or Clerk ID is required' }), { status: 400 });
+    if (!id && !email) {
+      return new Response(JSON.stringify({ error: 'Either User ID or email is required' }), { status: 400 });
     }
 
-    const query = id ? { _id: id } : { clerkId };
+    const query = id ? { _id: id } : { email: email.toLowerCase() };
     const deletedUser = await User.findOneAndDelete(query);
 
     if (!deletedUser) {

@@ -2,7 +2,7 @@ import React from 'react';
 import { connectToDB } from '@/utils/database';
 import User from '@/models/user';
 import Category from '@/models/category';
-import { currentUser } from '@clerk/nextjs/server';
+import { currentUser } from '@/utils/auth';
 import Product from '@/models/product';
 import { redirect, notFound } from 'next/navigation';
 import PublicCatalogPage from './PublicCatalogPage';
@@ -13,14 +13,15 @@ export default async function PublicCatalogByBusinessName({ params }) {
     await connectToDB();
     
     // Decode the business name parameter
-    const decodedBusinessName = decodeURIComponent(params.businessName);
+    const { businessName } = await params;
+    const decodedBusinessName = decodeURIComponent(businessName);
     
-    // Get the current user from Clerk
+    // Get the current authenticated user
     const user = await currentUser();
-    const clerkId = user?.id;
+    const sessionUserId = user?.id;
     
     // Fetch the viewer from our database to get their role and ID
-    const dbViewer = clerkId ? await User.findOne({ clerkId }).lean() : null;
+    const dbViewer = sessionUserId ? await User.findById(sessionUserId).lean() : null;
     const viewerRole = dbViewer?.role || 'guest'; // Default to guest if not found
     const viewerId = dbViewer?._id?.toString();
     
@@ -53,12 +54,13 @@ export default async function PublicCatalogByBusinessName({ params }) {
     
     const supplierId = supplier._id.toString();
     
-    // Check if the viewer is related to the supplier
-    let isRelated = false;
+    // Check if the viewer is related to the supplier and relation status
+    let relationStatus = null;
     if (viewerRole === 'client' && viewerId) {
-      isRelated = supplier.relatedUsers?.some(
+      const relation = supplier.relatedUsers?.find(
         relation => relation.user?.toString() === viewerId
       );
+      relationStatus = relation?.status || null;
     }
     
     // Fetch categories
@@ -91,7 +93,10 @@ export default async function PublicCatalogByBusinessName({ params }) {
         categories={serializedCategories}
         initialProducts={serializedProducts}
         clientId={viewerId}
-        isRelatedClient={isRelated}
+        isRelatedClient={relationStatus === 'active'}
+        isInactiveClient={relationStatus && relationStatus !== 'active'}
+        relationStatus={relationStatus}
+        viewerRole={viewerRole}
         supplierId={supplierId}
       />
     );

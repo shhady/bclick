@@ -7,20 +7,20 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 15;
-    const clerkId = searchParams.get('clerkId');
+    const userId = searchParams.get('userId');
     const skip = (page - 1) * limit;
 
-    if (!clerkId) {
+    if (!userId) {
       return NextResponse.json(
-        { message: 'Clerk ID is required' },
+        { message: 'userId is required' },
         { status: 400 }
       );
     }
 
     await connectToDB();
 
-    // Find user by clerkId and populate their orders
-    const user = await User.findOne({ clerkId })
+    // Find user by _id and populate their orders
+    const user = await User.findById(userId)
       .populate({
         path: 'orders',
         options: {
@@ -54,9 +54,7 @@ export async function GET(request) {
     }
 
     // Get total count of user's orders for pagination
-    const totalOrders = await User.findOne({ clerkId })
-      .populate('orders')
-      .then(user => user?.orders?.length || 0);
+    const totalOrders = await User.findById(userId).select('orders').lean().then(u => u?.orders?.length || 0);
 
     const hasMore = totalOrders > (skip + limit);
 

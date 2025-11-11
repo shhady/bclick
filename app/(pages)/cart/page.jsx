@@ -114,7 +114,7 @@ export default function CartPage() {
               עליך להתחבר כדי לצפות בעגלות הקניות שלך ולהמשיך בתהליך הרכישה.
             </p>
             <Link
-              href="/sign-in"
+              href="/login"
               className="px-6 py-3 bg-customBlue text-white rounded-md hover:bg-blue-600 transition flex items-center gap-2"
             >
               <span>התחבר</span>

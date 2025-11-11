@@ -1,5 +1,4 @@
 'use client';
-import { SignOutButton } from '@clerk/nextjs';
 import { CldUploadButton } from 'next-cloudinary';
 import Image from 'next/image';
 import { useUserContext } from "@/app/context/UserContext";

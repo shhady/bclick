@@ -1,11 +1,12 @@
 
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, Suspense, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useNewUserContext } from "@/app/context/NewUserContext";
 import { ShoppingBag, AlertCircle, ArrowLeft, Phone, MapPin } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 // import SupplierCover from '@/app/(pages)/client/[clientId]/supplier-catalog/[id]/SupplierCover';
 
 // Lazy load components
@@ -81,10 +82,29 @@ export default function PublicCatalogComponent({
   isRelatedClient,
   isInactiveClient,
   supplierId,
-  products
+  products,
+  relationStatus,
+  viewerRole
 }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState('all-products');
   const { newUser } = useNewUserContext();
+  const router = useRouter();
+
+  const handleRequestJoin = useCallback(async () => {
+    try {
+      const res = await fetch('/api/suppliers/request-join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ supplierId, phone: newUser?.phone || '' }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('Join request failed:', data?.error || 'Unknown error');
+      }
+    } catch (e) {
+      console.error('Join request exception:', e);
+    }
+  }, [supplierId, newUser?.phone]);
 
   return (
     <div className='mb-20 bg-[#f8f8ff]'>  
@@ -105,7 +125,7 @@ export default function PublicCatalogComponent({
           <div className="relative">
             <Suspense fallback={<SkeletonLoader type="details" />}>
             <div className="bg-white shadow-md rounded-lg p-4  transform -translate-y-6 mx-auto max-w-3xl">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between flex-col md:flex-row gap-4">
           <div className="flex items-start gap-4">
            
             <div>
@@ -120,6 +140,17 @@ export default function PublicCatalogComponent({
               </div>
             </div>
             </div>
+            {/* Request to join button for clients who are not active */}
+            {viewerRole === 'client' && relationStatus !== 'active' && (
+              <div className="flex items-center">
+                <button
+                  onClick={handleRequestJoin}
+                  className="bg-customBlue hover:bg-hoveredBlue text-white border border-black px-4 py-2 rounded-md"
+                >
+                  בקש להצטרף לספק
+                </button>
+              </div>
+            )}
             </div>
             </div>
             </Suspense>

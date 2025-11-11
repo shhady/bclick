@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useNewUserContext } from '@/app/context/NewUserContext';
 export default function AddClientPage() {
@@ -14,6 +14,7 @@ export default function AddClientPage() {
   const { newUser } = useNewUserContext();
   const router = useRouter();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
 
   const handleInputChange = (e) => {
     setSearchInput(e.target.value);
@@ -48,6 +49,19 @@ export default function AddClientPage() {
     }
     return phone;
   };
+
+  // Auto-fill search from query param q and auto-run search
+  useEffect(() => {
+    const q = searchParams?.get('q');
+    if (q) {
+      setSearchInput(q);
+      // allow state update flush then search
+      setTimeout(() => {
+        handleSearch();
+      }, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSearch = async () => {
     if (!searchInput.trim()) {

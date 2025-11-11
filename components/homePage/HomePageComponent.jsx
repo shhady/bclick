@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useUser } from '@clerk/nextjs';
+import { useUserCompat } from '@/hooks/useUserCompat';
 import { useRouter } from 'next/navigation';
 
 export default function HomePageComponent() {
@@ -16,7 +16,7 @@ export default function HomePageComponent() {
     reports: false,
     pricing: false
   });
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useUserCompat();
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
   
@@ -118,7 +118,7 @@ export default function HomePageComponent() {
             
             {/* Login Button (both desktop and mobile) */}
             <div>
-              <Link href="/sign-in" className="bg-customBlue hover:bg-blue-700 text-white px-6 py-2 rounded-full font-medium transition-colors duration-300">
+              <Link href="/login" className="bg-customBlue hover:bg-blue-700 text-white px-6 py-2 rounded-full font-medium transition-colors duration-300">
                 התחברות
               </Link>
             </div>
@@ -142,7 +142,7 @@ export default function HomePageComponent() {
               הדרך החכמה, המהירה והפשוטה לנהל קטלוג מוצרים ולהזמין בקליק
             </p>
             <div className="mt-10 flex flex-col sm:flex-row justify-center md:justify-end space-y-4 sm:space-y-0 sm:space-x-4 sm:space-x-reverse">
-              <Link href="/sign-up" className="bg-customBlue hover:bg-blue-700 text-white px-8 py-3 rounded-full font-medium text-lg transition-colors duration-300 shadow-lg hover:shadow-xl">
+              <Link href="/signup" className="bg-customBlue hover:bg-blue-700 text-white px-8 py-3 rounded-full font-medium text-lg transition-colors duration-300 shadow-lg hover:shadow-xl">
                 התחל עכשיו
               </Link>
               <a href="#how-it-works" className="bg-white hover:bg-gray-100 text-customBlue px-8 py-3 rounded-full font-medium text-lg transition-colors duration-300 border border-blue-200 shadow-md hover:shadow-lg">

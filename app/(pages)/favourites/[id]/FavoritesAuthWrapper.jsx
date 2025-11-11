@@ -44,7 +44,7 @@ export default function FavoritesAuthWrapper({ children, supplierId }) {
               עליך להתחבר כדי לצפות ברשימת המועדפים שלך.
             </p>
             <Link
-              href="/sign-in"
+              href="/login"
               className="px-6 py-3 bg-customBlue text-white rounded-md hover:bg-blue-600 transition flex items-center gap-2"
             >
               <span>התחבר</span>

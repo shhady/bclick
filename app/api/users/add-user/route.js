@@ -4,11 +4,11 @@ import { connectToDB } from '@/utils/database';
 export async function POST(req) {
     try {
         const data = await req.json();
-        const { clerkId } = data;
+        const { email } = data;
 
-        if (!clerkId) {
+        if (!email) {
             return new Response(
-                JSON.stringify({ error: 'Clerk ID is required' }),
+                JSON.stringify({ error: 'Email is required' }),
                 { status: 400 }
             );
         }
@@ -16,8 +16,15 @@ export async function POST(req) {
         // Connect to the database
         await connectToDB();
 
+        // Clean up legacy Clerk index if present (prevents E11000 on null clerkId)
+        try {
+            await User.collection.dropIndex('clerkId_1');
+        } catch (_) {
+            // ignore if index does not exist
+        }
+
         // Check if user already exists
-        let user = await User.findOne({ clerkId });
+        let user = await User.findOne({ email: email.toLowerCase() });
 
         if (user) {
             // Update existing user
@@ -26,18 +33,14 @@ export async function POST(req) {
             return new Response(JSON.stringify(user), { status: 200 });
         }
 
-        // If user doesn't exist, create new user with next client number
-        const lastUser = await User.findOne()
-            .sort({ clientNumber: -1 })
-            .collation({ locale: "en", numericOrdering: true })
-            .lean();
-
-        const nextClientNumber = lastUser?.clientNumber ? parseInt(lastUser.clientNumber) + 1 : 1;
+        // Drop legacy clientNumber index if present
+        try {
+            await User.collection.dropIndex('clientNumber_1');
+        } catch (_) {}
 
         // Create new user
         const newUser = await User.create({
             ...data,
-            clientNumber: nextClientNumber,
         });
 
         // If you need to populate fields, you need to fetch the user after creation

@@ -1,5 +1,5 @@
 import React from 'react';
-import { currentUser } from '@clerk/nextjs/server';
+import { currentUser } from '@/utils/auth';
 import User from '@/models/user';
 import { connectToDB } from '@/utils/database';
 import ClientProfileWrapper from './ClientProfileWrapper';
@@ -12,7 +12,7 @@ export default async function Page() {
    
   let userFetched = null;
   try {
-    userFetched = await User.findOne({ clerkId: userId })
+    userFetched = await User.findById(userId)
       .lean()
       .populate({
         path: 'relatedUsers.user',
@@ -24,11 +24,10 @@ export default async function Page() {
       });
     if (!userFetched) {
         userFetched= {
-            clerkId: userId,
             role:'client',
-            name: user?.firstName+ ' ' + user?.lastName,
-            profileImage: user?.imageUrl,
-            email:user?.emailAddresses[0].emailAddress,
+            name: `${user?.firstName || ''}`.trim(),
+            profileImage: user?.imageUrl || '',
+            email: user?.emailAddresses?.[0]?.emailAddress || '',
             coverImage: user?.coverImage,
         }
     }

@@ -1,5 +1,5 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 // In-memory rate limiting store
 const rateLimitStore = new Map();
@@ -41,15 +41,20 @@ function rateLimit(request) {
 }
 
 // Route matchers
-const PUBLIC_ROUTES = ['/sign-in(.*)', '/sign-up(.*)', '/sign-out(.*)', '/', '/catalog-preview(.*)', '/business-card(.*)'];
+const PUBLIC_ROUTES = ['/y(.*)', '/sign-up(.*)', '/sign-out(.*)', '/', '/catalog-preview(.*)', '/business-card(.*)', '/login(.*)', '/signup(.*)', '/api/auth(.*)'];
 const ADMIN_ROUTES = ['/admin(.*)'];
-const isPublicRoute = createRouteMatcher(PUBLIC_ROUTES);
-const isAdminRoute = createRouteMatcher(ADMIN_ROUTES);
+
+function isPathMatch(patterns, pathname) {
+  return patterns.some((pattern) => {
+    const regex = new RegExp(`^${pattern}$`);
+    return regex.test(pathname);
+  });
+}
 
 /**
  * Middleware handler
  */
-export default clerkMiddleware(async (auth, request) => {
+export default async function middleware(request) {
   // Apply rate limiting
   
   if (rateLimit(request)) {
@@ -71,23 +76,20 @@ export default clerkMiddleware(async (auth, request) => {
   }
 
   // Allow public routes without authentication
-  if (isPublicRoute(request)) {
+  if (isPathMatch(PUBLIC_ROUTES, request.nextUrl.pathname)) {
     return response;
   }
 
-  // Protect non-public routes
-  await auth.protect();
-
-  // Check admin role for admin routes
-  const { sessionClaims } = await auth();
-  if (isAdminRoute(request)) {
-    if (!isAdmin(sessionClaims)) {
-      return redirectToHome(request);
-    }
+  // Protect non-public routes with NextAuth token
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) {
+    const signInUrl = new URL('/login', request.url);
+    signInUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
+    return NextResponse.redirect(signInUrl);
   }
 
   return response;
-});
+}
 
 /**
  * Add security headers to the response
@@ -107,21 +109,8 @@ function addCacheHeaders(response) {
   response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
 }
 
-/**
- * Check if the user has an admin role
- */
-function isAdmin(sessionClaims) {
-  const role = sessionClaims.metadata?.role || 'client';
-  return role === 'admin';
-}
-
-/**
- * Redirect to home page
- */
-function redirectToHome(request) {
-  const homeUrl = new URL('/', request.url);
-  return NextResponse.redirect(homeUrl);
-}
+// Admin route handling can be reintroduced by enriching the NextAuth token
+// with role information and checking it here.
 
 // Middleware configuration
 export const config = {

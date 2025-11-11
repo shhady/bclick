@@ -8,5 +8,8 @@ const CategorySchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// Speed up supplier categories lookups
+CategorySchema.index({ supplierId: 1, status: 1 });
+
 const Category = mongoose.models?.Category || mongoose.model('Category', CategorySchema);
 export default Category;

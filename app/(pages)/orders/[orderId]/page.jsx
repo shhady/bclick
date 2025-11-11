@@ -1,17 +1,17 @@
 import { connectToDB } from '@/utils/database';
 import Order from '@/models/order';
-import { currentUser } from '@clerk/nextjs/server';
+import { currentUser } from '@/utils/auth';
 import OrderDetailsClient from './OrderDetailsClient';
 import { Suspense } from 'react';
 import { notFound, redirect } from 'next/navigation';
 import User from '@/models/user';
 
-async function getOrderData(orderId, clerkId) {
+async function getOrderData(orderId, userId) {
   try {
     await connectToDB();
     
     // First get the user to check permissions
-    const user = await User.findOne({ clerkId }).select('_id role').lean();
+    const user = await User.findById(userId).select('_id role').lean();
     if (!user) return null;
 
     const order = await Order.findById(orderId)
@@ -82,7 +82,7 @@ export default async function OrderPage({ params }) {
   const user = await currentUser();
 
   if (!user) {
-    redirect('/sign-in');
+    redirect('/login');
   }
 
   const orderData = await getOrderData(orderId, user.id);

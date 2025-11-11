@@ -14,5 +14,8 @@ const CartSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+// Compound index for frequent lookups
+CartSchema.index({ clientId: 1, supplierId: 1 });
+
 const Cart = mongoose.models?.Cart || mongoose.model('Cart', CartSchema);
 export default Cart;

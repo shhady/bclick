@@ -6,10 +6,10 @@ import { FaShoppingCart, FaUser, FaTags, FaList} from 'react-icons/fa';
 import { SlHandbag } from 'react-icons/sl';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useUserContext } from '@/app/context/UserContext';
+import { useMe } from '@/hooks/useMe';
+import { useSession } from 'next-auth/react';
 import { getCart } from '@/app/actions/cartActions';
 import { useCartContext } from '@/app/context/CartContext';
-import { useNewUserContext } from '@/app/context/NewUserContext';
 
 // Add this component before your main Navbar component
 const NavbarSkeleton = () => (
@@ -74,8 +74,8 @@ const Navbar = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showCartTooltip, setShowCartTooltip] = useState(false);
   const [supplierId, setSupplierId] = useState();
-  const { newUser } = useNewUserContext();
-  const { globalUser } = useUserContext();
+  const { me } = useMe();
+  const { data: session } = useSession();
   
   // Initialize with the stored count from localStorage
   const [pendingOrdersCount, setPendingOrdersCount] = useState(getLocalStorageCount());
@@ -120,9 +120,9 @@ const Navbar = () => {
   const calculatePendingOrders = useCallback(() => {
     debugLog('Calculating pending orders from user data');
     
-    // First try to use newUser if available
-    if (newUser?.orders && Array.isArray(newUser.orders)) {
-      const count = newUser.orders.filter(order => order.status === 'pending').length;
+    // Use current user profile if available
+    if (me?.orders && Array.isArray(me.orders)) {
+      const count = me.orders.filter(order => order.status === 'pending').length;
       
       // Only update if count is different from current count
       if (count !== pendingCountRef.current) {
@@ -130,17 +130,7 @@ const Navbar = () => {
       }
       return;
     }
-    
-    // Fall back to globalUser if newUser is not available
-    if (globalUser?.orders && Array.isArray(globalUser.orders)) {
-      const count = globalUser.orders.filter(order => order.status === 'pending').length;
-      
-      // Only update if count is different from current count
-      if (count !== pendingCountRef.current) {
-        updateCount(count, 'calculated');
-      }
-    }
-  }, [newUser?.orders, globalUser?.orders, updateCount, debugLog]);
+  }, [me?.orders, updateCount, debugLog]);
   
   // Function to fetch the latest orders count from the API with better rate limiting
   const fetchLatestOrdersCount = useCallback(async (userId, force = false) => {
@@ -168,7 +158,7 @@ const Navbar = () => {
     
     try {
       debugLog('Fetching latest orders count for user:', userId);
-      const response = await fetch(`/api/orders/pending-count?clerkId=${userId}`);
+      const response = await fetch(`/api/orders/pending-count?userId=${userId}`);
       if (!response.ok) throw new Error('Failed to fetch pending orders count');
       
       const data = await response.json();
@@ -185,25 +175,25 @@ const Navbar = () => {
   // Initial calculation when component mounts - IMPORTANT: use layout effect
   useLayoutEffect(() => {
     // Force immediate calculation from user data
-    if (newUser?.orders && Array.isArray(newUser.orders)) {
-      const count = newUser.orders.filter(order => order.status === 'pending').length;
+    if (me?.orders && Array.isArray(me.orders)) {
+      const count = me.orders.filter(order => order.status === 'pending').length;
       updateCount(count, 'initial-mount');
     }
     
     // Then fetch from API to ensure we have the latest data
-    if (newUser?._id) {
-      fetchLatestOrdersCount(newUser._id, true);
+    if (me?._id) {
+      fetchLatestOrdersCount(me._id, true);
     }
     
     // Set up interval to refresh count every 5 minutes
     const intervalId = setInterval(() => {
-      if (newUser?._id) {
-        fetchLatestOrdersCount(newUser._id, false);
+      if (me?._id) {
+        fetchLatestOrdersCount(me._id, false);
       }
     }, 300000); // Every 5 minutes
     
     return () => clearInterval(intervalId);
-  }, [newUser?._id, newUser?.orders, fetchLatestOrdersCount, updateCount]);
+  }, [me?._id, me?.orders, fetchLatestOrdersCount, updateCount]);
   
   useEffect(() => {
     if (id) {
@@ -237,6 +227,7 @@ const Navbar = () => {
 
   const isProfileOrOrders = pathName === '/newprofile' || pathName.includes('/orders') ;
   const isOrdersPage = pathName === '/orders';
+  const isCartPage = pathName?.includes('/cart/');
   
   const handlePopup = (message) => {
     setPopupMessage(message);
@@ -248,7 +239,7 @@ const Navbar = () => {
     if(supplierId){
       handleNavigation(`/catalog/${supplierId}`);
     }else{
-      handleNavigation(`/catalog/${newUser?._id}`);
+      handleNavigation(`/catalog/${me?._id}`);
     }
   };
 
@@ -310,12 +301,29 @@ const Navbar = () => {
   );
 
   const renderLinks = () => {
-    if (!newUser) return <div className='md:hidden'><Image src={'/bclick-logo.jpg'} alt='logo' width={100} height={100} className='h-[40px] w-fit'/></div>;
+    const sessionUser = session?.user ? { _id: session.user.id, role: session.user.role } : null;
+    const userForUI = me || sessionUser;
+    if (!userForUI) {
+      // Minimal fast-first render before profile loads
+      return (
+        <div className="flex items-center gap-6">
+          <Link href="/">
+            <Image src="/bclick-logo.jpg" alt="Logo" width={60} height={60} className="rounded-full" priority />
+          </Link>
+          {/* <Link href="/login" className="text-gray-700">{'התחברות'}</Link> */}
+        </div>
+      );
+    }
 
-    if (newUser.role === 'client') {
+    if (userForUI.role === 'client') {
       return (
         <>
           {renderClientNav()}
+          {/* Suppliers */}
+          <Link href="/suppliers" className={`flex flex-col items-center ${getIconColor('suppliers')}`}>
+            <FaList className="text-[20px] md:text-[28px]" />
+            <span className="text-xs md:text-base mt-1">ספקים</span>
+          </Link>
           {/* Orders */}
           <Link href="/orders" className={`flex flex-col items-center ${getIconColor('orders')}`}>
             <FaShoppingCart className="text-[20px] md:text-[28px]" />
@@ -335,8 +343,8 @@ const Navbar = () => {
         {/* Catalog */}
         <Link
           href={
-            newUser.role === 'supplier' 
-              ? `/catalog/${newUser._id}` 
+            userForUI.role === 'supplier' 
+              ? `/catalog/${userForUI._id}` 
               : isCartPage && supplierId
                 ? `/catalog/${supplierId}`
                 : '/catalog'
@@ -348,14 +356,22 @@ const Navbar = () => {
         </Link>
 
         {/* Clients */}
-        {newUser.role === 'supplier' && (
-          <Link
-            href={`/supplier/${newUser._id}/clients`}
-            className={`flex flex-col items-center ${getIconColor('client')}`}
-          >
-            <FaList className="text-[20px] md:text-[28px]" />
-            <span className="text-xs md:text-base mt-1">לקוחות</span>
-          </Link>
+        {userForUI.role === 'supplier' && (
+          <div className="relative">
+            <Link
+              href={`/supplier/${userForUI._id}/clients`}
+              className={`flex flex-col items-center ${getIconColor('client')}`}
+            >
+              <FaList className="text-[20px] md:text-[28px]" />
+              <span className="text-xs md:text-base mt-1">לקוחות</span>
+            </Link>
+            {/* Pending join requests badge */}
+            {Array.isArray(me?.relatedUsers) && me.relatedUsers.some(r => r.role === 'client' && r.status === 'pending') && (
+              <span className="absolute top-0 left-4 md:left-7 bg-customRed text-white rounded-full text-xs px-2">
+                {me.relatedUsers.filter(r => r.role === 'client' && r.status === 'pending').length}
+              </span>
+            )}
+          </div>
         )}
 
         {/* Orders */}

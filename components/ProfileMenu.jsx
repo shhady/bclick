@@ -2,12 +2,11 @@
 import React from 'react'
 import { Camera, SwitchCamera, Pencil, LogOut, View, MessageCircle, Copy, Share2 } from 'lucide-react';
 import { useState } from 'react';
-import { SignOutButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { SlHandbag } from "react-icons/sl";
 import { FaWhatsapp } from "react-icons/fa";
 import { useRouter } from 'next/navigation';
-import { useClerk } from '@clerk/nextjs';
+import { signOut } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 import { useUserContext } from "@/app/context/UserContext";
 
@@ -16,7 +15,6 @@ export default function ProfileMenu({onEdit}) {
     const [openMenu, setOpenMenu] = useState(false);
     const { globalUser, setGlobalUser, logout } = useUserContext();
     const router = useRouter();
-    const { signOut } = useClerk();
     const { toast } = useToast();
 
     const handleSignOut = async () => {
@@ -24,11 +22,8 @@ export default function ProfileMenu({onEdit}) {
         // First clear the user context and session storage using our logout function
         logout();
         
-        // Then sign out from Clerk
-        await signOut();
-        
-        // Finally navigate to home page
-        router.push('/');
+        // Then sign out the session
+        await signOut({ callbackUrl: '/' });
       } catch (error) {
         console.error('Error during sign out:', error);
       }

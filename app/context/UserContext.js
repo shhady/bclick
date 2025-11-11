@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUserCompat } from "@/hooks/useUserCompat";
 
 const UserContext = createContext();
 
@@ -56,7 +56,7 @@ const clearStoredUserData = () => {
 };
 
 export function UserProvider({ children }) {
-  const { isLoaded: isClerkLoaded, user: clerkUser } = useUser();
+  const { isLoaded: isClerkLoaded, user: clerkUser } = useUserCompat();
   const [globalUser, setGlobalUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -74,23 +74,34 @@ export function UserProvider({ children }) {
   }, []);
 
   // Function to fetch fresh user data
-  const fetchUserData = useCallback(async (clerkId) => {
-    if (!clerkId) return null;
+  const fetchUserData = useCallback(async (identifier) => {
+    if (!identifier) return null;
 
     try {
       setIsRefreshing(true);
-      const response = await fetch(`/api/users/get-user/${clerkId}`);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch user data');
+      const response = await fetch(`/api/users/get-user/${identifier}`);
+
+      const text = await response.text();
+      let parsed;
+      try {
+        parsed = text ? JSON.parse(text) : null;
+      } catch {
+        parsed = null;
       }
-      
-      const userData = await response.json();
-      setGlobalUser(userData);
-      storeUserData(userData);
+
+      if (!response.ok) {
+        const message = parsed?.error || `Failed to fetch user data (${response.status})`;
+        throw new Error(message);
+      }
+
+      if (!parsed) {
+        throw new Error('Failed to parse user data');
+      }
+
+      setGlobalUser(parsed);
+      storeUserData(parsed);
       setError(null);
-      return userData;
+      return parsed;
     } catch (err) {
       console.error("Error fetching user:", err);
       setError(err.message || "Failed to fetch user data");
@@ -115,12 +126,13 @@ export function UserProvider({ children }) {
       }
 
       const storedData = getStoredUserData();
-      if (storedData && storedData.clerkId === clerkUser.id) {
+      const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
+      if (storedData && (storedData._id === clerkUser.id || (email && storedData.email?.toLowerCase() === email.toLowerCase()))) {
         setGlobalUser(storedData);
         // Refresh in background
-        fetchUserData(clerkUser.id);
+        fetchUserData(email || clerkUser.id);
       } else {
-        await fetchUserData(clerkUser.id);
+        await fetchUserData(email || clerkUser.id);
       }
       
       setLoading(false);
@@ -130,8 +142,9 @@ export function UserProvider({ children }) {
 
     // Set up periodic background refresh
     const refreshInterval = setInterval(() => {
-      if (clerkUser?.id && !loading) {
-        fetchUserData(clerkUser.id);
+      if (clerkUser && !loading) {
+        const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
+        fetchUserData(email || clerkUser.id);
       }
     }, CACHE_DURATION / 2);
 

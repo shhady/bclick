@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { connectToDB } from '@/utils/database';
 // import NewOrdersClient from './NewOrdersClient';
 import Loader from '@/components/loader/Loader';
-import { currentUser } from '@clerk/nextjs/server';
+import { currentUser } from '@/utils/auth';
 import Orders from './Orders';
 import User from '@/models/user';
 import Order from '@/models/order';
@@ -18,7 +18,7 @@ export default async function NewOrdersPage() {
     await connectToDB();
     
     // Get the user's MongoDB document
-    const dbUser = await User.findOne({ clerkId: user.id });
+    const dbUser = await User.findById(user.id);
     if (!dbUser) {
       return null;
     }
