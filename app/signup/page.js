@@ -184,7 +184,7 @@ export default function SignUp() {
               </div>
             </div>
 
-            <div className="flex items-center">
+            {/* <div className="flex items-center">
               <input
                 id="isSupplier"
                 name="isSupplier"
@@ -196,7 +196,7 @@ export default function SignUp() {
               <label htmlFor="isSupplier" className="ml-2 block text-sm text-gray-700">
                 אני ספק
               </label>
-            </div>
+            </div> */}
 
             <div>
               <button
